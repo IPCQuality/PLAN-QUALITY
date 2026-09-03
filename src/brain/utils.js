@@ -43,12 +43,11 @@ export default {
     "cqi 16": ["8B", "9B", "7B"],
     "cqi 17": ["10B", "11B", "9B"],
     "cqi 19": ["OT"],
-    "cqi 21": ["2B", "3B", "1B"],
+    "cqi 21": ["0B", "4B"],
     "cqi 22": ["6B", "5B", "4B"],
     "cqi 23": ["6B", "7B", "5B"],
     "cqi 24": ["WW", "1C", "2C"],
     "cqi 25": ["7B", "8B", "9B"],
-    "cqi 26": ["0B", "4B"],
 
      // Line C (2 atau 3 workstation terdekat)
     "cqi 12": ["10B", "11B", "9B"],
@@ -82,12 +81,11 @@ export default {
     "cqi 18": ["Pouch"],
     "cqi 19": ["OT"],
     "cqi 20": ["Pouch", "Botol"],
-    "cqi 21": ["Sosoft"],
+    "cqi 21": ["Pouch", "Botol"],
     "cqi 22": ["12Ljumbo"],
     "cqi 23": ["12Ljumbo"],
     "cqi 24": ["WW", "Pouch"],
     "cqi 25": ["12Ljumbo", "SKLsct"],
-    "cqi 26": ["Botol", "Pouch"],
   },
 
   /**
@@ -497,9 +495,13 @@ export default {
         return false;
       }
 
-      // Validasi jumlah workstation Line C di CQI 24 (utamakan 1 workstation, maksimal 2 workstation)
+      // Validasi jumlah mesin pouch di CQI 24:
+      // - jika running 2 WW: maks 5 mesin pouch (dengan 1 NC/LS)
+      // - jika running 1 WW: maks 6 mesin pouch (dengan 1 NC/LS)
+      const wwInSlot = (slot.machines || []).filter((sm) => this.isWwMachine(sm)).length;
       const nonWwInSlot = (slot.machines || []).filter((sm) => !this.isWwMachine(sm));
-      if (nonWwInSlot.length >= 4) return false;
+      const maxPouchFor24 = wwInSlot >= 2 ? 5 : 6;
+      if (nonWwInSlot.length >= maxPouchFor24) return false;
       const mWs = this.getWorkstationKey(m).toUpperCase();
       const existingWs = new Set(
         nonWwInSlot.map((sm) => this.getWorkstationKey(sm).toUpperCase()),
@@ -818,27 +820,198 @@ export default {
     }
 
     // Khusus Mesin WW (CQI 24)
+    // ATURAN CQI 24:
+    // TANPA NONCORE/LS:
+    // - jika running 2, maka 2 mesin WW
+    // - jika running 1, maka 1 mesin WW dan 3 mesin pouch (total 4)
+    // DENGAN 1 NONCORE/LS:
+    // - jika running 2, maka 2 mesin WW dan 5 mesin pouch (total 7)
+    // - jika running 1, maka 1 mesin WW dan 6 mesin pouch (total 7)
     if (hasWw) {
+      const wwCount = machines.filter((m) => this.isWwMachine(m)).length;
+      const pouchCount = machines.filter((m) => !this.isWwMachine(m)).length;
+
+      if (wwCount >= 2) {
+        return {
+          type: "ww_2",
+          name: "WW (2 WW + Pouch)",
+          maxCoreOnly: 2, // jika running 2, tanpa NC/LS = 2 mesin WW
+          max1Nc: 7, // jika running 2, dengan 1 NC/LS = 2 WW + 5 pouch (total 7)
+          max2Nc: 7,
+          absoluteMax: 7,
+          getNeededNc: (count) => {
+            // Jika ada pouch ditambahkan (total mesin > 2), butuh 1 NC/LS
+            return count > 2 ? 1 : 0;
+          },
+          getMaxAllowed: (ncCount) => {
+            return ncCount >= 1 ? 7 : 2;
+          },
+        };
+      } else {
+        return {
+          type: "ww_1",
+          name: "WW (1 WW + Pouch)",
+          maxCoreOnly: 4, // jika running 1, tanpa NC/LS = 1 WW + 3 pouch (total 4)
+          max1Nc: 7, // jika running 1, dengan 1 NC/LS = 1 WW + 6 pouch (total 7)
+          max2Nc: 7,
+          absoluteMax: 7,
+          getNeededNc: (count) => {
+            // Jika pouch > 3 (total mesin > 4), butuh 1 NC/LS
+            return count > 4 ? 1 : 0;
+          },
+          getMaxAllowed: (ncCount) => {
+            return ncCount >= 1 ? 7 : 4;
+          },
+        };
+      }
+    }
+
+    // 1A. Cluster Hanya Pouch (murni Pouch - tanpa Botol, tanpa Sosoft, tanpa SKLsct, tanpa 12Ljumbo)
+    if (hasPouch && !hasBotol && !hasSosoft && !hasSklsct && !has12L) {
       return {
-        type: "ww",
-        name: "WW + APK Line C",
+        type: "hanya_pouch",
+        name: "hanya Pouch",
         maxCoreOnly: 4,
-        max1Nc: 8,
+        max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count) => (count > 4 ? 1 : 0),
-        getMaxAllowed: (ncCount) => (ncCount >= 1 ? 8 : 4),
+        getNeededNc: (count, mode = 1) => {
+          if (mode === 2) return count > 4 ? 1 : 0;
+          if (count > 6) return 2;
+          if (count > 4) return 1;
+          return 0;
+        },
+        getMaxAllowed: (ncCount, mode = 1) => {
+          if (ncCount >= 2 && mode === 1) return 8;
+          if (ncCount >= 1) return 6;
+          return 4;
+        },
       };
     }
 
-    // 3. Cluster sosoft + SKLsct
+    // 1B. Cluster Hanya Botol (murni Botol - tanpa Pouch, tanpa Sosoft, tanpa SKLsct, tanpa 12Ljumbo)
+    if (hasBotol && !hasPouch && !hasSosoft && !hasSklsct && !has12L) {
+      return {
+        type: "hanya_botol",
+        name: "hanya Botol",
+        maxCoreOnly: 4,
+        max1Nc: 6,
+        max2Nc: 8,
+        absoluteMax: 8,
+        getNeededNc: (count, mode = 1) => {
+          if (mode === 2) return count > 4 ? 1 : 0;
+          if (count > 6) return 2;
+          if (count > 4) return 1;
+          return 0;
+        },
+        getMaxAllowed: (ncCount, mode = 1) => {
+          if (ncCount >= 2 && mode === 1) return 8;
+          if (ncCount >= 1) return 6;
+          return 4;
+        },
+      };
+    }
+
+    // 1C. Cluster Pouch + Botol (2 cluster)
+    if (hasPouch && hasBotol && !hasSosoft && !hasSklsct && !has12L) {
+      return {
+        type: "pouch_botol",
+        name: "Pouch + Botol",
+        maxCoreOnly: 5,
+        max1Nc: 6,
+        max2Nc: 8,
+        absoluteMax: 8,
+        getNeededNc: (count, mode = 1) => {
+          if (mode === 2) return count > 5 ? 1 : 0;
+          if (count > 6) return 2;
+          if (count > 5) return 1;
+          return 0;
+        },
+        getMaxAllowed: (ncCount, mode = 1) => {
+          if (ncCount >= 2 && mode === 1) return 8;
+          if (ncCount >= 1) return 6;
+          return 5;
+        },
+      };
+    }
+
+    // 2. Cluster Sosoft (murni)
+    if (hasSosoft && !hasSklsct && !has12L && !hasPouch && !hasBotol) {
+      return {
+        type: "sosoft",
+        name: "Sosoft",
+        maxCoreOnly: 4,
+        max1Nc: 6,
+        max2Nc: 8,
+        absoluteMax: 8,
+        getNeededNc: (count, mode = 1) => {
+          if (mode === 2) return count > 4 ? 1 : 0;
+          if (count > 6) return 2;
+          if (count > 4) return 1;
+          return 0;
+        },
+        getMaxAllowed: (ncCount, mode = 1) => {
+          if (ncCount >= 2 && mode === 1) return 8;
+          if (ncCount >= 1) return 6;
+          return 4;
+        },
+      };
+    }
+
+    // 3. Cluster SKLsct (murni)
+    if (hasSklsct && !hasSosoft && !has12L && !hasPouch && !hasBotol) {
+      return {
+        type: "sklsct",
+        name: "SKLsct",
+        maxCoreOnly: 4,
+        max1Nc: 5,
+        max2Nc: 8,
+        absoluteMax: 8,
+        getNeededNc: (count, mode = 1) => {
+          if (mode === 2) return count > 4 ? 1 : 0;
+          if (count > 5) return 2;
+          if (count > 4) return 1;
+          return 0;
+        },
+        getMaxAllowed: (ncCount, mode = 1) => {
+          if (ncCount >= 2 && mode === 1) return 8;
+          if (ncCount >= 1) return 5;
+          return 4;
+        },
+      };
+    }
+
+    // 4. Cluster 12Ljumbo (murni)
+    if (has12L && !hasSosoft && !hasSklsct && !hasPouch && !hasBotol) {
+      return {
+        type: "12ljumbo",
+        name: "12Ljumbo",
+        maxCoreOnly: 4,
+        max1Nc: 6,
+        max2Nc: 8,
+        absoluteMax: 8,
+        getNeededNc: (count, mode = 1) => {
+          if (mode === 2) return count > 4 ? 1 : 0;
+          if (count > 6) return 2;
+          if (count > 4) return 1;
+          return 0;
+        },
+        getMaxAllowed: (ncCount, mode = 1) => {
+          if (ncCount >= 2 && mode === 1) return 8;
+          if (ncCount >= 1) return 6;
+          return 4;
+        },
+      };
+    }
+
+    // 5. Cluster sosoft + SKLsct (2 cluster)
     if (
       (hasSosoft && hasSklsct) ||
       (!hasSosoft && hasSklsct && !hasPouch && !hasBotol)
     ) {
       return {
         type: "sosoft_sklsct",
-        name: "sosoft + SKLsct",
+        name: "Sosoft + SKLsct",
         maxCoreOnly: 4,
         max1Nc: 6,
         max2Nc: 8,
@@ -857,14 +1030,14 @@ export default {
       };
     }
 
-    // 4. Cluster sosoft + 12Ljumbo
+    // 6. Cluster sosoft + 12Ljumbo (2 cluster)
     if (
       (hasSosoft && has12L) ||
       (!hasSosoft && has12L && !hasPouch && !hasBotol)
     ) {
       return {
         type: "sosoft_12ljumbo",
-        name: "sosoft + 12Ljumbo",
+        name: "Sosoft + 12Ljumbo",
         maxCoreOnly: 4,
         max1Nc: 6,
         max2Nc: 8,
@@ -883,71 +1056,48 @@ export default {
       };
     }
 
-    // 2. Cluster sosoft (murni)
-    if (hasSosoft && !hasSklsct && !has12L && !hasPouch && !hasBotol) {
+    // 7. Cluster SKLsct + 12Ljumbo (2 cluster)
+    if (hasSklsct && has12L && !hasSosoft && !hasPouch && !hasBotol) {
       return {
-        type: "sosoft",
-        name: "sosoft",
+        type: "sklsct_12ljumbo",
+        name: "SKLsct + 12Ljumbo",
         maxCoreOnly: 4,
-        max1Nc: 7,
-        max2Nc: 10,
-        absoluteMax: 10,
+        max1Nc: 6,
+        max2Nc: 8,
+        absoluteMax: 8,
         getNeededNc: (count, mode = 1) => {
           if (mode === 2) return count > 4 ? 1 : 0;
-          if (count > 7) return 2;
+          if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
         getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 10;
-          if (ncCount >= 1) return 7;
+          if (ncCount >= 2 && mode === 1) return 8;
+          if (ncCount >= 1) return 6;
           return 4;
         },
       };
     }
 
-    // 1. Cluster pouch + botol (atau pouch murni / botol murni)
-    if ((hasPouch || hasBotol) && !hasSosoft && !hasSklsct && !has12L) {
-      return {
-        type: "pouch_botol",
-        name: "pouch + botol",
-        maxCoreOnly: 5,
-        max1Nc: 8,
-        max2Nc: 10,
-        absoluteMax: 10,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 5 ? 1 : 0;
-          if (count > 8) return 2;
-          if (count > 5) return 1;
-          return 0;
-        },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 10;
-          if (ncCount >= 1) return 8;
-          return 5;
-        },
-      };
-    }
-
-    // 5. Cluster 12Ljumbo + Pouch (misal CQI 15, CQI 16, CQI 10)
+    // 8. Cluster 12Ljumbo + Pouch (2 cluster)
     if (has12L && hasPouch && !hasSosoft) {
       return {
         type: "12ljumbo_pouch",
         name: "12Ljumbo + Pouch",
-        maxCoreOnly: 4,
+        maxCoreOnly: 5,
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
         getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+          if (mode === 2) return count > 5 ? 1 : 0;
           if (count > 6) return 2;
-          if (count > 4) return 1;
+          if (count > 5) return 1;
           return 0;
         },
         getMaxAllowed: (ncCount, mode = 1) => {
           if (ncCount >= 2 && mode === 1) return 8;
           if (ncCount >= 1) return 6;
-          return 4;
+          return 5;
         },
       };
     }
@@ -1021,13 +1171,59 @@ export default {
   },
 
   /**
+   * Mengembalikan batas kapasitas 1 Core dasar tanpa Non-Core / Longshift:
+   * TANPA NONCORE/LS:
+   * - hanya 1 cluster: Sosoft, SKLsct, 12Ljumbo, Pouch, Botol = 4 mesin
+   * - 2 cluster: Sosoft+SKLsct, Sosoft+12Ljumbo, SKLsct+12Ljumbo = 4 mesin
+   * - 2 cluster: 12Ljumbo+Pouch, Pouch+Botol = 5 mesin
+   * - OT (CQI 19) : 2 mesin
+   * - WW (CQI 24) :
+   *   * jika running 2 WW: 2 mesin WW
+   *   * jika running 1 WW: 1 mesin WW dan 3 mesin pouch (total 4 mesin)
+   * @param {Object|Array} slotOrMachines
+   * @returns {number}
+   */
+  getBaseCoreCapacity(slotOrMachines) {
+    const machines = Array.isArray(slotOrMachines)
+      ? slotOrMachines
+      : (slotOrMachines && slotOrMachines.machines) || [];
+
+    if (slotOrMachines && slotOrMachines.cqiNum === "19") return 2;
+    if (slotOrMachines && slotOrMachines.cqiNum === "24") {
+      const wwCount = machines.filter((m) => this.isWwMachine(m)).length;
+      if (wwCount >= 2) return 2;
+      if (wwCount === 1) return 4;
+      return 4;
+    }
+
+    if (machines.length === 0) {
+      if (slotOrMachines && slotOrMachines.cqiNum) {
+        const cqiKey = "cqi " + slotOrMachines.cqiNum;
+        const prio = this.CQI_CLUSTER_PRIORITY_MAP[cqiKey] || [];
+        const p1 = String(prio[0] || "").toUpperCase();
+        const p2 = String(prio[1] || "").toUpperCase();
+        if (
+          (p1.includes("12L") && p2.includes("POUCH")) ||
+          (p1.includes("POUCH") && p2.includes("12L")) ||
+          (p1.includes("POUCH") && p2.includes("BOTOL")) ||
+          (p1.includes("BOTOL") && p2.includes("POUCH"))
+        ) {
+          return 5;
+        }
+      }
+      return 4;
+    }
+    return this.getClusterCapacityRule(machines).maxCoreOnly;
+  },
+
+  /**
    * Menghitung batas maksimal mesin yang BISA ditambahkan ke CQI secara aman,
-   * mempertimbangkan ketersediaan sisa manpower Non-Core / Longshift.
+   * mempertimbangkan ketersediaan sisa manpower Non-Core / Longshift (maksimal 8 mesin).
    * @param {Object} slot - Slot CQI
    * @param {number} mode - Mode Beban (1 atau 2)
    * @param {number} totalNcPool - Total ketersediaan Non-Core + Longshift (angka)
    * @param {Array} allSlots - Seluruh slot aktif
-   * @returns {number} Limit dinamis mesin (misal: 4, 6, 8, atau 10)
+   * @returns {number} Limit dinamis mesin (misal: 4, 6, atau 8)
    */
   getDynamicSlotLimit(slot, mode, totalNcPool, allSlots) {
     const rule = this.getClusterCapacityRule(slot);
@@ -1036,7 +1232,7 @@ export default {
     if (slot.cqiNum === "24") return 8; // WW sudah diamankan di force expansion
 
     const currentCount = slot.machines.length;
-    let limit = rule.maxCoreOnly;
+    let limit = Math.min(8, rule.maxCoreOnly);
 
     // Hitung berapa NC yang sudah terpakai/direserve oleh SEMUA slot sejauh ini
     let globalNeeded = 0;
@@ -1052,22 +1248,22 @@ export default {
     const availableNc = totalNcPool - globalNeeded;
 
     // Jika belum butuh extra NC (atau mau nambah di batas 1 Core), aman
-    if (availableNc <= 0) return Math.max(currentCount, limit);
+    if (availableNc <= 0) return Math.min(8, Math.max(currentCount, limit));
 
     // Hitung kebutuhan NC saat ini vs untuk batas berikutnya
     const currentSlotNeeded = rule.getNeededNc(currentCount, mode);
     const neededForMax1 = rule.getNeededNc(rule.max1Nc, mode) - currentSlotNeeded;
     
     if (neededForMax1 > 0 && availableNc >= neededForMax1) {
-      limit = rule.max1Nc;
+      limit = Math.min(8, rule.max1Nc);
       
       const neededForMax2 = rule.getNeededNc(rule.max2Nc, mode) - currentSlotNeeded - neededForMax1;
       if (neededForMax2 > 0 && (availableNc - neededForMax1) >= neededForMax2) {
-        limit = rule.max2Nc;
+        limit = Math.min(8, rule.max2Nc);
       }
     }
     
-    return Math.max(currentCount, limit);
+    return Math.min(8, Math.max(currentCount, limit));
   },
 
   /**

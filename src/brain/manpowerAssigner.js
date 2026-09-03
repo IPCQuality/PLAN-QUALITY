@@ -122,8 +122,12 @@ export default {
   },
 
   /**
-   * Mendistribusikan Non-Core & Longshift (LS) ke slot CQI aktif
-   * Non-Core sesuai urutan config.html, dan LS HANYA mengisi sisa kekosongan Non-Core
+   * TAHAP 4 & 5 (Lanjutan 2 & 3): IDENTIFIKASI KEBUTUHAN NC/LS & ALOKASI PERSONEL
+   *
+   * 2. Identifikasi CQI yang membutuhkan NC/LS
+   *    (mesin > kapasitas 1 Core dasar dari cluster terkait).
+   * 3. Tambahkan NC terlebih dahulu sesuai urutan, jika masih kurang tambahkan LS.
+   *    (LS: Noncore Longshift kedudukannya sama dengan Noncore).
    */
   assignNonCoreAndLongshift(activeSlots, config, mode, engine) {
     if (!Array.isArray(activeSlots) || activeSlots.length === 0) {
@@ -161,87 +165,139 @@ export default {
     activeSlots.forEach((s) => {
       s.nonCore = [];
       s.longshift = [];
+      s.neededNcLs = 0;
     });
 
-    // CQI 24 dengan tambahan Pouch wajib 1 NC terlebih dahulu jika ada nonCorePool
-    const slot24 = activeSlots.find((s) => s.cqiNum === "24");
-    if (slot24 && slot24.pouchAddedToWw) {
-      if (nonCorePool.length > 0) {
-        slot24.nonCore.push(nonCorePool.shift());
-      }
-    }
-
-    // 1. Kebutuhan dasar Non-Core per slot secara sekuensial HANYA menggunakan Non-Core pool
+    // -------------------------------------------------------------------------
+    // LANGKAH 2: IDENTIFIKASI CQI YANG MEMBUTUHKAN NC/LS
+    // Dihitung berdasarkan beban mesin terhadap kapasitas 1 Core dasar per cluster:
+    // - hanya 1 cluster: Sosoft, SKLsct, 12Ljumbo, Pouch, Botol = 4 mesin
+    // - 2 cluster: Sosoft+SKLsct, Sosoft+12Ljumbo, SKLsct+12Ljumbo = 4 mesin
+    // - 2 cluster: 12Ljumbo+Pouch, Pouch+Botol = 5 mesin
+    // - OT (CQI 19): 2 mesin (tidak butuh NC/LS)
+    // - CQI 24 (WW):
+    //   * jika running 2 WW: tanpa NC/LS = 2 WW. Jika ada pouch (pouch > 0), butuh 1 NC/LS
+    //   * jika running 1 WW: tanpa NC/LS = 1 WW + 3 pouch. Jika pouch > 3, butuh 1 NC/LS
+    // -------------------------------------------------------------------------
     activeSlots.forEach((slot) => {
-      const count = slot.machines.length;
-      const rule = engine.getClusterCapacityRule(slot);
-      const neededNc = rule.getNeededNc(count, mode);
+      if (slot.cqiNum === "19") {
+        slot.neededNcLs = 0;
+        return;
+      }
 
+      const count = slot.machines.length;
+      const baseCap = engine.getBaseCoreCapacity(slot);
+      const rule = engine.getClusterCapacityRule(slot);
+      let needed = rule.getNeededNc(count, mode);
+
+      if (slot.cqiNum === "24") {
+        const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
+        const pouchIn24 = slot.machines.filter((m) => !engine.isWwMachine(m)).length;
+        if (wwIn24 >= 2) {
+          needed = pouchIn24 > 0 ? 1 : 0;
+        } else if (wwIn24 === 1) {
+          needed = pouchIn24 > 3 ? 1 : 0;
+        } else {
+          needed = count > baseCap ? 1 : 0;
+        }
+      }
+
+      if (count > baseCap) {
+        if (mode === 1 && count > rule.max1Nc) {
+          needed = Math.max(needed, 2);
+        } else {
+          needed = Math.max(needed, 1);
+        }
+      }
+
+      slot.neededNcLs = Math.min(maxNcPerCqi, needed);
+    });
+
+    // -------------------------------------------------------------------------
+    // LANGKAH 3: TAMBAHKAN NC TERLEBIH DAHULU SESUAI URUTAN,
+    // JIKA MASIH KURANG TAMBAHKAN LS.
+    // -------------------------------------------------------------------------
+    const needySlots = activeSlots.filter((s) => s.neededNcLs > 0);
+
+    // Urutkan slot yang membutuhkan NC/LS berdasarkan selisih beban terbesar
+    needySlots.sort((a, b) => {
+      const excessA = a.machines.length - engine.getBaseCoreCapacity(a);
+      const excessB = b.machines.length - engine.getBaseCoreCapacity(b);
+      if (excessB !== excessA) return excessB - excessA;
+      const numA = parseInt(a.cqiNum || 99, 10);
+      const numB = parseInt(b.cqiNum || 99, 10);
+      return numA - numB;
+    });
+
+    // 3A. Tambahkan NC terlebih dahulu sesuai urutan ke CQI yang membutuhkan
+    needySlots.forEach((slot) => {
       while (
-        slot.nonCore.length < neededNc &&
-        slot.nonCore.length < maxNcPerCqi &&
+        slot.nonCore.length + slot.longshift.length < slot.neededNcLs &&
         nonCorePool.length > 0
       ) {
         slot.nonCore.push(nonCorePool.shift());
       }
     });
 
-    const getDynamicMaxNc = (slot, mode) => {
-      const rule = engine.getClusterCapacityRule(slot);
-      const count = slot.machines.length;
-      if (mode === 1) {
-        if (count > rule.max1Nc) return 2;
-        if (count > rule.maxCoreOnly) return 1;
-        if (count === rule.maxCoreOnly && rule.max1Nc > rule.maxCoreOnly) return 1;
-        return 0;
-      } else {
-        if (count > rule.maxCoreOnly) return 1;
-        return 0;
-      }
-    };
-
-    // 2. Distribusi sisa Non-Core Pool jika masih ada Non-Core yang belum terpakai
-    while (nonCorePool.length > 0) {
-      const eligibleSlots = activeSlots.filter(
-        (s) =>
-          s.nonCore.length < getDynamicMaxNc(s, mode) &&
-          s.nonCore.length < maxNcPerCqi,
-      );
-      if (eligibleSlots.length === 0) break;
-
-      eligibleSlots.sort((a, b) => {
-        const loadA =
-          a.machines.length / (a.core + a.nonCore.length + 0.1);
-        const loadB =
-          b.machines.length / (b.core + b.nonCore.length + 0.1);
-        return loadB - loadA;
-      });
-
-      eligibleSlots[0].nonCore.push(nonCorePool.shift());
-    }
-
-    // 3. Longshift (LS) HANYA mengisi sisa kekosongan Non-Core yang belum terpenuhi
-    if (slot24 && slot24.pouchAddedToWw && slot24.nonCore.length === 0 && slot24.longshift.length === 0) {
-      if (lsPool.length > 0) {
-        slot24.longshift.push(lsPool.shift());
-      }
-    }
-
-    activeSlots.forEach((slot) => {
-      const count = slot.machines.length;
-      const rule = engine.getClusterCapacityRule(slot);
-      const neededNc = rule.getNeededNc(count, mode);
-
+    // 3B. Jika masih kurang (NC habis), tambahkan LS (kedudukan sama dengan NC)
+    needySlots.forEach((slot) => {
       while (
-        slot.nonCore.length + slot.longshift.length < neededNc &&
-        slot.nonCore.length + slot.longshift.length < maxNcPerCqi &&
+        slot.nonCore.length + slot.longshift.length < slot.neededNcLs &&
         lsPool.length > 0
       ) {
         slot.longshift.push(lsPool.shift());
       }
     });
 
-    // 4. Jika masih ada sisa LS Pool, distribusikan ke slot eligible yang membutuhkan beban tambahan
+    // -------------------------------------------------------------------------
+    // DISTRIBUSI SISA NC & LS (JIKA MASIH ADA SISA MANPOWER)
+    // Ditambahkan ke CQI dengan beban tertinggi yang masih di bawah maxNcPerCqi
+    // -------------------------------------------------------------------------
+    const getDynamicMaxNc = (slot, curMode) => {
+      if (slot.cqiNum === "19") return 0;
+      if (slot.cqiNum === "24") {
+        const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
+        const pouchIn24 = slot.machines.filter((m) => !engine.isWwMachine(m)).length;
+        if (wwIn24 >= 2) {
+          return pouchIn24 > 0 ? 1 : 0;
+        } else if (wwIn24 === 1) {
+          return pouchIn24 > 3 ? 1 : 0;
+        }
+        return 1;
+      }
+      const rule = engine.getClusterCapacityRule(slot);
+      const count = slot.machines.length;
+      if (curMode === 1) {
+        if (count > rule.max1Nc) return 2;
+        if (count >= rule.maxCoreOnly) return 1;
+        return 0;
+      } else {
+        if (count >= rule.maxCoreOnly) return 1;
+        return 0;
+      }
+    };
+
+    // Sisa Non-Core Pool terlebih dahulu
+    while (nonCorePool.length > 0) {
+      const eligibleSlots = activeSlots.filter(
+        (s) =>
+          s.nonCore.length + s.longshift.length < getDynamicMaxNc(s, mode) &&
+          s.nonCore.length + s.longshift.length < maxNcPerCqi,
+      );
+      if (eligibleSlots.length === 0) break;
+
+      eligibleSlots.sort((a, b) => {
+        const loadA =
+          a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
+        const loadB =
+          b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
+        return loadB - loadA;
+      });
+
+      eligibleSlots[0].nonCore.push(nonCorePool.shift());
+    }
+
+    // Sisa LS Pool jika NC sudah habis
     while (lsPool.length > 0) {
       const eligibleSlots = activeSlots.filter(
         (s) =>
@@ -252,11 +308,9 @@ export default {
 
       eligibleSlots.sort((a, b) => {
         const loadA =
-          a.machines.length /
-          (a.core + a.nonCore.length + a.longshift.length + 0.1);
+          a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
         const loadB =
-          b.machines.length /
-          (b.core + b.nonCore.length + b.longshift.length + 0.1);
+          b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
         return loadB - loadA;
       });
 

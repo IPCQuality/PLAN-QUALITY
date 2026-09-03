@@ -1,0 +1,15 @@
+{
+  "name": "planing-maker",
+  "version": "1.0.0",
+  "description": "AI Assisted CQI Machine Planning System",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'No build required for static assets'",
+    "lint": "node --check server.js && node --check src/brain/index.js && node --check src/brain/core.js && node --check src/brain/utils.js && node --check src/brain/blockAllocator.js && node --check src/brain/manpowerAssigner.js && node --check src/brain/validator.js && node --check src/brain/formatter.js && node --check src/brain/unassignedFitter.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

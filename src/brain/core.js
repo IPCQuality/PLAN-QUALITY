@@ -80,11 +80,34 @@ export default {
       nonCore: [],
       longshift: [],
       pouchAddedToWw: false,
-      maxAllowedMachines: maxSlotCapacity,
+      maxAllowedMachines: 8,
     }));
 
-    // --- TAHAP 3: ALOKASI MESIN RUNNING KE CQI (HUMAN-LIKE AFFINITY & WORKSTATION BLOCKING) ---
-    const { generalSlots, slot24 } = blockAllocator.allocateMachinesToSlots(
+    // Saring slot aktif dan urutkan berdasarkan nomor CQI (CQI 1, CQI 2, CQI 3...)
+    slots.sort((a, b) => {
+      const numA = parseInt(a.cqiNum, 10) || 999;
+      const numB = parseInt(b.cqiNum, 10) || 999;
+      return numA - numB;
+    });
+
+    // Pasangkan Core manpower (1 Core per CQI aktif)
+    manpowerAssigner.assignCorePersonnel(slots, coreList, this);
+
+    // -------------------------------------------------------------------------
+    // TAHAP 2: PEMBENTUKAN PLANING SEMENTARA (1 Core per Cluster tanpa Noncore)
+    // Aturan kapasitas dasar 1 Core:
+    // - Sosoft: 1 Core 4 mesin, tanpa noncore
+    // - SKLsct: 1 Core 4 mesin, tanpa noncore
+    // - 12Ljumbo: 1 Core 4 mesin, tanpa noncore
+    // - hanya Pouch: 1 Core 5 mesin, tanpa noncore
+    // - Pouch+Botol: 1 Core 4 mesin, tanpa noncore
+    // - OT (CQI 19): 1 Core 2 mesin (M2, M3)
+    // - WW (CQI 24): 1 Core 4 mesin WW
+    // Sesuai workstation masing-masing (Line A CQI 1 -> 1A, dll.)
+    // atau sesuai cqiprioritymap dan cqiclusterpriority.
+    // Menghasilkan Planing Sementara (banyak mesin belum tercover).
+    // -------------------------------------------------------------------------
+    blockAllocator.allocateTemporaryPlan(
       slots,
       runningMachines,
       config,
@@ -92,63 +115,37 @@ export default {
       this,
     );
 
-    // --- TAHAP 3.5: INTRA-LINE LOAD BALANCING & OVERFLOW APK LINE C (OPTIMASI JARAK PUTARAN 1) ---
-    let ncCount = 0;
-    if (Array.isArray(config.nonCoreData) && config.nonCoreData.length > 0) {
-      ncCount = config.nonCoreData.length;
-    } else if (Array.isArray(config.nonCoreNames)) {
-      ncCount = config.nonCoreNames.length;
-    }
-    const lsCount = parseInt(config.longshift || 0, 10);
-    const totalNcPool = ncCount + lsCount;
+    // Simpan snapshot Planing Sementara
+    const temporaryPlan = slots.map((s) => ({
+      cqiNum: s.cqiNum,
+      machines: [...s.machines],
+    }));
 
-    loadBalancer.balanceIntraLineLoad(
-      generalSlots,
-      mode,
-      totalNcPool,
+    // Hitung mesin yang belum tercover di Planing Sementara
+    let assignedIds = new Set();
+    slots.forEach((s) =>
+      s.machines.forEach((m) => assignedIds.add(m.id || m.name)),
+    );
+    let uncoveredMachines = runningMachines.filter(
+      (m) => !assignedIds.has(m.id || m.name),
+    );
+
+    // -------------------------------------------------------------------------
+    // TAHAP 3 (Lanjutan 1): MAKSIMALKAN CQI YANG BISA DIMAKSIMALKAN (MAKS = 8 MESIN)
+    // berdasarkan cqiprioritymap dan cqiclusterpriority.
+    // Dengan cara menambahkan mesin belum tercover ke (planing sementara)
+    // TANPA MENGUBAH (planing sementara), HANYA MENAMBAHKAN.
+    // -------------------------------------------------------------------------
+    uncoveredMachines = blockAllocator.maximizeCqiSlots(
       slots,
+      uncoveredMachines,
+      runningMachines,
+      config,
       mapData,
       this,
     );
 
-    loadBalancer.handleWwOverflow(
-      slot24,
-      generalSlots,
-      mode,
-      mapData.labels || [],
-      this,
-      runningMachines,
-      slots,
-    );
-
-    // --- TAHAP 3.6: ALOKASI MESIN RUNNING SISA KE LINE TERDEKAT (PUTARAN 1) ---
-    loadBalancer.allocateRemainingUnassigned(
-      generalSlots,
-      runningMachines,
-      slots,
-      mapData.labels || [],
-      this,
-    );
-
-    // --- FITUR OPTIMASI JARAK DUA KALI (PUTARAN 2: RE-EVALUASI JARAK PHYSICAL BALANCE) ---
-    loadBalancer.balanceIntraLineLoad(
-      generalSlots,
-      mode,
-      totalNcPool,
-      slots,
-      mapData,
-      this,
-    );
-
-    loadBalancer.allocateRemainingUnassigned(
-      generalSlots,
-      runningMachines,
-      slots,
-      mapData.labels || [],
-      this,
-    );
-
-    // Saring slot aktif yang memiliki mesin dan urutkan berdasarkan nomor CQI (CQI 1, CQI 2, CQI 3...)
+    // Saring slot aktif yang memiliki mesin
     const activeSlots = slots.filter((s) => s.machines.length > 0);
     activeSlots.sort((a, b) => {
       const numA = parseInt(a.cqiNum, 10) || 999;
@@ -156,39 +153,27 @@ export default {
       return numA - numB;
     });
 
-    // --- TAHAP 4: PEMASANGAN CORE MANPOWER BERDASARKAN URUTAN CONFIG & PREFERENSI PRIORITAS ---
-    manpowerAssigner.assignCorePersonnel(activeSlots, coreList, this);
-
-    // --- TAHAP 5 & 6: DISTRIBUSI NON-CORE & LONGSHIFT BERDASARKAN URUTAN CONFIG ---
+    // -------------------------------------------------------------------------
+    // TAHAP 4 & 5 (Lanjutan 2 & 3): IDENTIFIKASI KEBUTUHAN NC/LS & ALOKASI
+    // 2. Identifikasi CQI yang membutuhkan NC/LS (mesin > kapasitas 1 Core)
+    // 3. Tambahkan NC terlebih dahulu sesuai urutan, jika masih kurang tambahkan LS.
+    // (LS: Noncore Longshift kedudukannya sama dengan Noncore)
+    // -------------------------------------------------------------------------
     const { remainingNonCore, remainingLs } =
       manpowerAssigner.assignNonCoreAndLongshift(activeSlots, config, mode, this);
 
-    // Hitung Mesin Running Unassigned/Uncovered
-    let assignedIds = new Set();
+    // Periksa ulang sisa mesin unassigned
+    assignedIds = new Set();
     activeSlots.forEach((s) =>
       s.machines.forEach((m) => assignedIds.add(m.id || m.name)),
     );
-
-    let unassigned = runningMachines.filter(
+    let finalUnassigned = runningMachines.filter(
       (m) => !assignedIds.has(m.id || m.name),
     );
 
-    // BILA ADA MESIN YANG BELUM TERCOVER, JALANKAN ULANG ENGINE PEMBAGIAN UNTUK MEMAKSA
-    // MESIN MASUK KE CQI TERDEKAT DI LINENYA DENGAN PERGESERAN ESTAFET
-    if (unassigned.length > 0) {
-      this.forceFitUnassignedMachines(slots, unassigned, config, mapData);
-
-      assignedIds = new Set();
-      activeSlots.forEach((s) =>
-        s.machines.forEach((m) => assignedIds.add(m.id || m.name)),
-      );
-      unassigned = runningMachines.filter(
-        (m) => !assignedIds.has(m.id || m.name),
-      );
-    }
-
-    activeSlots.unassignedMachines = unassigned;
-    activeSlots.uncoveredMachines = unassigned;
+    activeSlots.temporaryPlan = temporaryPlan;
+    activeSlots.unassignedMachines = finalUnassigned;
+    activeSlots.uncoveredMachines = finalUnassigned;
     activeSlots.remainingLs = remainingLs;
     activeSlots.remainingNonCore = remainingNonCore;
 

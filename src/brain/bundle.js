@@ -63,12 +63,11 @@ var BrainAI_Raw = (() => {
       "cqi 16": ["8B", "9B", "7B"],
       "cqi 17": ["10B", "11B", "9B"],
       "cqi 19": ["OT"],
-      "cqi 21": ["2B", "3B", "1B"],
+      "cqi 21": ["0B", "4B"],
       "cqi 22": ["6B", "5B", "4B"],
       "cqi 23": ["6B", "7B", "5B"],
       "cqi 24": ["WW", "1C", "2C"],
       "cqi 25": ["7B", "8B", "9B"],
-      "cqi 26": ["0B", "4B"],
       // Line C (2 atau 3 workstation terdekat)
       "cqi 12": ["10B", "11B", "9B"],
       "cqi 18": ["3C", "2C", "1C", "4C"],
@@ -99,12 +98,11 @@ var BrainAI_Raw = (() => {
       "cqi 18": ["Pouch"],
       "cqi 19": ["OT"],
       "cqi 20": ["Pouch", "Botol"],
-      "cqi 21": ["Sosoft"],
+      "cqi 21": ["Pouch", "Botol"],
       "cqi 22": ["12Ljumbo"],
       "cqi 23": ["12Ljumbo"],
       "cqi 24": ["WW", "Pouch"],
-      "cqi 25": ["12Ljumbo", "SKLsct"],
-      "cqi 26": ["Botol", "Pouch"]
+      "cqi 25": ["12Ljumbo", "SKLsct"]
     },
     /**
      * Cek apakah relasi workstation dan CQI terlalu jauh secara fisik di denah pabrik
@@ -375,8 +373,10 @@ var BrainAI_Raw = (() => {
         if (isLineAOrB || !isLineC || !isApk) {
           return false;
         }
+        const wwInSlot = (slot.machines || []).filter((sm) => this.isWwMachine(sm)).length;
         const nonWwInSlot = (slot.machines || []).filter((sm) => !this.isWwMachine(sm));
-        if (nonWwInSlot.length >= 4) return false;
+        const maxPouchFor24 = wwInSlot >= 2 ? 5 : 6;
+        if (nonWwInSlot.length >= maxPouchFor24) return false;
         const mWs = this.getWorkstationKey(m).toUpperCase();
         const existingWs = new Set(
           nonWwInSlot.map((sm) => this.getWorkstationKey(sm).toUpperCase())
@@ -607,21 +607,174 @@ var BrainAI_Raw = (() => {
         };
       }
       if (hasWw) {
+        const wwCount = machines.filter((m) => this.isWwMachine(m)).length;
+        const pouchCount = machines.filter((m) => !this.isWwMachine(m)).length;
+        if (wwCount >= 2) {
+          return {
+            type: "ww_2",
+            name: "WW (2 WW + Pouch)",
+            maxCoreOnly: 2,
+            // jika running 2, tanpa NC/LS = 2 mesin WW
+            max1Nc: 7,
+            // jika running 2, dengan 1 NC/LS = 2 WW + 5 pouch (total 7)
+            max2Nc: 7,
+            absoluteMax: 7,
+            getNeededNc: (count) => {
+              return count > 2 ? 1 : 0;
+            },
+            getMaxAllowed: (ncCount) => {
+              return ncCount >= 1 ? 7 : 2;
+            }
+          };
+        } else {
+          return {
+            type: "ww_1",
+            name: "WW (1 WW + Pouch)",
+            maxCoreOnly: 4,
+            // jika running 1, tanpa NC/LS = 1 WW + 3 pouch (total 4)
+            max1Nc: 7,
+            // jika running 1, dengan 1 NC/LS = 1 WW + 6 pouch (total 7)
+            max2Nc: 7,
+            absoluteMax: 7,
+            getNeededNc: (count) => {
+              return count > 4 ? 1 : 0;
+            },
+            getMaxAllowed: (ncCount) => {
+              return ncCount >= 1 ? 7 : 4;
+            }
+          };
+        }
+      }
+      if (hasPouch && !hasBotol && !hasSosoft && !hasSklsct && !has12L) {
         return {
-          type: "ww",
-          name: "WW + APK Line C",
+          type: "hanya_pouch",
+          name: "hanya Pouch",
           maxCoreOnly: 4,
-          max1Nc: 8,
+          max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count) => count > 4 ? 1 : 0,
-          getMaxAllowed: (ncCount) => ncCount >= 1 ? 8 : 4
+          getNeededNc: (count, mode = 1) => {
+            if (mode === 2) return count > 4 ? 1 : 0;
+            if (count > 6) return 2;
+            if (count > 4) return 1;
+            return 0;
+          },
+          getMaxAllowed: (ncCount, mode = 1) => {
+            if (ncCount >= 2 && mode === 1) return 8;
+            if (ncCount >= 1) return 6;
+            return 4;
+          }
+        };
+      }
+      if (hasBotol && !hasPouch && !hasSosoft && !hasSklsct && !has12L) {
+        return {
+          type: "hanya_botol",
+          name: "hanya Botol",
+          maxCoreOnly: 4,
+          max1Nc: 6,
+          max2Nc: 8,
+          absoluteMax: 8,
+          getNeededNc: (count, mode = 1) => {
+            if (mode === 2) return count > 4 ? 1 : 0;
+            if (count > 6) return 2;
+            if (count > 4) return 1;
+            return 0;
+          },
+          getMaxAllowed: (ncCount, mode = 1) => {
+            if (ncCount >= 2 && mode === 1) return 8;
+            if (ncCount >= 1) return 6;
+            return 4;
+          }
+        };
+      }
+      if (hasPouch && hasBotol && !hasSosoft && !hasSklsct && !has12L) {
+        return {
+          type: "pouch_botol",
+          name: "Pouch + Botol",
+          maxCoreOnly: 5,
+          max1Nc: 6,
+          max2Nc: 8,
+          absoluteMax: 8,
+          getNeededNc: (count, mode = 1) => {
+            if (mode === 2) return count > 5 ? 1 : 0;
+            if (count > 6) return 2;
+            if (count > 5) return 1;
+            return 0;
+          },
+          getMaxAllowed: (ncCount, mode = 1) => {
+            if (ncCount >= 2 && mode === 1) return 8;
+            if (ncCount >= 1) return 6;
+            return 5;
+          }
+        };
+      }
+      if (hasSosoft && !hasSklsct && !has12L && !hasPouch && !hasBotol) {
+        return {
+          type: "sosoft",
+          name: "Sosoft",
+          maxCoreOnly: 4,
+          max1Nc: 6,
+          max2Nc: 8,
+          absoluteMax: 8,
+          getNeededNc: (count, mode = 1) => {
+            if (mode === 2) return count > 4 ? 1 : 0;
+            if (count > 6) return 2;
+            if (count > 4) return 1;
+            return 0;
+          },
+          getMaxAllowed: (ncCount, mode = 1) => {
+            if (ncCount >= 2 && mode === 1) return 8;
+            if (ncCount >= 1) return 6;
+            return 4;
+          }
+        };
+      }
+      if (hasSklsct && !hasSosoft && !has12L && !hasPouch && !hasBotol) {
+        return {
+          type: "sklsct",
+          name: "SKLsct",
+          maxCoreOnly: 4,
+          max1Nc: 5,
+          max2Nc: 8,
+          absoluteMax: 8,
+          getNeededNc: (count, mode = 1) => {
+            if (mode === 2) return count > 4 ? 1 : 0;
+            if (count > 5) return 2;
+            if (count > 4) return 1;
+            return 0;
+          },
+          getMaxAllowed: (ncCount, mode = 1) => {
+            if (ncCount >= 2 && mode === 1) return 8;
+            if (ncCount >= 1) return 5;
+            return 4;
+          }
+        };
+      }
+      if (has12L && !hasSosoft && !hasSklsct && !hasPouch && !hasBotol) {
+        return {
+          type: "12ljumbo",
+          name: "12Ljumbo",
+          maxCoreOnly: 4,
+          max1Nc: 6,
+          max2Nc: 8,
+          absoluteMax: 8,
+          getNeededNc: (count, mode = 1) => {
+            if (mode === 2) return count > 4 ? 1 : 0;
+            if (count > 6) return 2;
+            if (count > 4) return 1;
+            return 0;
+          },
+          getMaxAllowed: (ncCount, mode = 1) => {
+            if (ncCount >= 2 && mode === 1) return 8;
+            if (ncCount >= 1) return 6;
+            return 4;
+          }
         };
       }
       if (hasSosoft && hasSklsct || !hasSosoft && hasSklsct && !hasPouch && !hasBotol) {
         return {
           type: "sosoft_sklsct",
-          name: "sosoft + SKLsct",
+          name: "Sosoft + SKLsct",
           maxCoreOnly: 4,
           max1Nc: 6,
           max2Nc: 8,
@@ -642,7 +795,7 @@ var BrainAI_Raw = (() => {
       if (hasSosoft && has12L || !hasSosoft && has12L && !hasPouch && !hasBotol) {
         return {
           type: "sosoft_12ljumbo",
-          name: "sosoft + 12Ljumbo",
+          name: "Sosoft + 12Ljumbo",
           maxCoreOnly: 4,
           max1Nc: 6,
           max2Nc: 8,
@@ -660,45 +813,24 @@ var BrainAI_Raw = (() => {
           }
         };
       }
-      if (hasSosoft && !hasSklsct && !has12L && !hasPouch && !hasBotol) {
+      if (hasSklsct && has12L && !hasSosoft && !hasPouch && !hasBotol) {
         return {
-          type: "sosoft",
-          name: "sosoft",
+          type: "sklsct_12ljumbo",
+          name: "SKLsct + 12Ljumbo",
           maxCoreOnly: 4,
-          max1Nc: 7,
-          max2Nc: 10,
-          absoluteMax: 10,
+          max1Nc: 6,
+          max2Nc: 8,
+          absoluteMax: 8,
           getNeededNc: (count, mode = 1) => {
             if (mode === 2) return count > 4 ? 1 : 0;
-            if (count > 7) return 2;
+            if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
           getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 10;
-            if (ncCount >= 1) return 7;
+            if (ncCount >= 2 && mode === 1) return 8;
+            if (ncCount >= 1) return 6;
             return 4;
-          }
-        };
-      }
-      if ((hasPouch || hasBotol) && !hasSosoft && !hasSklsct && !has12L) {
-        return {
-          type: "pouch_botol",
-          name: "pouch + botol",
-          maxCoreOnly: 5,
-          max1Nc: 8,
-          max2Nc: 10,
-          absoluteMax: 10,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 5 ? 1 : 0;
-            if (count > 8) return 2;
-            if (count > 5) return 1;
-            return 0;
-          },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 10;
-            if (ncCount >= 1) return 8;
-            return 5;
           }
         };
       }
@@ -706,20 +838,20 @@ var BrainAI_Raw = (() => {
         return {
           type: "12ljumbo_pouch",
           name: "12Ljumbo + Pouch",
-          maxCoreOnly: 4,
+          maxCoreOnly: 5,
           max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
           getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+            if (mode === 2) return count > 5 ? 1 : 0;
             if (count > 6) return 2;
-            if (count > 4) return 1;
+            if (count > 5) return 1;
             return 0;
           },
           getMaxAllowed: (ncCount, mode = 1) => {
             if (ncCount >= 2 && mode === 1) return 8;
             if (ncCount >= 1) return 6;
-            return 4;
+            return 5;
           }
         };
       }
@@ -786,20 +918,56 @@ var BrainAI_Raw = (() => {
       };
     },
     /**
+     * Mengembalikan batas kapasitas 1 Core dasar tanpa Non-Core / Longshift:
+     * TANPA NONCORE/LS:
+     * - hanya 1 cluster: Sosoft, SKLsct, 12Ljumbo, Pouch, Botol = 4 mesin
+     * - 2 cluster: Sosoft+SKLsct, Sosoft+12Ljumbo, SKLsct+12Ljumbo = 4 mesin
+     * - 2 cluster: 12Ljumbo+Pouch, Pouch+Botol = 5 mesin
+     * - OT (CQI 19) : 2 mesin
+     * - WW (CQI 24) :
+     *   * jika running 2 WW: 2 mesin WW
+     *   * jika running 1 WW: 1 mesin WW dan 3 mesin pouch (total 4 mesin)
+     * @param {Object|Array} slotOrMachines
+     * @returns {number}
+     */
+    getBaseCoreCapacity(slotOrMachines) {
+      const machines = Array.isArray(slotOrMachines) ? slotOrMachines : slotOrMachines && slotOrMachines.machines || [];
+      if (slotOrMachines && slotOrMachines.cqiNum === "19") return 2;
+      if (slotOrMachines && slotOrMachines.cqiNum === "24") {
+        const wwCount = machines.filter((m) => this.isWwMachine(m)).length;
+        if (wwCount >= 2) return 2;
+        if (wwCount === 1) return 4;
+        return 4;
+      }
+      if (machines.length === 0) {
+        if (slotOrMachines && slotOrMachines.cqiNum) {
+          const cqiKey = "cqi " + slotOrMachines.cqiNum;
+          const prio = this.CQI_CLUSTER_PRIORITY_MAP[cqiKey] || [];
+          const p1 = String(prio[0] || "").toUpperCase();
+          const p2 = String(prio[1] || "").toUpperCase();
+          if (p1.includes("12L") && p2.includes("POUCH") || p1.includes("POUCH") && p2.includes("12L") || p1.includes("POUCH") && p2.includes("BOTOL") || p1.includes("BOTOL") && p2.includes("POUCH")) {
+            return 5;
+          }
+        }
+        return 4;
+      }
+      return this.getClusterCapacityRule(machines).maxCoreOnly;
+    },
+    /**
      * Menghitung batas maksimal mesin yang BISA ditambahkan ke CQI secara aman,
-     * mempertimbangkan ketersediaan sisa manpower Non-Core / Longshift.
+     * mempertimbangkan ketersediaan sisa manpower Non-Core / Longshift (maksimal 8 mesin).
      * @param {Object} slot - Slot CQI
      * @param {number} mode - Mode Beban (1 atau 2)
      * @param {number} totalNcPool - Total ketersediaan Non-Core + Longshift (angka)
      * @param {Array} allSlots - Seluruh slot aktif
-     * @returns {number} Limit dinamis mesin (misal: 4, 6, 8, atau 10)
+     * @returns {number} Limit dinamis mesin (misal: 4, 6, atau 8)
      */
     getDynamicSlotLimit(slot, mode, totalNcPool, allSlots) {
       const rule = this.getClusterCapacityRule(slot);
       if (slot.cqiNum === "19") return 2;
       if (slot.cqiNum === "24") return 8;
       const currentCount = slot.machines.length;
-      let limit = rule.maxCoreOnly;
+      let limit = Math.min(8, rule.maxCoreOnly);
       let globalNeeded = 0;
       allSlots.forEach((s) => {
         if (s.cqiNum === "19") return;
@@ -810,17 +978,17 @@ var BrainAI_Raw = (() => {
         globalNeeded += this.getClusterCapacityRule(s).getNeededNc(s.machines.length, mode);
       });
       const availableNc = totalNcPool - globalNeeded;
-      if (availableNc <= 0) return Math.max(currentCount, limit);
+      if (availableNc <= 0) return Math.min(8, Math.max(currentCount, limit));
       const currentSlotNeeded = rule.getNeededNc(currentCount, mode);
       const neededForMax1 = rule.getNeededNc(rule.max1Nc, mode) - currentSlotNeeded;
       if (neededForMax1 > 0 && availableNc >= neededForMax1) {
-        limit = rule.max1Nc;
+        limit = Math.min(8, rule.max1Nc);
         const neededForMax2 = rule.getNeededNc(rule.max2Nc, mode) - currentSlotNeeded - neededForMax1;
         if (neededForMax2 > 0 && availableNc - neededForMax1 >= neededForMax2) {
-          limit = rule.max2Nc;
+          limit = Math.min(8, rule.max2Nc);
         }
       }
-      return Math.max(currentCount, limit);
+      return Math.min(8, Math.max(currentCount, limit));
     },
     /**
      * Cek apakah sebuah mesin merupakan kategori Wet Wipes (WW)
@@ -1486,52 +1654,98 @@ var BrainAI_Raw = (() => {
       return score;
     },
     /**
-     * Mengalokasikan seluruh mesin running ke CQI Slots
+     * TAHAP 2: PEMBENTUKAN PLANING SEMENTARA (1 Core per Cluster tanpa Noncore)
+     *
+     * Aturan kapasitas dasar 1 Core:
+     * - Sosoft : 1 Core 4 mesin, tanpa noncore
+     * - SKLsct : 1 Core 4 mesin, tanpa noncore
+     * - 12Ljumbo : 1 Core 4 mesin, tanpa noncore
+     * - hanya Pouch : 1 Core 5 mesin, tanpa noncore
+     * - Pouch+Botol : 1 Core 4 mesin, tanpa noncore
+     * - OT (CQI 19) : 1 Core 2 mesin (M2, M3)
+     * - WW (CQI 24) : 1 Core 4 mesin WW
+     *
+     * Dialokasikan sesuai workstation masing-masing (Line A CQI 1 -> 1A, dll.)
+     * atau sesuai cqiprioritymap dan cqiclusterpriority.
+     * Menghasilkan Planing Sementara (banyak mesin belum tercover).
      */
-    allocateMachinesToSlots(slots, machines, config, mapData, engine) {
+    allocateTemporaryPlan(slots, machines, config, mapData, engine) {
       const labels = mapData.labels || [];
-      const mode = parseInt(config.mode || 1, 10) === 2 ? 2 : 1;
-      const maxSlotCapacity = mode === 1 ? 10 : 8;
-      let ncCount = 0;
-      if (Array.isArray(config.nonCoreData) && config.nonCoreData.length > 0) {
-        ncCount = config.nonCoreData.length;
-      } else if (Array.isArray(config.nonCoreNames)) {
-        ncCount = config.nonCoreNames.length;
-      }
-      const lsCount = parseInt(config.longshift || 0, 10);
-      const totalNcPool = ncCount + lsCount;
+      const allFactoryMachines = mapData.machines || machines;
       const runningMachines = [...machines];
+      slots.forEach((s) => {
+        s.machines = [];
+        s.pouchAddedToWw = false;
+      });
       const wwMachines = runningMachines.filter((m) => engine.isWwMachine(m));
       const otMachines = runningMachines.filter((m) => engine.isOtMachine(m));
       const generalMachines = runningMachines.filter(
         (m) => !engine.isWwMachine(m) && !engine.isOtMachine(m)
       );
-      const slot24 = slots.find((s) => s.cqiNum === "24");
       const slot19 = slots.find((s) => s.cqiNum === "19");
+      const slot24 = slots.find((s) => s.cqiNum === "24");
       if (slot19) {
         slot19.maxAllowedMachines = 2;
+        if (otMachines.length > 0) {
+          otMachines.slice(0, 2).forEach((m) => {
+            if (!slot19.machines.some((sm) => sm.id === m.id || sm.name === m.name)) {
+              slot19.machines.push(m);
+            }
+          });
+        }
       }
-      if (otMachines.length > 0 && slot19) {
-        otMachines.slice(0, 2).forEach((m) => {
-          if (!slot19.machines.some((sm) => sm.id === m.id || sm.name === m.name)) {
-            slot19.machines.push(m);
+      let pouchUsedBy24InTemp = [];
+      if (slot24) {
+        slot24.maxAllowedMachines = 7;
+        if (wwMachines.length >= 2) {
+          wwMachines.slice(0, 2).forEach((m) => {
+            if (!slot24.machines.some((sm) => sm.id === m.id || sm.name === m.name)) {
+              slot24.machines.push(m);
+            }
+          });
+        } else if (wwMachines.length === 1) {
+          const wwM = wwMachines[0];
+          if (!slot24.machines.some((sm) => sm.id === wwM.id || sm.name === wwM.name)) {
+            slot24.machines.push(wwM);
           }
-        });
+          const apkLineCMachines = generalMachines.filter(
+            (m) => engine.isMachineLineC(m, labels) && (engine.isPouchMachine(m) || String(m.name || m.id || "").toUpperCase().startsWith("APK"))
+          );
+          const validFor24 = apkLineCMachines.filter(
+            (m) => engine.canAddMachineToSlot(
+              m,
+              slot24,
+              runningMachines,
+              allFactoryMachines,
+              labels
+            )
+          );
+          const toAdd = validFor24.slice(0, 3);
+          toAdd.forEach((m) => {
+            if (!slot24.machines.some((sm) => sm.id === m.id || sm.name === m.name)) {
+              slot24.machines.push(m);
+              pouchUsedBy24InTemp.push(m);
+            }
+          });
+        }
       }
-      if (wwMachines.length > 0 && slot24) {
-        wwMachines.forEach((m) => {
-          if (slot24.machines.length < slot24.maxAllowedMachines && !slot24.machines.some((sm) => sm.id === m.id || sm.name === m.name)) {
-            slot24.machines.push(m);
-          }
-        });
-      }
-      const wsBlocks = this.buildWorkstationBlocks(generalMachines, labels, engine);
       const excludedCqiNums = /* @__PURE__ */ new Set(["19", "24"]);
       const generalSlots = slots.filter((s) => {
         const num = String(s.cqiNum || engine.getCqiNumber(s.cqi) || "").trim();
         return !excludedCqiNums.has(num);
       });
-      const allFactoryMachines = mapData.machines || runningMachines;
+      const usedIn24Ids = new Set(pouchUsedBy24InTemp.map((m) => m.id || m.name));
+      const availableGeneralMachines = generalMachines.filter(
+        (m) => !usedIn24Ids.has(m.id || m.name)
+      );
+      const wsBlocks = this.buildWorkstationBlocks(
+        availableGeneralMachines,
+        labels,
+        engine
+      );
+      const getBaseCapacityForSlot = (slot) => {
+        return engine.getBaseCoreCapacity(slot);
+      };
       generalSlots.forEach((slot) => {
         const prioKey = "cqi " + slot.cqiNum;
         const prioList = engine.CQI_PRIORITY_MAP[prioKey] || [];
@@ -1541,6 +1755,7 @@ var BrainAI_Raw = (() => {
           primaryWsList.push("0A");
         }
         primaryWsList.forEach((primaryWs) => {
+          const baseCap = getBaseCapacityForSlot(slot);
           const matchingKeys = Object.keys(wsBlocks).filter((k) => {
             const b = wsBlocks[k];
             return b.ws.toUpperCase() === primaryWs && b.machines.length > 0;
@@ -1556,17 +1771,20 @@ var BrainAI_Raw = (() => {
                 labels
               )
             );
-            const limit = slot.maxAllowedMachines || maxSlotCapacity;
-            const availableSpace = limit - slot.machines.length;
+            const availableSpace = baseCap - slot.machines.length;
             if (availableSpace > 0 && validMachines.length > 0) {
               const toAdd = validMachines.slice(0, availableSpace);
               slot.machines.push(...toAdd);
-              anchorBlock.machines = anchorBlock.machines.filter((m) => !toAdd.includes(m));
+              anchorBlock.machines = anchorBlock.machines.filter(
+                (m) => !toAdd.includes(m)
+              );
             }
           });
         });
       });
       generalSlots.forEach((slot) => {
+        const baseCap = getBaseCapacityForSlot(slot);
+        if (slot.machines.length >= baseCap) return;
         const prioKey = "cqi " + slot.cqiNum;
         const prioList = (engine.CQI_PRIORITY_MAP[prioKey] || []).map(
           (w) => String(w).toUpperCase()
@@ -1574,11 +1792,13 @@ var BrainAI_Raw = (() => {
         if (prioList.length < 2) return;
         const adjacentWsList = prioList.slice(1);
         adjacentWsList.forEach((adjWs) => {
+          if (slot.machines.length >= baseCap) return;
           const matchingKeys = Object.keys(wsBlocks).filter((k) => {
             const b = wsBlocks[k];
             return b.ws.toUpperCase() === adjWs && b.machines.length > 0;
           });
           matchingKeys.forEach((key) => {
+            if (slot.machines.length >= baseCap) return;
             const adjBlock = wsBlocks[key];
             const validMachines = adjBlock.machines.filter(
               (m) => engine.canAddMachineToSlot(
@@ -1589,479 +1809,156 @@ var BrainAI_Raw = (() => {
                 labels
               )
             );
-            const limit = slot.maxAllowedMachines || maxSlotCapacity;
-            const availableSpace = limit - slot.machines.length;
+            const availableSpace = baseCap - slot.machines.length;
             if (availableSpace > 0 && validMachines.length > 0) {
               const toAdd = validMachines.slice(0, availableSpace);
               slot.machines.push(...toAdd);
-              adjBlock.machines = adjBlock.machines.filter((m) => !toAdd.includes(m));
+              adjBlock.machines = adjBlock.machines.filter(
+                (m) => !toAdd.includes(m)
+              );
             }
           });
         });
       });
-      const lineOrder = { "LINE C": 1, "LINE A": 2, "LINE B": 3, OTHER: 4 };
-      const sortedWsBlocks = Object.values(wsBlocks).filter((b) => b.machines.length > 0).sort((a, b) => {
-        const ordA = lineOrder[a.line] || 9;
-        const ordB = lineOrder[b.line] || 9;
-        if (ordA !== ordB) return ordA - ordB;
-        return a.col - b.col;
-      });
-      sortedWsBlocks.forEach((block) => {
-        if (block.machines.length === 0) return;
-        const blockMachines = [...block.machines];
-        let validSlots = generalSlots.filter(
-          (s) => blockMachines.every(
-            (m) => engine.canAddMachineToSlot(
-              m,
-              s,
-              runningMachines,
-              allFactoryMachines,
-              labels
-            )
-          )
-        );
-        if (validSlots.length === 0) {
-          validSlots = generalSlots.filter(
-            (s) => blockMachines.some(
-              (m) => engine.canAddMachineToSlot(
-                m,
-                s,
-                runningMachines,
-                allFactoryMachines,
-                labels
-              )
-            )
-          );
-        }
-        if (validSlots.length === 0) {
-          validSlots = generalSlots;
-        }
-        validSlots.sort(
-          (a, b) => this.evaluateBlockAffinity(block, a, engine, mapData, generalSlots, sortedWsBlocks, runningMachines) - this.evaluateBlockAffinity(block, b, engine, mapData, generalSlots, sortedWsBlocks, runningMachines)
-        );
-        let remainingInBlock = [...blockMachines];
-        const lineSlots = generalSlots.filter(
-          (s) => engine.getCqiPrimaryLine(s.cqi) === block.line
-        );
-        const lineTotalMachines = Object.values(wsBlocks).filter((b) => b.line === block.line).reduce((acc, b) => acc + (b.machines.length + generalSlots.reduce((sAcc, s) => sAcc + s.machines.filter((m) => engine.getWorkstationKey(m, labels) === b.ws).length, 0)), 0);
-        const avgLineLoad = lineSlots.length > 0 ? Math.ceil(lineTotalMachines / lineSlots.length) : maxSlotCapacity;
-        for (const targetSlot of validSlots) {
-          if (remainingInBlock.length === 0) break;
-          const targetCapacity = Math.min(
-            targetSlot.maxAllowedMachines || maxSlotCapacity,
-            Math.max(
-              engine.getDynamicSlotLimit(targetSlot, mode, totalNcPool, slots),
-              avgLineLoad
-            )
-          );
-          const availableSpace = targetCapacity - targetSlot.machines.length;
-          if (availableSpace <= 0) continue;
-          const validToInsert = remainingInBlock.filter(
-            (m) => engine.canAddMachineToSlot(
-              m,
-              targetSlot,
-              runningMachines,
-              allFactoryMachines,
-              labels
-            )
-          );
-          const canTake = Math.min(availableSpace, validToInsert.length);
-          if (canTake > 0) {
-            const taken = validToInsert.slice(0, canTake);
-            targetSlot.machines.push(...taken);
-            remainingInBlock = remainingInBlock.filter((m) => !taken.includes(m));
-          }
-        }
-        if (remainingInBlock.length > 0) {
-          let stillRemaining = [...remainingInBlock];
-          const compatibleSlots = generalSlots.filter(
-            (s) => stillRemaining.some(
-              (m) => engine.canAddMachineToSlot(
-                m,
-                s,
-                runningMachines,
-                allFactoryMachines,
-                labels
-              )
-            )
-          );
-          let fallbacks = (compatibleSlots.length > 0 ? compatibleSlots : generalSlots).sort((a, b) => {
-            const aLine = engine.getCqiPrimaryLine(a.cqi);
-            const bLine = engine.getCqiPrimaryLine(b.cqi);
-            const aSame = aLine === block.line ? 0 : 1;
-            const bSame = bLine === block.line ? 0 : 1;
-            if (aSame !== bSame) return aSame - bSame;
-            const distA = engine.calculateDistance(block.machines[0], a.cqi, labels);
-            const distB = engine.calculateDistance(block.machines[0], b.cqi, labels);
-            if (distA !== distB) return distA - distB;
-            return a.machines.length - b.machines.length;
-          });
-          for (const fb of fallbacks) {
-            if (stillRemaining.length === 0) break;
-            const available = engine.getDynamicSlotLimit(fb, mode, totalNcPool, slots) - fb.machines.length;
-            if (available <= 0) continue;
-            const validToInsert = stillRemaining.filter(
-              (m) => engine.canAddMachineToSlot(
-                m,
-                fb,
-                runningMachines,
-                allFactoryMachines,
-                labels
-              )
-            );
-            const toPush = validToInsert.slice(0, available);
-            if (toPush.length > 0) {
-              fb.machines.push(...toPush);
-              stillRemaining = stillRemaining.filter((m) => !toPush.includes(m));
-            }
-          }
-        }
-      });
-      return { generalSlots, sortedWsBlocks, slot24 };
-    }
-  };
-
-  // src/brain/loadBalancer.js
-  var loadBalancer_default = {
-    /**
-     * Menyeimbangkan beban mesin secara adil dan ergonomis antar CQI pada Line yang sama (Line C, Line A, Line B)
-     */
-    balanceIntraLineLoad(generalSlots, mode, totalNcPool, slots, mapData, engine) {
-      const labels = mapData.labels || [];
-      const linesToBalance = ["LINE C", "LINE A", "LINE B"];
-      linesToBalance.forEach((lineName) => {
-        const lineSlots = generalSlots.filter(
-          (s) => engine.getCqiPrimaryLine(s.cqi) === lineName
-        );
-        if (lineSlots.length < 2) return;
-        let improved = true;
-        let iterations = 0;
-        while (improved && iterations < 20) {
-          improved = false;
-          iterations++;
-          lineSlots.sort((a, b) => b.machines.length - a.machines.length);
-          const maxSlot = lineSlots[0];
-          const minSlot = lineSlots[lineSlots.length - 1];
-          const diff = maxSlot.machines.length - minSlot.machines.length;
-          if (diff <= 1) break;
-          const wsMapInMax = {};
-          maxSlot.machines.forEach((m) => {
-            const ws = engine.getWorkstationKey(m, labels);
-            if (!wsMapInMax[ws]) wsMapInMax[ws] = [];
-            wsMapInMax[ws].push(m);
-          });
-          const wsKeysInMax = Object.keys(wsMapInMax);
-          if (wsKeysInMax.length === 0) break;
-          let bestWsCandidate = null;
-          let bestTransferScore = -Infinity;
-          for (const wsKey of wsKeysInMax) {
-            const group = wsMapInMax[wsKey];
-            const groupSize = group.length;
-            if (minSlot.machines.length + groupSize > engine.getDynamicSlotLimit(minSlot, mode, totalNcPool, slots))
-              continue;
-            if (maxSlot.machines.length - groupSize < minSlot.machines.length + groupSize - 1) {
-              if (groupSize > 1 && maxSlot.machines.length - groupSize < minSlot.machines.length)
-                continue;
-            }
-            if (engine.isFarWorkstationForCqi(wsKey, minSlot.cqiNum)) continue;
-            const minWsNums = minSlot.machines.map(
-              (m) => parseInt(
-                engine.getWorkstationKey(m, labels).replace(/\D/g, ""),
-                10
-              )
-            ).filter((n) => !isNaN(n));
-            const candWsNum = parseInt(wsKey.replace(/\D/g, ""), 10);
-            if (minWsNums.length > 0 && !isNaN(candWsNum)) {
-              const minDiff = Math.min(
-                ...minWsNums.map((n) => Math.abs(n - candWsNum))
-              );
-              if (minDiff > 1) continue;
-            }
-            const clusterValid = group.every(
-              (m) => engine.canAddMachineToSlotCluster(m, minSlot)
-            );
-            if (!clusterValid) continue;
-            const sampleM = group[0];
-            const distToMin = engine.calculateDistance(
-              sampleM,
-              minSlot.cqi,
-              labels
-            );
-            const distToMax = engine.calculateDistance(
-              sampleM,
-              maxSlot.cqi,
-              labels
-            );
-            const prioKeyMin = "cqi " + minSlot.cqiNum;
-            const prioListMin = (engine.CQI_PRIORITY_MAP[prioKeyMin] || []).map(
-              (w) => String(w).toUpperCase()
-            );
-            const prioIdxMin = prioListMin.indexOf(wsKey);
-            let transferScore = 1e3 - distToMin + (distToMax >= distToMin ? 500 : 0);
-            if (prioIdxMin === 0) transferScore += 25e3;
-            else if (prioIdxMin === 1) transferScore += 16e3;
-            else if (prioIdxMin === 2) transferScore += 9e3;
-            else if (prioIdxMin > 2)
-              transferScore += Math.max(1e3, 5e3 - prioIdxMin * 1e3);
-            if (transferScore > bestTransferScore) {
-              bestTransferScore = transferScore;
-              bestWsCandidate = { wsKey, machines: group };
-            }
-          }
-          if (bestWsCandidate) {
-            const movingIds = new Set(
-              bestWsCandidate.machines.map((m) => m.id || m.name)
-            );
-            maxSlot.machines = maxSlot.machines.filter(
-              (m) => !movingIds.has(m.id || m.name)
-            );
-            minSlot.machines.push(...bestWsCandidate.machines);
-            improved = true;
-            continue;
-          }
-          for (const wsKey of wsKeysInMax) {
-            if (engine.isFarWorkstationForCqi(wsKey, minSlot.cqiNum)) continue;
-            const group = wsMapInMax[wsKey];
-            const candWsNum = parseInt(wsKey.replace(/\D/g, ""), 10);
-            const minWsNums = minSlot.machines.map(
-              (m) => parseInt(
-                engine.getWorkstationKey(m, labels).replace(/\D/g, ""),
-                10
-              )
-            ).filter((n) => !isNaN(n));
-            if (minWsNums.length > 0 && !isNaN(candWsNum)) {
-              const minDiff = Math.min(
-                ...minWsNums.map((n) => Math.abs(n - candWsNum))
-              );
-              if (minDiff > 1) continue;
-            }
-            for (const m of group) {
-              if (minSlot.machines.length >= engine.getDynamicSlotLimit(minSlot, mode, totalNcPool, slots))
-                break;
-              if (maxSlot.machines.length - 1 < minSlot.machines.length + 1)
-                break;
-              if (engine.canAddMachineToSlotCluster(m, minSlot)) {
-                maxSlot.machines = maxSlot.machines.filter(
-                  (sm) => (sm.id || sm.name) !== (m.id || m.name)
-                );
-                minSlot.machines.push(m);
-                improved = true;
-                break;
-              }
-            }
-            if (improved) break;
-          }
-        }
-      });
+      return { generalSlots, slot24, slot19, wsBlocks };
     },
     /**
-     * Menangani overflow APK Line C ke CQI 24 (WW)
+     * TAHAP 3 (Lanjutan 1): MAKSIMALKAN CQI YANG BISA DIMAKSIMALKAN (MAKS = 8 MESIN)
+     * berdasarkan cqiprioritymap dan cqiclusterpriority.
+     *
+     * Dengan cara menambahkan mesin belum tercover ke (planing sementara)
+     * TANPA MENGUBAH (planing sementara), HANYA MENAMBAHKAN.
      */
+    maximizeCqiSlots(slots, uncoveredMachines, allRunningMachines, config, mapData, engine) {
+      if (!Array.isArray(uncoveredMachines) || uncoveredMachines.length === 0) {
+        return [];
+      }
+      const labels = mapData.labels || [];
+      const allFactoryMachines = mapData.machines || allRunningMachines;
+      let remaining = [...uncoveredMachines];
+      const slot24 = slots.find((s) => s.cqiNum === "24");
+      if (slot24 && slot24.machines.length < 7) {
+        const wwCountIn24 = slot24.machines.filter((m) => engine.isWwMachine(m)).length;
+        const pouchCountIn24 = slot24.machines.filter((m) => !engine.isWwMachine(m)).length;
+        const maxPouchAllowed = wwCountIn24 >= 2 ? 5 : wwCountIn24 === 1 ? 6 : 6;
+        const availablePouchSpace = Math.max(0, maxPouchAllowed - pouchCountIn24);
+        if (availablePouchSpace > 0) {
+          const apkLineCMachines = remaining.filter(
+            (m) => engine.isMachineLineC(m, labels) && (engine.isPouchMachine(m) || String(m.name || m.id || "").toUpperCase().startsWith("APK"))
+          );
+          if (apkLineCMachines.length > 0) {
+            const validFor24 = apkLineCMachines.filter(
+              (m) => engine.canAddMachineToSlot(
+                m,
+                slot24,
+                allRunningMachines,
+                allFactoryMachines,
+                labels
+              )
+            );
+            const toAdd = validFor24.slice(0, availablePouchSpace);
+            if (toAdd.length > 0) {
+              slot24.machines.push(...toAdd);
+              slot24.pouchAddedToWw = true;
+              const addedIds = new Set(toAdd.map((m) => m.id || m.name));
+              remaining = remaining.filter((m) => !addedIds.has(m.id || m.name));
+            }
+          }
+        }
+      }
+      remaining.sort((a, b) => {
+        const lineA = engine.getMachineLine(a, labels);
+        const lineB = engine.getMachineLine(b, labels);
+        if (lineA !== lineB) return lineA.localeCompare(lineB);
+        const wsA = engine.getWorkstationKey(a, labels);
+        const wsB = engine.getWorkstationKey(b, labels);
+        if (wsA !== wsB) return wsA.localeCompare(wsB);
+        return (a.position?.col || 0) - (b.position?.col || 0);
+      });
+      let progressMade = true;
+      while (remaining.length > 0 && progressMade) {
+        progressMade = false;
+        for (let i = 0; i < remaining.length; i++) {
+          const m = remaining[i];
+          const mWs = engine.getWorkstationKey(m, labels).toUpperCase();
+          const mCluster = engine.getMachineClusterGroup(m);
+          const mLine = engine.getMachineLine(m, labels);
+          const candidates = [];
+          slots.forEach((s) => {
+            if (s.cqiNum === "19") return;
+            if (s.machines.length >= 8) return;
+            if (engine.canAddMachineToSlot(
+              m,
+              s,
+              allRunningMachines,
+              allFactoryMachines,
+              labels
+            )) {
+              const prioKey = "cqi " + s.cqiNum;
+              const wsPrioList = (engine.CQI_PRIORITY_MAP[prioKey] || []).map(
+                (w) => String(w).toUpperCase()
+              );
+              const clusterPrioList = (engine.CQI_CLUSTER_PRIORITY_MAP[prioKey] || []).map((c) => String(c).toUpperCase());
+              let score = 0;
+              const wsIdx = wsPrioList.indexOf(mWs);
+              if (wsIdx === 0) score += 3e3;
+              else if (wsIdx === 1) score += 2e3;
+              else if (wsIdx === 2) score += 1200;
+              else if (wsIdx > 2) score += Math.max(300, 1e3 - wsIdx * 200);
+              const clusterIdx = clusterPrioList.indexOf(mCluster);
+              if (clusterIdx === 0) score += 1500;
+              else if (clusterIdx === 1) score += 800;
+              else if (clusterIdx > 1) score += 400;
+              const sameWsCount = s.machines.filter(
+                (sm) => engine.getWorkstationKey(sm, labels).toUpperCase() === mWs
+              ).length;
+              if (sameWsCount > 0) {
+                score += 2500 + sameWsCount * 500;
+              }
+              const sLine = engine.getCqiPrimaryLine(s.cqi);
+              if (sLine === mLine) {
+                score += 800;
+              } else {
+                score -= 400;
+              }
+              const dist = engine.calculateDistance(m, s.cqi, labels);
+              score -= dist * 15;
+              score -= s.machines.length * 50;
+              candidates.push({ slot: s, score });
+            }
+          });
+          if (candidates.length > 0) {
+            candidates.sort((a, b) => b.score - a.score);
+            const bestSlot = candidates[0].slot;
+            bestSlot.machines.push(m);
+            remaining.splice(i, 1);
+            progressMade = true;
+            break;
+          }
+        }
+      }
+      return remaining;
+    },
     /**
-     * Menangani overflow APK Line C ke CQI 24 (WW)
-     * Aturan: Jika CQI 24 harus mengambil mesin dari Line C, utamakan 1 workstation agar lebih mudah,
-     * atau maksimal 2 workstation. Dilarang keras memuat mesin dari 3 workstation atau lebih.
+     * Mengalokasikan seluruh mesin running ke CQI Slots secara menyeluruh
+     * Menggabungkan Planing Sementara (1 Core tanpa NC) dan Maksimasi Slot (Maks 8 Mesin)
      */
-    handleWwOverflow(slot24, generalSlots, mode, labels, engine, runningMachines = [], slots = []) {
-      if (!slot24) return;
+    allocateMachinesToSlots(slots, machines, config, mapData, engine) {
+      this.allocateTemporaryPlan(slots, machines, config, mapData, engine);
       const assignedIds = /* @__PURE__ */ new Set();
       slots.forEach(
         (s) => s.machines.forEach((m) => assignedIds.add(m.id || m.name))
       );
-      const unassignedApkLineC = runningMachines.filter((m) => {
-        if (assignedIds.has(m.id || m.name)) return false;
-        if (!engine.isMachineLineC(m, labels)) return false;
-        const line = String(m.line || "").toUpperCase();
-        const ws = String(m.workstation || m.ws || "").toUpperCase();
-        if (line.includes("LINE A") || line.includes("LINE B") || line === "A" || line === "B" || ws.endsWith("A") || ws.endsWith("B")) {
-          return false;
-        }
-        return engine.isPouchMachine(m) || String(m.name || m.id || "").toUpperCase().startsWith("APK");
-      });
-      const nonWwCount = slot24.machines.filter((m) => !engine.isWwMachine(m)).length;
-      const maxApkToTake = Math.min(
-        4 - nonWwCount,
-        (slot24.maxAllowedMachines || 8) - slot24.machines.length
+      let uncovered = machines.filter((m) => !assignedIds.has(m.id || m.name));
+      uncovered = this.maximizeCqiSlots(
+        slots,
+        uncovered,
+        machines,
+        config,
+        mapData,
+        engine
       );
-      if (maxApkToTake <= 0) return;
-      let apkCandidates = [...unassignedApkLineC];
-      const overloadedSlots = generalSlots.filter((s) => {
-        const isLineC = engine.getCqiPrimaryLine(s.cqi) === "LINE C";
-        const num = String(s.cqiNum || engine.getCqiNumber(s.cqi));
-        return isLineC && num !== "20" && s.machines.length > 8;
-      });
-      if (overloadedSlots.length > 0) {
-        overloadedSlots.forEach((os) => {
-          const candidateWs = new Set(
-            apkCandidates.map((m) => engine.getWorkstationKey(m, labels).toUpperCase())
-          );
-          const matchingMachines = os.machines.filter((m) => {
-            const ws = engine.getWorkstationKey(m, labels).toUpperCase();
-            return candidateWs.has(ws);
-          });
-          matchingMachines.forEach((pm) => {
-            if (apkCandidates.length < maxApkToTake) {
-              apkCandidates.push(pm);
-              os.machines = os.machines.filter(
-                (m) => (m.id || m.name) !== (pm.id || pm.name)
-              );
-            }
-          });
-          if (apkCandidates.length < maxApkToTake && os.machines.length > 8) {
-            const transferable = os.machines.filter((m) => {
-              const ws = engine.getWorkstationKey(m, labels).toUpperCase();
-              return ["1C", "2C", "3C", "4C"].includes(ws);
-            });
-            const wsGroupsInOs = /* @__PURE__ */ new Map();
-            transferable.forEach((m) => {
-              const ws = engine.getWorkstationKey(m, labels).toUpperCase();
-              if (!wsGroupsInOs.has(ws)) wsGroupsInOs.set(ws, []);
-              wsGroupsInOs.get(ws).push(m);
-            });
-            for (const [wsKey, ms] of wsGroupsInOs.entries()) {
-              if (apkCandidates.length >= maxApkToTake) break;
-              if (os.machines.length - ms.length >= 7) {
-                ms.forEach((pm) => {
-                  if (apkCandidates.length < maxApkToTake) {
-                    apkCandidates.push(pm);
-                    os.machines = os.machines.filter(
-                      (m) => (m.id || m.name) !== (pm.id || pm.name)
-                    );
-                  }
-                });
-              }
-            }
-          }
-        });
-      }
-      if (apkCandidates.length === 0) return;
-      const wsGroups = /* @__PURE__ */ new Map();
-      apkCandidates.forEach((m) => {
-        const ws = engine.getWorkstationKey(m, labels).toUpperCase();
-        if (!wsGroups.has(ws)) wsGroups.set(ws, []);
-        wsGroups.get(ws).push(m);
-      });
-      const currentWsIn24 = new Set(
-        slot24.machines.filter((m) => !engine.isWwMachine(m)).map((m) => engine.getWorkstationKey(m, labels).toUpperCase())
-      );
-      const prioMap24 = engine.CQI_PRIORITY_MAP && engine.CQI_PRIORITY_MAP["cqi 24"] || [
-        "WW",
-        "1C",
-        "2C"
-      ];
-      const rankedWsList = Array.from(wsGroups.keys()).sort((wsA, wsB) => {
-        const aInCurrent = currentWsIn24.has(wsA) ? 0 : 1;
-        const bInCurrent = currentWsIn24.has(wsB) ? 0 : 1;
-        if (aInCurrent !== bInCurrent) return aInCurrent - bInCurrent;
-        const idxA = prioMap24.indexOf(wsA);
-        const idxB = prioMap24.indexOf(wsB);
-        const pA = idxA !== -1 ? idxA : 999;
-        const pB = idxB !== -1 ? idxB : 999;
-        if (pA !== pB) return pA - pB;
-        const distA = wsGroups.get(wsA).reduce(
-          (sum, m) => sum + engine.calculateDistance(m, slot24.cqi, labels),
-          0
-        ) / wsGroups.get(wsA).length;
-        const distB = wsGroups.get(wsB).reduce(
-          (sum, m) => sum + engine.calculateDistance(m, slot24.cqi, labels),
-          0
-        ) / wsGroups.get(wsB).length;
-        return distA - distB;
-      });
-      const chosenWsSet = new Set(currentWsIn24);
-      const selectedMachines = [];
-      for (const wsKey of rankedWsList) {
-        if (selectedMachines.length >= maxApkToTake) break;
-        const isNew = !chosenWsSet.has(wsKey);
-        if (isNew && chosenWsSet.size >= 2) continue;
-        const ms = wsGroups.get(wsKey);
-        const spaceLeft = maxApkToTake - selectedMachines.length;
-        const takeFromWs = ms.slice(0, spaceLeft);
-        if (takeFromWs.length > 0) {
-          selectedMachines.push(...takeFromWs);
-          chosenWsSet.add(wsKey);
-        }
-      }
-      if (selectedMachines.length > 0) {
-        selectedMachines.forEach((pm) => slot24.machines.push(pm));
-        slot24.pouchAddedToWw = true;
-      }
-    },
-    /**
-     * Mengalokasikan sisa mesin running yang belum tercover ke CQI di line yang sama
-     */
-    allocateRemainingUnassigned(generalSlots, runningMachines, slots, labels, engine) {
-      const allFactoryMachines = runningMachines;
-      const allAssignedIds = /* @__PURE__ */ new Set();
-      slots.forEach(
-        (s) => s.machines.forEach((m) => allAssignedIds.add(m.id || m.name))
-      );
-      const unallocatedRunning = runningMachines.filter(
-        (m) => !allAssignedIds.has(m.id || m.name)
-      );
-      if (unallocatedRunning.length > 0) {
-        unallocatedRunning.forEach((m) => {
-          const mLine = engine.getMachineLine(m, labels);
-          const wsKey = engine.getWorkstationKey(m, labels).toUpperCase();
-          const eligibleSlots = generalSlots.filter((s) => {
-            if (engine.isFarWorkstationForCqi(wsKey, s.cqiNum)) return false;
-            const rule = engine.getClusterCapacityRule([...s.machines, m]);
-            if (s.machines.length >= rule.absoluteMax) return false;
-            return engine.canAddMachineToSlot(
-              m,
-              s,
-              runningMachines,
-              allFactoryMachines,
-              labels
-            );
-          });
-          if (eligibleSlots.length > 0) {
-            eligibleSlots.sort((a, b) => {
-              const aLine = engine.getCqiPrimaryLine(a.cqi);
-              const bLine = engine.getCqiPrimaryLine(b.cqi);
-              const aSame = aLine === mLine ? 0 : 1;
-              const bSame = bLine === mLine ? 0 : 1;
-              if (aSame !== bSame) return aSame - bSame;
-              const wsNumsA = a.machines.map(
-                (sm) => parseInt(
-                  engine.getWorkstationKey(sm, labels).replace(/\D/g, ""),
-                  10
-                )
-              ).filter((n) => !isNaN(n));
-              const wsNumsB = b.machines.map(
-                (sm) => parseInt(
-                  engine.getWorkstationKey(sm, labels).replace(/\D/g, ""),
-                  10
-                )
-              ).filter((n) => !isNaN(n));
-              const mWsNum = parseInt(wsKey.replace(/\D/g, ""), 10);
-              const diffA = wsNumsA.length > 0 && !isNaN(mWsNum) ? Math.min(...wsNumsA.map((n) => Math.abs(n - mWsNum))) : 0;
-              const diffB = wsNumsB.length > 0 && !isNaN(mWsNum) ? Math.min(...wsNumsB.map((n) => Math.abs(n - mWsNum))) : 0;
-              if (diffA <= 1 !== diffB <= 1) {
-                return diffA <= 1 ? -1 : 1;
-              }
-              const prioKeyA = "cqi " + a.cqiNum;
-              const prioKeyB = "cqi " + b.cqiNum;
-              const prioListA = (engine.CQI_PRIORITY_MAP[prioKeyA] || []).map(
-                (w) => String(w).toUpperCase()
-              );
-              const prioListB = (engine.CQI_PRIORITY_MAP[prioKeyB] || []).map(
-                (w) => String(w).toUpperCase()
-              );
-              const idxA = prioListA.indexOf(wsKey);
-              const idxB = prioListB.indexOf(wsKey);
-              const pA = idxA >= 0 ? idxA : 99;
-              const pB = idxB >= 0 ? idxB : 99;
-              if (pA !== pB) return pA - pB;
-              const distA = engine.calculateDistance(m, a.cqi, labels);
-              const distB = engine.calculateDistance(m, b.cqi, labels);
-              if (distA !== distB) return distA - distB;
-              return a.machines.length - b.machines.length;
-            });
-            eligibleSlots[0].machines.push(m);
-          }
-        });
-      }
+      return { slots, uncovered };
     }
   };
 
@@ -2160,8 +2057,12 @@ var BrainAI_Raw = (() => {
       });
     },
     /**
-     * Mendistribusikan Non-Core & Longshift (LS) ke slot CQI aktif
-     * Non-Core sesuai urutan config.html, dan LS HANYA mengisi sisa kekosongan Non-Core
+     * TAHAP 4 & 5 (Lanjutan 2 & 3): IDENTIFIKASI KEBUTUHAN NC/LS & ALOKASI PERSONEL
+     *
+     * 2. Identifikasi CQI yang membutuhkan NC/LS
+     *    (mesin > kapasitas 1 Core dasar dari cluster terkait).
+     * 3. Tambahkan NC terlebih dahulu sesuai urutan, jika masih kurang tambahkan LS.
+     *    (LS: Noncore Longshift kedudukannya sama dengan Noncore).
      */
     assignNonCoreAndLongshift(activeSlots, config, mode, engine) {
       if (!Array.isArray(activeSlots) || activeSlots.length === 0) {
@@ -2189,59 +2090,91 @@ var BrainAI_Raw = (() => {
       activeSlots.forEach((s) => {
         s.nonCore = [];
         s.longshift = [];
+        s.neededNcLs = 0;
       });
-      const slot24 = activeSlots.find((s) => s.cqiNum === "24");
-      if (slot24 && slot24.pouchAddedToWw) {
-        if (nonCorePool.length > 0) {
-          slot24.nonCore.push(nonCorePool.shift());
-        }
-      }
       activeSlots.forEach((slot) => {
+        if (slot.cqiNum === "19") {
+          slot.neededNcLs = 0;
+          return;
+        }
         const count = slot.machines.length;
+        const baseCap = engine.getBaseCoreCapacity(slot);
         const rule = engine.getClusterCapacityRule(slot);
-        const neededNc = rule.getNeededNc(count, mode);
-        while (slot.nonCore.length < neededNc && slot.nonCore.length < maxNcPerCqi && nonCorePool.length > 0) {
+        let needed = rule.getNeededNc(count, mode);
+        if (slot.cqiNum === "24") {
+          const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
+          const pouchIn24 = slot.machines.filter((m) => !engine.isWwMachine(m)).length;
+          if (wwIn24 >= 2) {
+            needed = pouchIn24 > 0 ? 1 : 0;
+          } else if (wwIn24 === 1) {
+            needed = pouchIn24 > 3 ? 1 : 0;
+          } else {
+            needed = count > baseCap ? 1 : 0;
+          }
+        }
+        if (count > baseCap) {
+          if (mode === 1 && count > rule.max1Nc) {
+            needed = Math.max(needed, 2);
+          } else {
+            needed = Math.max(needed, 1);
+          }
+        }
+        slot.neededNcLs = Math.min(maxNcPerCqi, needed);
+      });
+      const needySlots = activeSlots.filter((s) => s.neededNcLs > 0);
+      needySlots.sort((a, b) => {
+        const excessA = a.machines.length - engine.getBaseCoreCapacity(a);
+        const excessB = b.machines.length - engine.getBaseCoreCapacity(b);
+        if (excessB !== excessA) return excessB - excessA;
+        const numA = parseInt(a.cqiNum || 99, 10);
+        const numB = parseInt(b.cqiNum || 99, 10);
+        return numA - numB;
+      });
+      needySlots.forEach((slot) => {
+        while (slot.nonCore.length + slot.longshift.length < slot.neededNcLs && nonCorePool.length > 0) {
           slot.nonCore.push(nonCorePool.shift());
         }
       });
-      const getDynamicMaxNc = (slot, mode2) => {
+      needySlots.forEach((slot) => {
+        while (slot.nonCore.length + slot.longshift.length < slot.neededNcLs && lsPool.length > 0) {
+          slot.longshift.push(lsPool.shift());
+        }
+      });
+      const getDynamicMaxNc = (slot, curMode) => {
+        if (slot.cqiNum === "19") return 0;
+        if (slot.cqiNum === "24") {
+          const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
+          const pouchIn24 = slot.machines.filter((m) => !engine.isWwMachine(m)).length;
+          if (wwIn24 >= 2) {
+            return pouchIn24 > 0 ? 1 : 0;
+          } else if (wwIn24 === 1) {
+            return pouchIn24 > 3 ? 1 : 0;
+          }
+          return 1;
+        }
         const rule = engine.getClusterCapacityRule(slot);
         const count = slot.machines.length;
-        if (mode2 === 1) {
+        if (curMode === 1) {
           if (count > rule.max1Nc) return 2;
-          if (count > rule.maxCoreOnly) return 1;
-          if (count === rule.maxCoreOnly && rule.max1Nc > rule.maxCoreOnly) return 1;
+          if (count >= rule.maxCoreOnly) return 1;
           return 0;
         } else {
-          if (count > rule.maxCoreOnly) return 1;
+          if (count >= rule.maxCoreOnly) return 1;
           return 0;
         }
       };
       while (nonCorePool.length > 0) {
         const eligibleSlots = activeSlots.filter(
-          (s) => s.nonCore.length < getDynamicMaxNc(s, mode) && s.nonCore.length < maxNcPerCqi
+          (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s, mode) && s.nonCore.length + s.longshift.length < maxNcPerCqi
         );
         if (eligibleSlots.length === 0) break;
         eligibleSlots.sort((a, b) => {
-          const loadA = a.machines.length / (a.core + a.nonCore.length + 0.1);
-          const loadB = b.machines.length / (b.core + b.nonCore.length + 0.1);
+          const loadA = a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
+          const loadB = b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
           return loadB - loadA;
         });
         eligibleSlots[0].nonCore.push(nonCorePool.shift());
       }
-      if (slot24 && slot24.pouchAddedToWw && slot24.nonCore.length === 0 && slot24.longshift.length === 0) {
-        if (lsPool.length > 0) {
-          slot24.longshift.push(lsPool.shift());
-        }
-      }
-      activeSlots.forEach((slot) => {
-        const count = slot.machines.length;
-        const rule = engine.getClusterCapacityRule(slot);
-        const neededNc = rule.getNeededNc(count, mode);
-        while (slot.nonCore.length + slot.longshift.length < neededNc && slot.nonCore.length + slot.longshift.length < maxNcPerCqi && lsPool.length > 0) {
-          slot.longshift.push(lsPool.shift());
-        }
-      });
       while (lsPool.length > 0) {
         const eligibleSlots = activeSlots.filter(
           (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s, mode) && s.nonCore.length + s.longshift.length < maxNcPerCqi
@@ -2589,60 +2522,38 @@ var BrainAI_Raw = (() => {
         nonCore: [],
         longshift: [],
         pouchAddedToWw: false,
-        maxAllowedMachines: maxSlotCapacity
+        maxAllowedMachines: 8
       }));
-      const { generalSlots, slot24 } = blockAllocator_default.allocateMachinesToSlots(
+      slots.sort((a, b) => {
+        const numA = parseInt(a.cqiNum, 10) || 999;
+        const numB = parseInt(b.cqiNum, 10) || 999;
+        return numA - numB;
+      });
+      manpowerAssigner_default.assignCorePersonnel(slots, coreList, this);
+      blockAllocator_default.allocateTemporaryPlan(
         slots,
         runningMachines,
         config,
         mapData,
         this
       );
-      let ncCount = 0;
-      if (Array.isArray(config.nonCoreData) && config.nonCoreData.length > 0) {
-        ncCount = config.nonCoreData.length;
-      } else if (Array.isArray(config.nonCoreNames)) {
-        ncCount = config.nonCoreNames.length;
-      }
-      const lsCount = parseInt(config.longshift || 0, 10);
-      const totalNcPool = ncCount + lsCount;
-      loadBalancer_default.balanceIntraLineLoad(
-        generalSlots,
-        mode,
-        totalNcPool,
+      const temporaryPlan = slots.map((s) => ({
+        cqiNum: s.cqiNum,
+        machines: [...s.machines]
+      }));
+      let assignedIds = /* @__PURE__ */ new Set();
+      slots.forEach(
+        (s) => s.machines.forEach((m) => assignedIds.add(m.id || m.name))
+      );
+      let uncoveredMachines = runningMachines.filter(
+        (m) => !assignedIds.has(m.id || m.name)
+      );
+      uncoveredMachines = blockAllocator_default.maximizeCqiSlots(
         slots,
+        uncoveredMachines,
+        runningMachines,
+        config,
         mapData,
-        this
-      );
-      loadBalancer_default.handleWwOverflow(
-        slot24,
-        generalSlots,
-        mode,
-        mapData.labels || [],
-        this,
-        runningMachines,
-        slots
-      );
-      loadBalancer_default.allocateRemainingUnassigned(
-        generalSlots,
-        runningMachines,
-        slots,
-        mapData.labels || [],
-        this
-      );
-      loadBalancer_default.balanceIntraLineLoad(
-        generalSlots,
-        mode,
-        totalNcPool,
-        slots,
-        mapData,
-        this
-      );
-      loadBalancer_default.allocateRemainingUnassigned(
-        generalSlots,
-        runningMachines,
-        slots,
-        mapData.labels || [],
         this
       );
       const activeSlots = slots.filter((s) => s.machines.length > 0);
@@ -2651,27 +2562,17 @@ var BrainAI_Raw = (() => {
         const numB = parseInt(b.cqiNum, 10) || 999;
         return numA - numB;
       });
-      manpowerAssigner_default.assignCorePersonnel(activeSlots, coreList, this);
       const { remainingNonCore, remainingLs } = manpowerAssigner_default.assignNonCoreAndLongshift(activeSlots, config, mode, this);
-      let assignedIds = /* @__PURE__ */ new Set();
+      assignedIds = /* @__PURE__ */ new Set();
       activeSlots.forEach(
         (s) => s.machines.forEach((m) => assignedIds.add(m.id || m.name))
       );
-      let unassigned = runningMachines.filter(
+      let finalUnassigned = runningMachines.filter(
         (m) => !assignedIds.has(m.id || m.name)
       );
-      if (unassigned.length > 0) {
-        this.forceFitUnassignedMachines(slots, unassigned, config, mapData);
-        assignedIds = /* @__PURE__ */ new Set();
-        activeSlots.forEach(
-          (s) => s.machines.forEach((m) => assignedIds.add(m.id || m.name))
-        );
-        unassigned = runningMachines.filter(
-          (m) => !assignedIds.has(m.id || m.name)
-        );
-      }
-      activeSlots.unassignedMachines = unassigned;
-      activeSlots.uncoveredMachines = unassigned;
+      activeSlots.temporaryPlan = temporaryPlan;
+      activeSlots.unassignedMachines = finalUnassigned;
+      activeSlots.uncoveredMachines = finalUnassigned;
       activeSlots.remainingLs = remainingLs;
       activeSlots.remainingNonCore = remainingNonCore;
       let grandTotalDist = 0;

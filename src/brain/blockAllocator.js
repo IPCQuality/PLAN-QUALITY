@@ -221,81 +221,140 @@ export default {
   },
 
   /**
-   * Mengalokasikan seluruh mesin running ke CQI Slots
+   * TAHAP 2: PEMBENTUKAN PLANING SEMENTARA (1 Core per Cluster tanpa Noncore)
+   *
+   * Aturan kapasitas dasar 1 Core:
+   * - Sosoft : 1 Core 4 mesin, tanpa noncore
+   * - SKLsct : 1 Core 4 mesin, tanpa noncore
+   * - 12Ljumbo : 1 Core 4 mesin, tanpa noncore
+   * - hanya Pouch : 1 Core 5 mesin, tanpa noncore
+   * - Pouch+Botol : 1 Core 4 mesin, tanpa noncore
+   * - OT (CQI 19) : 1 Core 2 mesin (M2, M3)
+   * - WW (CQI 24) : 1 Core 4 mesin WW
+   *
+   * Dialokasikan sesuai workstation masing-masing (Line A CQI 1 -> 1A, dll.)
+   * atau sesuai cqiprioritymap dan cqiclusterpriority.
+   * Menghasilkan Planing Sementara (banyak mesin belum tercover).
    */
-  allocateMachinesToSlots(slots, machines, config, mapData, engine) {
+  allocateTemporaryPlan(slots, machines, config, mapData, engine) {
     const labels = mapData.labels || [];
-    const mode = parseInt(config.mode || 1, 10) === 2 ? 2 : 1;
-    const maxSlotCapacity = mode === 1 ? 10 : 8;
-
-    let ncCount = 0;
-    if (Array.isArray(config.nonCoreData) && config.nonCoreData.length > 0) {
-      ncCount = config.nonCoreData.length;
-    } else if (Array.isArray(config.nonCoreNames)) {
-      ncCount = config.nonCoreNames.length;
-    }
-    const lsCount = parseInt(config.longshift || 0, 10);
-    const totalNcPool = ncCount + lsCount;
-
+    const allFactoryMachines = mapData.machines || machines;
     const runningMachines = [...machines];
+
+    // Reset machines di seluruh slot
+    slots.forEach((s) => {
+      s.machines = [];
+      s.pouchAddedToWw = false;
+    });
+
     const wwMachines = runningMachines.filter((m) => engine.isWwMachine(m));
     const otMachines = runningMachines.filter((m) => engine.isOtMachine(m));
     const generalMachines = runningMachines.filter(
       (m) => !engine.isWwMachine(m) && !engine.isOtMachine(m),
     );
 
-    const slot24 = slots.find((s) => s.cqiNum === "24");
     const slot19 = slots.find((s) => s.cqiNum === "19");
+    const slot24 = slots.find((s) => s.cqiNum === "24");
+
+    // 1. CQI 19: Khusus Mesin OT (M2 & M3) - Maksimal 2 mesin 1 Core tanpa Noncore
     if (slot19) {
       slot19.maxAllowedMachines = 2;
+      if (otMachines.length > 0) {
+        otMachines.slice(0, 2).forEach((m) => {
+          if (!slot19.machines.some((sm) => sm.id === m.id || sm.name === m.name)) {
+            slot19.machines.push(m);
+          }
+        });
+      }
     }
 
-    // PASS 1: Mesin OT (M2 & M3) -> Strictly CQI 19
-    if (otMachines.length > 0 && slot19) {
-      otMachines.slice(0, 2).forEach((m) => {
-        if (!slot19.machines.some((sm) => sm.id === m.id || sm.name === m.name)) {
-          slot19.machines.push(m);
+    // 2. CQI 24: Khusus Mesin WW
+    // ATURAN CQI 24 (TANPA NONCORE/LS):
+    // - jika running 2, maka 2 mesin WW (tanpa pouch)
+    // - jika running 1, maka 1 mesin WW dan 3 mesin pouch (total 4)
+    let pouchUsedBy24InTemp = [];
+    if (slot24) {
+      slot24.maxAllowedMachines = 7;
+      if (wwMachines.length >= 2) {
+        wwMachines.slice(0, 2).forEach((m) => {
+          if (!slot24.machines.some((sm) => sm.id === m.id || sm.name === m.name)) {
+            slot24.machines.push(m);
+          }
+        });
+      } else if (wwMachines.length === 1) {
+        const wwM = wwMachines[0];
+        if (!slot24.machines.some((sm) => sm.id === wwM.id || sm.name === wwM.name)) {
+          slot24.machines.push(wwM);
         }
-      });
+
+        const apkLineCMachines = generalMachines.filter(
+          (m) =>
+            engine.isMachineLineC(m, labels) &&
+            (engine.isPouchMachine(m) ||
+              String(m.name || m.id || "").toUpperCase().startsWith("APK")),
+        );
+
+        const validFor24 = apkLineCMachines.filter((m) =>
+          engine.canAddMachineToSlot(
+            m,
+            slot24,
+            runningMachines,
+            allFactoryMachines,
+            labels,
+          ),
+        );
+
+        const toAdd = validFor24.slice(0, 3);
+        toAdd.forEach((m) => {
+          if (!slot24.machines.some((sm) => sm.id === m.id || sm.name === m.name)) {
+            slot24.machines.push(m);
+            pouchUsedBy24InTemp.push(m);
+          }
+        });
+      }
     }
 
-    // PASS 2: Mesin WW -> Strictly CQI 24
-    if (wwMachines.length > 0 && slot24) {
-      wwMachines.forEach((m) => {
-        if (
-          slot24.machines.length < slot24.maxAllowedMachines &&
-          !slot24.machines.some((sm) => sm.id === m.id || sm.name === m.name)
-        ) {
-          slot24.machines.push(m);
-        }
-      });
-    }
-
-    // PASS 3: Alokasi Mesin Umum per Workstation Block
-    const wsBlocks = this.buildWorkstationBlocks(generalMachines, labels, engine);
+    // 3. Slot Umum (Line A, Line B, Line C selain CQI 19 & 24)
     const excludedCqiNums = new Set(["19", "24"]);
     const generalSlots = slots.filter((s) => {
       const num = String(s.cqiNum || engine.getCqiNumber(s.cqi) || "").trim();
       return !excludedCqiNums.has(num);
     });
 
-    const allFactoryMachines = mapData.machines || runningMachines;
+    const usedIn24Ids = new Set(pouchUsedBy24InTemp.map((m) => m.id || m.name));
+    const availableGeneralMachines = generalMachines.filter(
+      (m) => !usedIn24Ids.has(m.id || m.name),
+    );
 
-    // --- PASS 3A: ANCHOR PRIMARY WORKSTATION MATCHING ---
-    // Setiap CQI aktif mengamankan workstation utamanya (lorong tempat CQI berada) terlebih dahulu
-    // Mencegah slot CQI direbut oleh workstation tetangga sebelum workstation utamanya masuk
+    // Bangun kelompok blok workstation
+    const wsBlocks = this.buildWorkstationBlocks(
+      availableGeneralMachines,
+      labels,
+      engine,
+    );
+
+    // Tentukan kapasitas 1 Core dasar untuk setiap slot umum berdasarkan cluster:
+    // - hanya 1 cluster: Sosoft, SKLsct, 12Ljumbo, Pouch, Botol = 4 mesin
+    // - 2 cluster: Sosoft+SKLsct, Sosoft+12Ljumbo, SKLsct+12Ljumbo = 4 mesin
+    // - 2 cluster: 12Ljumbo+Pouch, Pouch+Botol = 5 mesin
+    const getBaseCapacityForSlot = (slot) => {
+      return engine.getBaseCoreCapacity(slot);
+    };
+
+    // --- PASS 1: SESUAI WORKSTATION UTAMA (ANCHOR) MASING-MASING CQI ---
+    // Contoh: Line A CQI 1 -> 1A (& 0A), CQI 2 -> 2A, CQI 3 -> 3A, dll.
     generalSlots.forEach((slot) => {
       const prioKey = "cqi " + slot.cqiNum;
       const prioList = engine.CQI_PRIORITY_MAP[prioKey] || [];
       if (prioList.length === 0) return;
 
-      // Ambil workstation anchor utama (misal: 5A untuk CQI 5, 7A untuk CQI 7, 8A untuk CQI 8, 10A untuk CQI 10, 3A untuk CQI 3, 1A & 0A untuk CQI 1)
       const primaryWsList = [String(prioList[0]).toUpperCase()];
       if (slot.cqiNum === "1" && prioList.includes("0A")) {
         primaryWsList.push("0A");
       }
 
       primaryWsList.forEach((primaryWs) => {
+        const baseCap = getBaseCapacityForSlot(slot);
         const matchingKeys = Object.keys(wsBlocks).filter((k) => {
           const b = wsBlocks[k];
           return b.ws.toUpperCase() === primaryWs && b.machines.length > 0;
@@ -313,20 +372,23 @@ export default {
             ),
           );
 
-          const limit = slot.maxAllowedMachines || maxSlotCapacity;
-          const availableSpace = limit - slot.machines.length;
+          const availableSpace = baseCap - slot.machines.length;
           if (availableSpace > 0 && validMachines.length > 0) {
             const toAdd = validMachines.slice(0, availableSpace);
             slot.machines.push(...toAdd);
-            anchorBlock.machines = anchorBlock.machines.filter((m) => !toAdd.includes(m));
+            anchorBlock.machines = anchorBlock.machines.filter(
+              (m) => !toAdd.includes(m),
+            );
           }
         });
       });
     });
 
-    // --- PASS 3B: ADJACENT PAIR EXPANSION ---
-    // Setelah anchor terkunci, slot CQI memperluas jangkauannya hanya ke workstation lorong yang berdampingan langsung (selisih 1 lorong)
+    // --- PASS 2: WORKSTATION PRIORITAS BERIKUTNYA (JIKA BELUM MENCAPAI 1 CORE) ---
     generalSlots.forEach((slot) => {
+      const baseCap = getBaseCapacityForSlot(slot);
+      if (slot.machines.length >= baseCap) return;
+
       const prioKey = "cqi " + slot.cqiNum;
       const prioList = (engine.CQI_PRIORITY_MAP[prioKey] || []).map((w) =>
         String(w).toUpperCase(),
@@ -336,12 +398,15 @@ export default {
       const adjacentWsList = prioList.slice(1);
 
       adjacentWsList.forEach((adjWs) => {
+        if (slot.machines.length >= baseCap) return;
+
         const matchingKeys = Object.keys(wsBlocks).filter((k) => {
           const b = wsBlocks[k];
           return b.ws.toUpperCase() === adjWs && b.machines.length > 0;
         });
 
         matchingKeys.forEach((key) => {
+          if (slot.machines.length >= baseCap) return;
           const adjBlock = wsBlocks[key];
           const validMachines = adjBlock.machines.filter((m) =>
             engine.canAddMachineToSlot(
@@ -353,160 +418,212 @@ export default {
             ),
           );
 
-          const limit = slot.maxAllowedMachines || maxSlotCapacity;
-          const availableSpace = limit - slot.machines.length;
+          const availableSpace = baseCap - slot.machines.length;
           if (availableSpace > 0 && validMachines.length > 0) {
             const toAdd = validMachines.slice(0, availableSpace);
             slot.machines.push(...toAdd);
-            adjBlock.machines = adjBlock.machines.filter((m) => !toAdd.includes(m));
+            adjBlock.machines = adjBlock.machines.filter(
+              (m) => !toAdd.includes(m),
+            );
           }
         });
       });
     });
 
-    const lineOrder = { "LINE C": 1, "LINE A": 2, "LINE B": 3, OTHER: 4 };
-    const sortedWsBlocks = Object.values(wsBlocks)
-      .filter((b) => b.machines.length > 0)
-      .sort((a, b) => {
-        const ordA = lineOrder[a.line] || 9;
-        const ordB = lineOrder[b.line] || 9;
-        if (ordA !== ordB) return ordA - ordB;
-        return a.col - b.col;
-      });
+    return { generalSlots, slot24, slot19, wsBlocks };
+  },
 
-    // --- PASS 3C: GENERAL BLOCK ALLOCATION (SISA BLOK) ---
-    sortedWsBlocks.forEach((block) => {
-      if (block.machines.length === 0) return;
-      const blockMachines = [...block.machines];
+  /**
+   * TAHAP 3 (Lanjutan 1): MAKSIMALKAN CQI YANG BISA DIMAKSIMALKAN (MAKS = 8 MESIN)
+   * berdasarkan cqiprioritymap dan cqiclusterpriority.
+   *
+   * Dengan cara menambahkan mesin belum tercover ke (planing sementara)
+   * TANPA MENGUBAH (planing sementara), HANYA MENAMBAHKAN.
+   */
+  maximizeCqiSlots(
+    slots,
+    uncoveredMachines,
+    allRunningMachines,
+    config,
+    mapData,
+    engine,
+  ) {
+    if (!Array.isArray(uncoveredMachines) || uncoveredMachines.length === 0) {
+      return [];
+    }
 
-      let validSlots = generalSlots.filter((s) =>
-        blockMachines.every((m) =>
-          engine.canAddMachineToSlot(
-            m,
-            s,
-            runningMachines,
-            allFactoryMachines,
-            labels,
-          ),
-        ),
-      );
+    const labels = mapData.labels || [];
+    const allFactoryMachines = mapData.machines || allRunningMachines;
+    let remaining = [...uncoveredMachines];
 
-      if (validSlots.length === 0) {
-        validSlots = generalSlots.filter((s) =>
-          blockMachines.some((m) =>
+    // 1. Evaluasi CQI 24 jika ada mesin APK Line C yang belum tercover
+    // DENGAN 1 NONCORE/LS:
+    // - jika running 2 WW, maka 2 mesin WW dan 5 mesin pouch (total 7)
+    // - jika running 1 WW, maka 1 mesin WW dan 6 mesin pouch (total 7)
+    const slot24 = slots.find((s) => s.cqiNum === "24");
+    if (slot24 && slot24.machines.length < 7) {
+      const wwCountIn24 = slot24.machines.filter((m) => engine.isWwMachine(m)).length;
+      const pouchCountIn24 = slot24.machines.filter((m) => !engine.isWwMachine(m)).length;
+      const maxPouchAllowed = wwCountIn24 >= 2 ? 5 : (wwCountIn24 === 1 ? 6 : 6);
+      const availablePouchSpace = Math.max(0, maxPouchAllowed - pouchCountIn24);
+
+      if (availablePouchSpace > 0) {
+        const apkLineCMachines = remaining.filter(
+          (m) =>
+            engine.isMachineLineC(m, labels) &&
+            (engine.isPouchMachine(m) ||
+              String(m.name || m.id || "").toUpperCase().startsWith("APK")),
+        );
+
+        if (apkLineCMachines.length > 0) {
+          const validFor24 = apkLineCMachines.filter((m) =>
             engine.canAddMachineToSlot(
               m,
-              s,
-              runningMachines,
-              allFactoryMachines,
-              labels,
-            ),
-          ),
-        );
-      }
-      if (validSlots.length === 0) {
-        validSlots = generalSlots;
-      }
-
-      validSlots.sort(
-        (a, b) =>
-          this.evaluateBlockAffinity(block, a, engine, mapData, generalSlots, sortedWsBlocks, runningMachines) -
-          this.evaluateBlockAffinity(block, b, engine, mapData, generalSlots, sortedWsBlocks, runningMachines),
-      );
-
-      let remainingInBlock = [...blockMachines];
-
-      const lineSlots = generalSlots.filter(
-        (s) => engine.getCqiPrimaryLine(s.cqi) === block.line,
-      );
-      const lineTotalMachines = Object.values(wsBlocks)
-        .filter((b) => b.line === block.line)
-        .reduce((acc, b) => acc + (b.machines.length + generalSlots.reduce((sAcc, s) => sAcc + s.machines.filter(m => engine.getWorkstationKey(m, labels) === b.ws).length, 0)), 0);
-      const avgLineLoad =
-        lineSlots.length > 0
-          ? Math.ceil(lineTotalMachines / lineSlots.length)
-          : maxSlotCapacity;
-
-      for (const targetSlot of validSlots) {
-        if (remainingInBlock.length === 0) break;
-        const targetCapacity = Math.min(
-          targetSlot.maxAllowedMachines || maxSlotCapacity,
-          Math.max(
-            engine.getDynamicSlotLimit(targetSlot, mode, totalNcPool, slots),
-            avgLineLoad,
-          ),
-        );
-        const availableSpace = targetCapacity - targetSlot.machines.length;
-        if (availableSpace <= 0) continue;
-
-        const validToInsert = remainingInBlock.filter((m) =>
-          engine.canAddMachineToSlot(
-            m,
-            targetSlot,
-            runningMachines,
-            allFactoryMachines,
-            labels,
-          ),
-        );
-        const canTake = Math.min(availableSpace, validToInsert.length);
-        if (canTake > 0) {
-          const taken = validToInsert.slice(0, canTake);
-          targetSlot.machines.push(...taken);
-          remainingInBlock = remainingInBlock.filter((m) => !taken.includes(m));
-        }
-      }
-
-      // Fallback untuk sisa blok jika slot awal penuh
-      if (remainingInBlock.length > 0) {
-        let stillRemaining = [...remainingInBlock];
-        const compatibleSlots = generalSlots.filter((s) =>
-          stillRemaining.some((m) =>
-            engine.canAddMachineToSlot(
-              m,
-              s,
-              runningMachines,
-              allFactoryMachines,
-              labels,
-            ),
-          ),
-        );
-        let fallbacks = (
-          compatibleSlots.length > 0 ? compatibleSlots : generalSlots
-        ).sort((a, b) => {
-          const aLine = engine.getCqiPrimaryLine(a.cqi);
-          const bLine = engine.getCqiPrimaryLine(b.cqi);
-          const aSame = aLine === block.line ? 0 : 1;
-          const bSame = bLine === block.line ? 0 : 1;
-          if (aSame !== bSame) return aSame - bSame;
-          const distA = engine.calculateDistance(block.machines[0], a.cqi, labels);
-          const distB = engine.calculateDistance(block.machines[0], b.cqi, labels);
-          if (distA !== distB) return distA - distB;
-          return a.machines.length - b.machines.length;
-        });
-
-        for (const fb of fallbacks) {
-          if (stillRemaining.length === 0) break;
-          const available = engine.getDynamicSlotLimit(fb, mode, totalNcPool, slots) - fb.machines.length;
-          if (available <= 0) continue;
-
-          const validToInsert = stillRemaining.filter((m) =>
-            engine.canAddMachineToSlot(
-              m,
-              fb,
-              runningMachines,
+              slot24,
+              allRunningMachines,
               allFactoryMachines,
               labels,
             ),
           );
-          const toPush = validToInsert.slice(0, available);
-          if (toPush.length > 0) {
-            fb.machines.push(...toPush);
-            stillRemaining = stillRemaining.filter((m) => !toPush.includes(m));
+          const toAdd = validFor24.slice(0, availablePouchSpace);
+          if (toAdd.length > 0) {
+            slot24.machines.push(...toAdd);
+            slot24.pouchAddedToWw = true;
+            const addedIds = new Set(toAdd.map((m) => m.id || m.name));
+            remaining = remaining.filter((m) => !addedIds.has(m.id || m.name));
           }
         }
       }
+    }
+
+    // 2. Evaluasi Slot Umum (Maksimal 8 Mesin)
+    // Urutkan uncovered machines berdasarkan lorong & workstation agar mesin yang berdampingan dipertimbangkan bersama
+    remaining.sort((a, b) => {
+      const lineA = engine.getMachineLine(a, labels);
+      const lineB = engine.getMachineLine(b, labels);
+      if (lineA !== lineB) return lineA.localeCompare(lineB);
+      const wsA = engine.getWorkstationKey(a, labels);
+      const wsB = engine.getWorkstationKey(b, labels);
+      if (wsA !== wsB) return wsA.localeCompare(wsB);
+      return (a.position?.col || 0) - (b.position?.col || 0);
     });
 
-    return { generalSlots, sortedWsBlocks, slot24 };
+    let progressMade = true;
+    while (remaining.length > 0 && progressMade) {
+      progressMade = false;
+
+      for (let i = 0; i < remaining.length; i++) {
+        const m = remaining[i];
+        const mWs = engine.getWorkstationKey(m, labels).toUpperCase();
+        const mCluster = engine.getMachineClusterGroup(m);
+        const mLine = engine.getMachineLine(m, labels);
+
+        // Cari kandidat slot yang eligible (belum mencapai maks 8 mesin dan lulus canAddMachineToSlot)
+        const candidates = [];
+
+        slots.forEach((s) => {
+          if (s.cqiNum === "19") return; // CQI 19 strictly 2 mesin OT
+          if (s.machines.length >= 8) return; // Maksimal 8 mesin
+
+          if (
+            engine.canAddMachineToSlot(
+              m,
+              s,
+              allRunningMachines,
+              allFactoryMachines,
+              labels,
+            )
+          ) {
+            const prioKey = "cqi " + s.cqiNum;
+            const wsPrioList = (engine.CQI_PRIORITY_MAP[prioKey] || []).map(
+              (w) => String(w).toUpperCase(),
+            );
+            const clusterPrioList = (
+              engine.CQI_CLUSTER_PRIORITY_MAP[prioKey] || []
+            ).map((c) => String(c).toUpperCase());
+
+            let score = 0;
+
+            // Kriteria 1: CQI Priority Map
+            const wsIdx = wsPrioList.indexOf(mWs);
+            if (wsIdx === 0) score += 3000;
+            else if (wsIdx === 1) score += 2000;
+            else if (wsIdx === 2) score += 1200;
+            else if (wsIdx > 2) score += Math.max(300, 1000 - wsIdx * 200);
+
+            // Kriteria 2: CQI Cluster Priority
+            const clusterIdx = clusterPrioList.indexOf(mCluster);
+            if (clusterIdx === 0) score += 1500;
+            else if (clusterIdx === 1) score += 800;
+            else if (clusterIdx > 1) score += 400;
+
+            // Kriteria 3: Kesatuan Workstation (Sangat prioritaskan CQI yang sudah punya mesin dari WS yang sama)
+            const sameWsCount = s.machines.filter(
+              (sm) =>
+                engine.getWorkstationKey(sm, labels).toUpperCase() === mWs,
+            ).length;
+            if (sameWsCount > 0) {
+              score += 2500 + sameWsCount * 500;
+            }
+
+            // Kriteria 4: Keselarasan Line
+            const sLine = engine.getCqiPrimaryLine(s.cqi);
+            if (sLine === mLine) {
+              score += 800;
+            } else {
+              score -= 400;
+            }
+
+            // Kriteria 5: Jarak Fisik
+            const dist = engine.calculateDistance(m, s.cqi, labels);
+            score -= dist * 15;
+
+            // Kriteria 6: Distribusi Beban (Pilih yang beban mesinnya lebih rendah jika skor mendekati)
+            score -= s.machines.length * 50;
+
+            candidates.push({ slot: s, score });
+          }
+        });
+
+        if (candidates.length > 0) {
+          // Pilih slot dengan skor kesesuaian tertinggi
+          candidates.sort((a, b) => b.score - a.score);
+          const bestSlot = candidates[0].slot;
+
+          // Tambahkan ke slot TANPA mengubah mesin yang sudah ada sebelumnya
+          bestSlot.machines.push(m);
+          remaining.splice(i, 1);
+          progressMade = true;
+          break; // restart loop untuk update status load
+        }
+      }
+    }
+
+    return remaining;
+  },
+
+  /**
+   * Mengalokasikan seluruh mesin running ke CQI Slots secara menyeluruh
+   * Menggabungkan Planing Sementara (1 Core tanpa NC) dan Maksimasi Slot (Maks 8 Mesin)
+   */
+  allocateMachinesToSlots(slots, machines, config, mapData, engine) {
+    this.allocateTemporaryPlan(slots, machines, config, mapData, engine);
+
+    const assignedIds = new Set();
+    slots.forEach((s) =>
+      s.machines.forEach((m) => assignedIds.add(m.id || m.name)),
+    );
+    let uncovered = machines.filter((m) => !assignedIds.has(m.id || m.name));
+
+    uncovered = this.maximizeCqiSlots(
+      slots,
+      uncovered,
+      machines,
+      config,
+      mapData,
+      engine,
+    );
+
+    return { slots, uncovered };
   },
 };

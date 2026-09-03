@@ -1555,8 +1555,8 @@
       "priority": [],
       "corePriority": [],
       "position": {
-        "row": 12,
-        "col": 11
+        "row": 14,
+        "col": 13
       }
     },
     {
@@ -1601,17 +1601,6 @@
       "position": {
         "row": 13,
         "col": 21
-      }
-    },
-    {
-      "id": "CQI-26",
-      "name": "CQI 26",
-      "status": "READY",
-      "priority": [],
-      "corePriority": [],
-      "position": {
-        "row": 14,
-        "col": 13
       }
     }
   ],
