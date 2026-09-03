@@ -1,0 +1,1884 @@
+{
+  "machines": [
+    {
+      "id": "M-0A-1",
+      "name": "AST 33-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "0A",
+      "position": {
+        "row": 8,
+        "col": 6
+      }
+    },
+    {
+      "id": "M-0A-3",
+      "name": "AST 14-12L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "0A",
+      "position": {
+        "row": 6,
+        "col": 5
+      }
+    },
+    {
+      "id": "M-1A-2",
+      "name": "AST 36-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "1A",
+      "position": {
+        "row": 7,
+        "col": 8
+      }
+    },
+    {
+      "id": "M-1A-3",
+      "name": "AST 44-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "1A",
+      "position": {
+        "row": 6,
+        "col": 8
+      }
+    },
+    {
+      "id": "M-1A-4",
+      "name": "AST 61-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "1A",
+      "position": {
+        "row": 5,
+        "col": 8
+      }
+    },
+    {
+      "id": "M-2A-1",
+      "name": "AST 70-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "2A",
+      "position": {
+        "row": 8,
+        "col": 10
+      }
+    },
+    {
+      "id": "M-2A-2",
+      "name": "AST 69-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "2A",
+      "position": {
+        "row": 7,
+        "col": 10
+      }
+    },
+    {
+      "id": "M-2A-3",
+      "name": "AST 67-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "2A",
+      "position": {
+        "row": 6,
+        "col": 10
+      }
+    },
+    {
+      "id": "M-2A-4",
+      "name": "AST 68-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "2A",
+      "position": {
+        "row": 5,
+        "col": 10
+      }
+    },
+    {
+      "id": "M-3A-1",
+      "name": "AST 54-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "3A",
+      "position": {
+        "row": 7,
+        "col": 12
+      }
+    },
+    {
+      "id": "M-3A-2",
+      "name": "AST 55-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "3A",
+      "position": {
+        "row": 6,
+        "col": 12
+      }
+    },
+    {
+      "id": "M-3A-3",
+      "name": "AST 22-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "3A",
+      "position": {
+        "row": 5,
+        "col": 12
+      }
+    },
+    {
+      "id": "M-4A-1",
+      "name": "AST 26-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "4A",
+      "position": {
+        "row": 8,
+        "col": 14
+      }
+    },
+    {
+      "id": "M-4A-2",
+      "name": "AST 27-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "4A",
+      "position": {
+        "row": 7,
+        "col": 14
+      }
+    },
+    {
+      "id": "M-4A-3",
+      "name": "AST 28-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "4A",
+      "position": {
+        "row": 6,
+        "col": 14
+      }
+    },
+    {
+      "id": "M-4A-4",
+      "name": "AST 65-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "4A",
+      "position": {
+        "row": 5,
+        "col": 14
+      }
+    },
+    {
+      "id": "M-5A-1",
+      "name": "AST 29-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "5A",
+      "position": {
+        "row": 8,
+        "col": 16
+      }
+    },
+    {
+      "id": "M-5A-2",
+      "name": "AST 8-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "5A",
+      "position": {
+        "row": 7,
+        "col": 16
+      }
+    },
+    {
+      "id": "M-5A-3",
+      "name": "AST 10-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "5A",
+      "position": {
+        "row": 6,
+        "col": 16
+      }
+    },
+    {
+      "id": "M-5A-4",
+      "name": "AST 12-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "5A",
+      "position": {
+        "row": 5,
+        "col": 16
+      }
+    },
+    {
+      "id": "M-6A-1",
+      "name": "AST 30-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "6A",
+      "position": {
+        "row": 8,
+        "col": 18
+      }
+    },
+    {
+      "id": "M-6A-2",
+      "name": "AST 7-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "6A",
+      "position": {
+        "row": 7,
+        "col": 18
+      }
+    },
+    {
+      "id": "M-6A-3",
+      "name": "AST 9-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "6A",
+      "position": {
+        "row": 6,
+        "col": 18
+      }
+    },
+    {
+      "id": "M-6A-4",
+      "name": "AST 11-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "6A",
+      "position": {
+        "row": 5,
+        "col": 18
+      }
+    },
+    {
+      "id": "M-7A-1",
+      "name": "AST 71-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "7A",
+      "position": {
+        "row": 8,
+        "col": 20
+      }
+    },
+    {
+      "id": "M-7A-2",
+      "name": "AST 3-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "7A",
+      "position": {
+        "row": 7,
+        "col": 20
+      }
+    },
+    {
+      "id": "M-7A-3",
+      "name": "AST 5-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "7A",
+      "position": {
+        "row": 6,
+        "col": 20
+      }
+    },
+    {
+      "id": "M-7A-4",
+      "name": "AST 4-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "7A",
+      "position": {
+        "row": 5,
+        "col": 20
+      }
+    },
+    {
+      "id": "M-8A-1",
+      "name": "AST 72-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "8A",
+      "position": {
+        "row": 8,
+        "col": 22
+      }
+    },
+    {
+      "id": "M-8A-2",
+      "name": "AST 18-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "8A",
+      "position": {
+        "row": 7,
+        "col": 22
+      }
+    },
+    {
+      "id": "M-8A-3",
+      "name": "AST 6-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "8A",
+      "position": {
+        "row": 6,
+        "col": 22
+      }
+    },
+    {
+      "id": "M-8A-4",
+      "name": "AST 2-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "8A",
+      "position": {
+        "row": 5,
+        "col": 22
+      }
+    },
+    {
+      "id": "M-9A-1",
+      "name": "AST 63-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "9A",
+      "position": {
+        "row": 8,
+        "col": 24
+      }
+    },
+    {
+      "id": "M-9A-2",
+      "name": "AST 15-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "9A",
+      "position": {
+        "row": 7,
+        "col": 24
+      }
+    },
+    {
+      "id": "M-9A-3",
+      "name": "AST 16-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "9A",
+      "position": {
+        "row": 6,
+        "col": 24
+      }
+    },
+    {
+      "id": "M-9A-4",
+      "name": "AST 17-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "9A",
+      "position": {
+        "row": 5,
+        "col": 24
+      }
+    },
+    {
+      "id": "M-10A-1",
+      "name": "AST 19-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "10A",
+      "position": {
+        "row": 8,
+        "col": 26
+      }
+    },
+    {
+      "id": "M-10A-2",
+      "name": "AST 20-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "10A",
+      "position": {
+        "row": 7,
+        "col": 26
+      }
+    },
+    {
+      "id": "M-10A-3",
+      "name": "AST 21-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "10A",
+      "position": {
+        "row": 6,
+        "col": 26
+      }
+    },
+    {
+      "id": "M-10A-4",
+      "name": "AST 60-16L",
+      "line": "LINE A",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "16",
+      "workstation": "10A",
+      "position": {
+        "row": 5,
+        "col": 26
+      }
+    },
+    {
+      "id": "M-0B-1",
+      "name": "K1",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Botol",
+      "qtytimbang": "4",
+      "workstation": "0B",
+      "position": {
+        "row": 12,
+        "col": 5
+      }
+    },
+    {
+      "id": "M-0B-2",
+      "name": "K2",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Botol",
+      "qtytimbang": "4",
+      "workstation": "0B",
+      "position": {
+        "row": 12,
+        "col": 6
+      }
+    },
+    {
+      "id": "M-1B-1",
+      "name": "AST 41-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "1B",
+      "position": {
+        "row": 12,
+        "col": 8
+      }
+    },
+    {
+      "id": "M-1B-2",
+      "name": "AST 47-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "1B",
+      "position": {
+        "row": 13,
+        "col": 8
+      }
+    },
+    {
+      "id": "M-1B-3",
+      "name": "AST 51-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "1B",
+      "position": {
+        "row": 14,
+        "col": 8
+      }
+    },
+    {
+      "id": "M-1B-4",
+      "name": "AST 50-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "1B",
+      "position": {
+        "row": 15,
+        "col": 8
+      }
+    },
+    {
+      "id": "M-2B-1",
+      "name": "AST 46-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "2B",
+      "position": {
+        "row": 12,
+        "col": 10
+      }
+    },
+    {
+      "id": "M-2B-2",
+      "name": "AST 45-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "2B",
+      "position": {
+        "row": 13,
+        "col": 10
+      }
+    },
+    {
+      "id": "M-2B-3",
+      "name": "AST 42-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "2B",
+      "position": {
+        "row": 14,
+        "col": 10
+      }
+    },
+    {
+      "id": "M-2B-4",
+      "name": "AST 43-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "2B",
+      "position": {
+        "row": 15,
+        "col": 10
+      }
+    },
+    {
+      "id": "M-3B-1",
+      "name": "AST 53-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "3B",
+      "position": {
+        "row": 12,
+        "col": 12
+      }
+    },
+    {
+      "id": "M-3B-2",
+      "name": "AST 52-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "3B",
+      "position": {
+        "row": 13,
+        "col": 12
+      }
+    },
+    {
+      "id": "M-3B-3",
+      "name": "AST 48-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "3B",
+      "position": {
+        "row": 14,
+        "col": 12
+      }
+    },
+    {
+      "id": "M-3B-4",
+      "name": "AST 49-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Sosoft",
+      "qtytimbang": "8",
+      "workstation": "3B",
+      "position": {
+        "row": 15,
+        "col": 12
+      }
+    },
+    {
+      "id": "M-4B-1",
+      "name": "APK 45",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "4B",
+      "position": {
+        "row": 12,
+        "col": 14
+      }
+    },
+    {
+      "id": "M-4B-2",
+      "name": "APK 46",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "4B",
+      "position": {
+        "row": 13,
+        "col": 14
+      }
+    },
+    {
+      "id": "M-5B-1",
+      "name": "AST 24-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "5B",
+      "position": {
+        "row": 12,
+        "col": 16
+      }
+    },
+    {
+      "id": "M-5B-2",
+      "name": "AST 31-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "5B",
+      "position": {
+        "row": 13,
+        "col": 16
+      }
+    },
+    {
+      "id": "M-5B-3",
+      "name": "AST 23-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "5B",
+      "position": {
+        "row": 14,
+        "col": 16
+      }
+    },
+    {
+      "id": "M-5B-4",
+      "name": "AST 62-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "5B",
+      "position": {
+        "row": 15,
+        "col": 16
+      }
+    },
+    {
+      "id": "M-6B-1",
+      "name": "K8",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Botol",
+      "qtytimbang": "4",
+      "workstation": "6B",
+      "position": {
+        "row": 12,
+        "col": 17
+      }
+    },
+    {
+      "id": "M-6B-2",
+      "name": "K7",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Botol",
+      "qtytimbang": "4",
+      "workstation": "6B",
+      "position": {
+        "row": 12,
+        "col": 18
+      }
+    },
+    {
+      "id": "M-7B-1",
+      "name": "AST 39-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "7B",
+      "position": {
+        "row": 12,
+        "col": 20
+      }
+    },
+    {
+      "id": "M-7B-2",
+      "name": "AST 38-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "7B",
+      "position": {
+        "row": 13,
+        "col": 20
+      }
+    },
+    {
+      "id": "M-7B-3",
+      "name": "AST 37-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "7B",
+      "position": {
+        "row": 14,
+        "col": 20
+      }
+    },
+    {
+      "id": "M-7B-4",
+      "name": "AST 40-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "7B",
+      "position": {
+        "row": 15,
+        "col": 20
+      }
+    },
+    {
+      "id": "M-8B-1",
+      "name": "APK 15",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "8B",
+      "position": {
+        "row": 12,
+        "col": 22
+      }
+    },
+    {
+      "id": "M-8B-2",
+      "name": "APK 12",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "8B",
+      "position": {
+        "row": 13,
+        "col": 22
+      }
+    },
+    {
+      "id": "M-9B-1",
+      "name": "AST 66-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "8",
+      "workstation": "9B",
+      "position": {
+        "row": 12,
+        "col": 24
+      }
+    },
+    {
+      "id": "M-9B-2",
+      "name": "AST 35-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "8",
+      "workstation": "9B",
+      "position": {
+        "row": 13,
+        "col": 24
+      }
+    },
+    {
+      "id": "M-9B-3",
+      "name": "AST 34-16L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "SKLsct",
+      "qtytimbang": "8",
+      "workstation": "9B",
+      "position": {
+        "row": 14,
+        "col": 24
+      }
+    },
+    {
+      "id": "M-9B-4",
+      "name": "AST 73-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "9B",
+      "position": {
+        "row": 15,
+        "col": 24
+      }
+    },
+    {
+      "id": "M-10B-1",
+      "name": "AST 25-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "10B",
+      "position": {
+        "row": 12,
+        "col": 26
+      }
+    },
+    {
+      "id": "M-10B-2",
+      "name": "AST 13-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "10B",
+      "position": {
+        "row": 13,
+        "col": 26
+      }
+    },
+    {
+      "id": "M-10B-3",
+      "name": "AST 32-12L",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "12Ljumbo",
+      "qtytimbang": "12",
+      "workstation": "10B",
+      "position": {
+        "row": 14,
+        "col": 26
+      }
+    },
+    {
+      "id": "M-11B-1",
+      "name": "X3",
+      "line": "LINE B",
+      "status": "OFF",
+      "cluster": "Botol",
+      "qtytimbang": "4",
+      "workstation": "11B",
+      "position": {
+        "row": 12,
+        "col": 28
+      }
+    },
+    {
+      "id": "M-1C-1",
+      "name": "APK 40",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "1C",
+      "position": {
+        "row": 14,
+        "col": 33
+      }
+    },
+    {
+      "id": "M-1C-2",
+      "name": "APK 43",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "1C",
+      "position": {
+        "row": 15,
+        "col": 33
+      }
+    },
+    {
+      "id": "M-1C-3",
+      "name": "APK 44",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "1C",
+      "position": {
+        "row": 16,
+        "col": 33
+      }
+    },
+    {
+      "id": "M-2C-1",
+      "name": "APK 19",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "2C",
+      "position": {
+        "row": 14,
+        "col": 35
+      }
+    },
+    {
+      "id": "M-2C-2",
+      "name": "APK 26",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "2C",
+      "position": {
+        "row": 15,
+        "col": 35
+      }
+    },
+    {
+      "id": "M-3C-1",
+      "name": "APK 13",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "3C",
+      "position": {
+        "row": 14,
+        "col": 37
+      }
+    },
+    {
+      "id": "M-3C-2",
+      "name": "APK 61",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "3C",
+      "position": {
+        "row": 15,
+        "col": 37
+      }
+    },
+    {
+      "id": "M-3C-3",
+      "name": "APK 9",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "3C",
+      "position": {
+        "row": 16,
+        "col": 37
+      }
+    },
+    {
+      "id": "M-4C-1",
+      "name": "APK 42",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "4C",
+      "position": {
+        "row": 14,
+        "col": 39
+      }
+    },
+    {
+      "id": "M-4C-2",
+      "name": "APK 38",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "4C",
+      "position": {
+        "row": 15,
+        "col": 39
+      }
+    },
+    {
+      "id": "M-4C-3",
+      "name": "APK 55",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "4C",
+      "position": {
+        "row": 16,
+        "col": 39
+      }
+    },
+    {
+      "id": "M-5C-1",
+      "name": "APK 32",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "5C",
+      "position": {
+        "row": 14,
+        "col": 41
+      }
+    },
+    {
+      "id": "M-5C-2",
+      "name": "APK 54",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "5C",
+      "position": {
+        "row": 15,
+        "col": 41
+      }
+    },
+    {
+      "id": "M-6C-1",
+      "name": "K5",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Botol",
+      "qtytimbang": "4",
+      "workstation": "6C",
+      "position": {
+        "row": 14,
+        "col": 43
+      }
+    },
+    {
+      "id": "M-6C-2",
+      "name": "K6",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Botol",
+      "qtytimbang": "4",
+      "workstation": "6C",
+      "position": {
+        "row": 14,
+        "col": 44
+      }
+    },
+    {
+      "id": "M-7C-1",
+      "name": "X2",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Botol",
+      "qtytimbang": "4",
+      "workstation": "7C",
+      "position": {
+        "row": 14,
+        "col": 45
+      }
+    },
+    {
+      "id": "M-7C-2",
+      "name": "K9",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Botol",
+      "qtytimbang": "4",
+      "workstation": "7C",
+      "position": {
+        "row": 14,
+        "col": 46
+      }
+    },
+    {
+      "id": "M-8C-1",
+      "name": "APK 58",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "8C",
+      "position": {
+        "row": 14,
+        "col": 48
+      }
+    },
+    {
+      "id": "M-8C-2",
+      "name": "APK 59",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "8C",
+      "position": {
+        "row": 15,
+        "col": 48
+      }
+    },
+    {
+      "id": "M-9C-1",
+      "name": "APK 63",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "9C",
+      "position": {
+        "row": 14,
+        "col": 50
+      }
+    },
+    {
+      "id": "M-10C-1",
+      "name": "APK 31",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "10C",
+      "position": {
+        "row": 14,
+        "col": 52
+      }
+    },
+    {
+      "id": "M-10C-2",
+      "name": "APK 56",
+      "line": "LINE C",
+      "status": "OFF",
+      "cluster": "Pouch",
+      "qtytimbang": "4",
+      "workstation": "10C",
+      "position": {
+        "row": 15,
+        "col": 52
+      }
+    },
+    {
+      "id": "M-WW-1",
+      "name": "C1",
+      "line": "WW",
+      "status": "OFF",
+      "cluster": "",
+      "qtytimbang": "8",
+      "workstation": "WW",
+      "position": {
+        "row": 8,
+        "col": 33
+      }
+    },
+    {
+      "id": "M-WW-2",
+      "name": "C2",
+      "line": "WW",
+      "status": "OFF",
+      "cluster": "",
+      "qtytimbang": "8",
+      "workstation": "WW",
+      "position": {
+        "row": 9,
+        "col": 33
+      }
+    },
+    {
+      "id": "M-OT-1",
+      "name": "M2",
+      "line": "OT",
+      "status": "OFF",
+      "cluster": "",
+      "qtytimbang": "8",
+      "workstation": "OT",
+      "position": {
+        "row": 3,
+        "col": 33
+      }
+    },
+    {
+      "id": "M-OT-2",
+      "name": "M3",
+      "line": "OT",
+      "status": "OFF",
+      "cluster": "",
+      "qtytimbang": "8",
+      "workstation": "OT",
+      "position": {
+        "row": 4,
+        "col": 33
+      }
+    }
+  ],
+  "cqis": [
+    {
+      "id": "CQI-1",
+      "name": "CQI 1",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 8
+      }
+    },
+    {
+      "id": "CQI-2",
+      "name": "CQI 2",
+      "status": "OFF",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 10
+      }
+    },
+    {
+      "id": "CQI-3",
+      "name": "CQI 3",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 12
+      }
+    },
+    {
+      "id": "CQI-4",
+      "name": "CQI 4",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 14
+      }
+    },
+    {
+      "id": "CQI-5",
+      "name": "CQI 5",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 16
+      }
+    },
+    {
+      "id": "CQI-6",
+      "name": "CQI 6",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 18
+      }
+    },
+    {
+      "id": "CQI-7",
+      "name": "CQI 7",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 20
+      }
+    },
+    {
+      "id": "CQI-8",
+      "name": "CQI 8",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 22
+      }
+    },
+    {
+      "id": "CQI-9",
+      "name": "CQI 9",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 24
+      }
+    },
+    {
+      "id": "CQI-10",
+      "name": "CQI 10",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 26
+      }
+    },
+    {
+      "id": "CQI-11",
+      "name": "CQI 11",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 12,
+        "col": 9
+      }
+    },
+    {
+      "id": "CQI-12",
+      "name": "CQI 12",
+      "status": "OFF",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 15,
+        "col": 32
+      }
+    },
+    {
+      "id": "CQI-13",
+      "name": "CQI 13",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 13,
+        "col": 11
+      }
+    },
+    {
+      "id": "CQI-14",
+      "name": "CQI 14",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 12,
+        "col": 19
+      }
+    },
+    {
+      "id": "CQI-15",
+      "name": "CQI 15",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 12,
+        "col": 21
+      }
+    },
+    {
+      "id": "CQI-16",
+      "name": "CQI 16",
+      "status": "OFF",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 12,
+        "col": 23
+      }
+    },
+    {
+      "id": "CQI-17",
+      "name": "CQI 17",
+      "status": "OFF",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 12,
+        "col": 29
+      }
+    },
+    {
+      "id": "CQI-18",
+      "name": "CQI 18",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 15,
+        "col": 34
+      }
+    },
+    {
+      "id": "CQI-19",
+      "name": "CQI 19",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 34
+      }
+    },
+    {
+      "id": "CQI-20",
+      "name": "CQI 20",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 15,
+        "col": 36
+      }
+    },
+    {
+      "id": "CQI-21",
+      "name": "CQI 21",
+      "status": "OFF",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 12,
+        "col": 11
+      }
+    },
+    {
+      "id": "CQI-22",
+      "name": "CQI 22",
+      "status": "OFF",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 15,
+        "col": 19
+      }
+    },
+    {
+      "id": "CQI-23",
+      "name": "CQI 23",
+      "status": "OFF",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 14,
+        "col": 19
+      }
+    },
+    {
+      "id": "CQI-24",
+      "name": "CQI 24",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 8,
+        "col": 34
+      }
+    },
+    {
+      "id": "CQI-25",
+      "name": "CQI 25",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 13,
+        "col": 21
+      }
+    },
+    {
+      "id": "CQI-26",
+      "name": "CQI 26",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 14,
+        "col": 13
+      }
+    }
+  ],
+  "labels": [
+    {
+      "id": "L-0A",
+      "name": "0A",
+      "row": 9,
+      "col": 6
+    },
+    {
+      "id": "L-1A",
+      "name": "1A",
+      "row": 9,
+      "col": 8
+    },
+    {
+      "id": "L-2A",
+      "name": "2A",
+      "row": 9,
+      "col": 10
+    },
+    {
+      "id": "L-3A",
+      "name": "3A",
+      "row": 9,
+      "col": 12
+    },
+    {
+      "id": "L-4A",
+      "name": "4A",
+      "row": 9,
+      "col": 14
+    },
+    {
+      "id": "L-5A",
+      "name": "5A",
+      "row": 9,
+      "col": 16
+    },
+    {
+      "id": "L-6A",
+      "name": "6A",
+      "row": 9,
+      "col": 18
+    },
+    {
+      "id": "L-7A",
+      "name": "7A",
+      "row": 9,
+      "col": 20
+    },
+    {
+      "id": "L-8A",
+      "name": "8A",
+      "row": 9,
+      "col": 22
+    },
+    {
+      "id": "L-9A",
+      "name": "9A",
+      "row": 9,
+      "col": 24
+    },
+    {
+      "id": "L-10A",
+      "name": "10A",
+      "row": 9,
+      "col": 26
+    },
+    {
+      "id": "L-0B",
+      "name": "0B",
+      "row": 11,
+      "col": 6
+    },
+    {
+      "id": "L-1B",
+      "name": "1B",
+      "row": 11,
+      "col": 8
+    },
+    {
+      "id": "L-2B",
+      "name": "2B",
+      "row": 11,
+      "col": 10
+    },
+    {
+      "id": "L-3B",
+      "name": "3B",
+      "row": 11,
+      "col": 12
+    },
+    {
+      "id": "L-4B",
+      "name": "4B",
+      "row": 11,
+      "col": 14
+    },
+    {
+      "id": "L-5B",
+      "name": "5B",
+      "row": 11,
+      "col": 16
+    },
+    {
+      "id": "L-6B",
+      "name": "6B",
+      "row": 11,
+      "col": 18
+    },
+    {
+      "id": "L-7B",
+      "name": "7B",
+      "row": 11,
+      "col": 20
+    },
+    {
+      "id": "L-8B",
+      "name": "8B",
+      "row": 11,
+      "col": 22
+    },
+    {
+      "id": "L-9B",
+      "name": "9B",
+      "row": 11,
+      "col": 24
+    },
+    {
+      "id": "L-10B",
+      "name": "10B",
+      "row": 11,
+      "col": 26
+    },
+    {
+      "id": "L-11B",
+      "name": "11B",
+      "row": 11,
+      "col": 28
+    },
+    {
+      "id": "L-1C",
+      "name": "1C",
+      "row": 13,
+      "col": 33
+    },
+    {
+      "id": "L-2C",
+      "name": "2C",
+      "row": 13,
+      "col": 35
+    },
+    {
+      "id": "L-3C",
+      "name": "3C",
+      "row": 13,
+      "col": 37
+    },
+    {
+      "id": "L-4C",
+      "name": "4C",
+      "row": 13,
+      "col": 39
+    },
+    {
+      "id": "L-5C",
+      "name": "5C",
+      "row": 13,
+      "col": 41
+    },
+    {
+      "id": "L-6C",
+      "name": "6C",
+      "row": 13,
+      "col": 43
+    },
+    {
+      "id": "L-7C",
+      "name": "7C",
+      "row": 13,
+      "col": 45
+    },
+    {
+      "id": "L-8C",
+      "name": "8C",
+      "row": 13,
+      "col": 48
+    },
+    {
+      "id": "L-9C",
+      "name": "9C",
+      "row": 13,
+      "col": 50
+    },
+    {
+      "id": "L-10C",
+      "name": "10C",
+      "row": 13,
+      "col": 52
+    }
+  ],
+  "lines": [
+    {
+      "id": "line-a",
+      "name": "LINE A",
+      "row": 2,
+      "col": 4,
+      "width": 24,
+      "height": 8,
+      "borderColor": "#3b82f6",
+      "textColor": "#60a5fa"
+    },
+    {
+      "id": "line-b",
+      "name": "LINE B",
+      "row": 11,
+      "col": 4,
+      "width": 27,
+      "height": 6,
+      "borderColor": "#3b82f6",
+      "textColor": "#60a5fa"
+    },
+    {
+      "id": "line-c",
+      "name": "LINE C",
+      "row": 13,
+      "col": 32,
+      "width": 22,
+      "height": 5,
+      "borderColor": "#3b82f6",
+      "textColor": "#60a5fa"
+    },
+    {
+      "id": "line-ww",
+      "name": "WW",
+      "row": 7,
+      "col": 32,
+      "width": 4,
+      "height": 4,
+      "borderColor": "#3b82f6",
+      "textColor": "#60a5fa"
+    },
+    {
+      "id": "line-ot",
+      "name": "OT",
+      "row": 2,
+      "col": 32,
+      "width": 4,
+      "height": 4,
+      "borderColor": "#3b82f6",
+      "textColor": "#60a5fa"
+    }
+  ],
+  "routes": [
+    {
+      "nodes": [
+        {
+          "row": 10,
+          "col": 31
+        },
+        {
+          "row": 12,
+          "col": 31
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "core": [
+    {
+      "id": "C1",
+      "name": "Angel",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C2",
+      "name": "Allyssa",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C3",
+      "name": "Amanda",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C4",
+      "name": "Fira",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C5",
+      "name": "Chalista",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C6",
+      "name": "Dwi",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C7",
+      "name": "Dini",
+      "cqi_priority": "19",
+      "job_priority": ""
+    },
+    {
+      "id": "C8",
+      "name": "Mia",
+      "cqi_priority": "24",
+      "job_priority": ""
+    },
+    {
+      "id": "C9",
+      "name": "Jiddan",
+      "cqi_priority": "24",
+      "job_priority": ""
+    },
+    {
+      "id": "C10",
+      "name": "Ninda",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C11",
+      "name": "Nurul",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C12",
+      "name": "Thazkia",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C13",
+      "name": "Riri",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "C14",
+      "name": "Farhan",
+      "cqi_priority": "19",
+      "job_priority": ""
+    }
+  ],
+  "nonCore": [
+    {
+      "id": "NC1",
+      "name": "Allen",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "NC2",
+      "name": "Dinda",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "NC3",
+      "name": "Litha",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "NC4",
+      "name": "Siska",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "NC5",
+      "name": "Wulan",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "NC6",
+      "name": "Syifa",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "NC7",
+      "name": "M. Udin",
+      "cqi_priority": "",
+      "job_priority": "qc-passed"
+    },
+    {
+      "id": "NC8",
+      "name": "Alief",
+      "cqi_priority": "",
+      "job_priority": "qc-passed"
+    },
+    {
+      "id": "NC9",
+      "name": "Jalu",
+      "cqi_priority": "",
+      "job_priority": "qc-passed"
+    },
+    {
+      "id": "NC10",
+      "name": "Andi",
+      "cqi_priority": "",
+      "job_priority": "qc-passed"
+    },
+    {
+      "id": "NC11",
+      "name": "Yaya",
+      "cqi_priority": "",
+      "job_priority": "qc-passed"
+    },
+    {
+      "id": "NC12",
+      "name": "Yadi",
+      "cqi_priority": "",
+      "job_priority": "milstd,qc-passed"
+    },
+    {
+      "id": "NC13",
+      "name": "Kirana",
+      "cqi_priority": "",
+      "job_priority": ""
+    },
+    {
+      "id": "NC14",
+      "name": "Priyya",
+      "cqi_priority": "",
+      "job_priority": "supportfg"
+    }
+  ],
+  "longShift": [ ]
+}
