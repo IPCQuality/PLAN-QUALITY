@@ -1,0 +1,2274 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAP LIQUID 3</title>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PlanMaker" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-main: #f1f5f9;
+        --bg-panel: #ffffff;
+        --border: #cbd5e1;
+        --border-subtle: #e2e8f0;
+        --grid-line: #e2e8f0;
+        --text-main: #0f172a;
+        --text-muted: #475569;
+        --text-subtle: #94a3b8;
+        --running: #16a34a;
+        --running-hover: #15803d;
+        --running-bg: #dcfce7;
+        --setup: #d97706;
+        --down: #dc2626;
+        --down-hover: #b91c1c;
+        --offplan: #f1f5f9;
+        --offplan-text: #64748b;
+        --cqi-ready: #2563eb;
+        --cqi-ready-hover: #1d4ed8;
+        --cqi-off: #cbd5e1;
+        --radius: 8px;
+        --radius-sm: 6px;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        --shadow-lg:
+          0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -4px rgba(0, 0, 0, 0.05);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+      }
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: var(--bg-main);
+        color: var(--text-main);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Header */
+      header {
+        background: var(--bg-panel);
+        border-bottom: 1px solid var(--border);
+        padding: 0 20px;
+        height: 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 30;
+        position: relative;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+      }
+      .brand {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: -0.01em;
+      }
+      .brand span.tag {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #eff6ff;
+        color: var(--cqi-ready);
+        border: 1px solid #bfdbfe;
+        padding: 2px 7px;
+        border-radius: 4px;
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      /* Buttons */
+      .btn {
+        background: #ffffff;
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        padding: 7px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 600;
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-sm);
+      }
+      .btn:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+        color: #0f172a;
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--cqi-ready);
+        outline-offset: 2px;
+      }
+
+      .btn-primary {
+        background: var(--cqi-ready);
+        color: #ffffff;
+        border: 1px solid var(--cqi-ready);
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+      }
+      .btn-primary:hover {
+        background: var(--cqi-ready-hover);
+        border-color: var(--cqi-ready-hover);
+        color: #ffffff;
+      }
+      .btn-success {
+        background: var(--running);
+        color: #ffffff;
+        border: 1px solid var(--running);
+        box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+      }
+      .btn-success:hover {
+        background: var(--running-hover);
+        border-color: var(--running-hover);
+        color: #ffffff;
+      }
+      .btn-danger {
+        background: var(--down);
+        color: #ffffff;
+        border: 1px solid var(--down);
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+      }
+      .btn-danger:hover {
+        background: var(--down-hover);
+        border-color: var(--down-hover);
+        color: #ffffff;
+      }
+
+      /* Layout & Sidebar */
+      .main-layout {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+      }
+      .side-panel {
+        width: 290px;
+        flex-shrink: 0;
+        background: var(--bg-panel);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 20;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.03);
+      }
+      .side-panel.closed {
+        margin-left: -290px;
+      }
+
+      .panel-header {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border-subtle);
+        background: #f8fafc;
+      }
+      .panel-header h3 {
+        font-size: 0.82rem;
+        color: var(--text-main);
+        margin: 0;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+      }
+      .panel-body {
+        padding: 16px;
+        overflow-y: auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .panel-body::-webkit-scrollbar {
+        width: 5px;
+      }
+      .panel-body::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+
+      .stats-box {
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .stat-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 500;
+      }
+      .stat-val {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+        color: var(--text-main);
+        background: #e2e8f0;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.76rem;
+      }
+
+      /* Workstation Buttons */
+      .ws-group {
+        margin-bottom: 6px;
+      }
+      .ws-group-title {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--grid-line);
+        padding-bottom: 3px;
+      }
+      .ws-group-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+      }
+      .ws-btn {
+        background: #ffffff;
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        padding: 6px 4px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 0.73rem;
+        font-weight: 600;
+        font-family: "JetBrains Mono", monospace;
+        width: 100%;
+        text-align: center;
+        transition: all 0.15s ease;
+      }
+      .ws-btn:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+      }
+      .ws-btn.active-all {
+        background: #dcfce7;
+        color: #15803d;
+        border-color: #86efac;
+        font-weight: 700;
+        box-shadow: inset 0 0 0 1px #22c55e;
+      }
+      .ws-btn.active-partial {
+        background: #fef3c7;
+        color: #b45309;
+        border-color: #fde68a;
+        font-weight: 700;
+        box-shadow: inset 0 0 0 1px #eab308;
+      }
+
+      /* Map Viewport & Factory Grid */
+      .map-viewport {
+        flex: 1;
+        overflow: auto;
+        background: var(--bg-main);
+        position: relative;
+        cursor: default;
+      }
+      .grid-wrapper {
+        overflow: hidden;
+        transform-origin: top left;
+        padding: 20px;
+      }
+      .factory-grid {
+        position: relative;
+        display: grid;
+        border: 1px solid var(--border);
+        background: #ffffff;
+        transform-origin: top left;
+        box-shadow: var(--shadow);
+        width: max-content;
+        height: max-content;
+        transition: padding 0.3s ease;
+        border-radius: 4px;
+      }
+
+      .excel-header {
+        background: #f8fafc;
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        font-weight: 600;
+        font-family: "JetBrains Mono", monospace;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--grid-line);
+      }
+      .excel-corner {
+        background: #f1f5f9;
+      }
+      .grid-cell {
+        border: 1px solid var(--grid-line);
+        min-width: 78px;
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+      }
+      .grid-cell.drag-over {
+        background: rgba(37, 99, 235, 0.08);
+        border: 2px dashed var(--cqi-ready);
+      }
+
+      .line-box {
+        position: relative;
+        border: 2px dashed #3b82f6;
+        background: rgba(239, 246, 255, 0.35);
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        pointer-events: none;
+        border-radius: 6px;
+      }
+      .line-box .line-box-header {
+        font-size: 0.72rem;
+        font-weight: 700;
+        font-family: "JetBrains Mono", monospace;
+        color: #1e40af;
+        background: #dbeafe;
+        padding: 3px 8px;
+        width: max-content;
+        user-select: none;
+        border-bottom-right-radius: 6px;
+        border-top-left-radius: 4px;
+        pointer-events: none;
+        letter-spacing: 0.5px;
+      }
+
+      /* Nodes: Machine, CQI, Label */
+      .node {
+        width: 94%;
+        height: 90%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.76rem;
+        font-family: "JetBrains Mono", monospace;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 6px;
+        position: relative;
+        z-index: 4;
+        transition:
+          transform 0.1s ease,
+          box-shadow 0.1s ease;
+      }
+      .node:hover {
+        transform: scale(1.03);
+      }
+      .node:active {
+        transform: scale(0.98);
+      }
+
+      .node-machine.OFF {
+        background: var(--offplan);
+        color: var(--offplan-text);
+        border: 1px solid var(--border);
+      }
+      .node-machine.RUNNING {
+        background: var(--running);
+        color: #ffffff;
+        border: 1px solid #15803d;
+        box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+      }
+      .node-cqi.OFF {
+        background: var(--cqi-off);
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+      }
+      .node-cqi.READY {
+        background: var(--cqi-ready);
+        color: #ffffff;
+        border: 1px solid #1d4ed8;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+      }
+      .node-label {
+        background: #f8fafc;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        font-size: 0.78rem;
+        font-weight: 800;
+        border-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        letter-spacing: 0.5px;
+      }
+
+      .node-machine.planned {
+        box-shadow:
+          0 0 0 2px #ffffff,
+          0 0 0 4px #2563eb,
+          0 4px 12px rgba(37, 99, 235, 0.4);
+        border: 1.5px solid #1d4ed8;
+      }
+      .node-cqi.planned-target {
+        box-shadow:
+          0 0 0 2px #ffffff,
+          0 0 0 4px #0f172a,
+          0 4px 14px rgba(15, 23, 42, 0.4);
+        border: 1.5px solid #0f172a;
+      }
+      .heatmap-badge {
+        position: absolute;
+        right: 3px;
+        top: 3px;
+        z-index: 12;
+        background: #0f172a;
+        color: #ffffff;
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 9px;
+        font-weight: 800;
+        font-family: "JetBrains Mono", monospace;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Heatmap Enhancements & Density Visuals */
+      .line-box.heatmap-bottleneck {
+        border: 2.5px solid #dc2626 !important;
+        background: rgba(220, 38, 38, 0.16) !important;
+        box-shadow:
+          inset 0 0 22px rgba(220, 38, 38, 0.22),
+          0 0 16px rgba(220, 38, 38, 0.28) !important;
+      }
+      .line-box.heatmap-high {
+        border: 2px dashed #ea580c !important;
+        background: rgba(234, 88, 12, 0.11) !important;
+        box-shadow: inset 0 0 16px rgba(234, 88, 12, 0.12) !important;
+      }
+      .line-box.heatmap-medium {
+        border: 2px dashed #d97706 !important;
+        background: rgba(217, 119, 6, 0.08) !important;
+      }
+      .line-box.heatmap-normal {
+        border: 1.5px dashed #3b82f6 !important;
+        background: rgba(59, 130, 246, 0.05) !important;
+      }
+      .line-box.heatmap-idle {
+        border: 1px dashed #cbd5e1 !important;
+        background: rgba(241, 245, 249, 0.25) !important;
+        opacity: 0.7;
+      }
+
+      /* Zoom Controls */
+      .zoom-controls {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        padding: 5px 8px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+      }
+      .zoom-btn {
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1.05rem;
+        font-weight: bold;
+        color: var(--text-main);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+      }
+      .zoom-btn:hover {
+        background: #eff6ff;
+        border-color: #93c5fd;
+        color: var(--cqi-ready);
+      }
+      .zoom-btn:active {
+        transform: translateY(1px);
+      }
+      .zoom-badge {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        padding: 0 6px;
+        min-width: 48px;
+        text-align: center;
+        user-select: none;
+      }
+
+      /* Toast */
+      .toast-container {
+        position: fixed;
+        top: 72px;
+        right: 24px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .toast {
+        background: #ffffff;
+        border-left: 4px solid var(--cqi-ready);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        border-left-width: 4px;
+        padding: 12px 18px;
+        border-radius: var(--radius-sm);
+        font-size: 0.84rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-main);
+        animation: toastIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .toast.success {
+        border-left-color: var(--running);
+      }
+
+      /* Edit Mode */
+      body.mode-edit .node {
+        cursor: grab;
+        z-index: 10;
+      }
+      body.mode-edit .node:active {
+        cursor: grabbing;
+      }
+      body.mode-edit .factory-grid {
+        padding: 0 100px 100px 0;
+        background: #f8fafc;
+      }
+      body.mode-edit .line-box {
+        pointer-events: none;
+        z-index: 1;
+      }
+      body.mode-edit .line-box .line-box-header {
+        pointer-events: auto;
+        cursor: grab;
+        z-index: 15;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
+        margin: 2px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition:
+          transform 0.1s,
+          box-shadow 0.1s;
+      }
+      body.mode-edit .line-box .line-box-header:hover {
+        transform: scale(1.03);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+      }
+      body.mode-edit .line-box .line-box-header:active {
+        cursor: grabbing;
+      }
+
+      .del-btn {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
+        color: #ffffff;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 20px;
+        text-align: center;
+        cursor: pointer;
+        display: none;
+        z-index: 20;
+        border: 1.5px solid #ffffff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+        user-select: none;
+      }
+      body.mode-edit .del-btn {
+        display: block;
+      }
+
+      .resize-handle {
+        position: absolute;
+        bottom: -7px;
+        right: -7px;
+        width: 18px;
+        height: 18px;
+        background: #2563eb;
+        border: 2px solid #ffffff;
+        border-radius: 4px;
+        cursor: nwse-resize;
+        display: none;
+        z-index: 25;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        user-select: none;
+      }
+      .resize-handle::after {
+        content: "";
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border-right: 2px solid #ffffff;
+        border-bottom: 2px solid #ffffff;
+        bottom: 3px;
+        right: 3px;
+      }
+      body.mode-edit .resize-handle {
+        display: block;
+      }
+
+      /* Modals & Scroll Lock */
+      html:has(.modal-overlay.active),
+      body:has(.modal-overlay.active),
+      html.modal-open,
+      body.modal-open {
+        overflow: hidden !important;
+        height: 100% !important;
+        touch-action: none;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 16px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+      .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .modal-card {
+        background: #ffffff;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        padding: 24px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        box-sizing: border-box;
+        max-height: 90vh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        transform: scale(0.96) translateY(6px);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .modal-overlay.active .modal-card {
+        transform: scale(1) translateY(0);
+      }
+      .modal-card h3 {
+        margin-bottom: 16px;
+        color: var(--text-main);
+        font-size: 1.05rem;
+        font-weight: 700;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 10px;
+        letter-spacing: -0.01em;
+      }
+
+      .menu-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .menu-list .btn {
+        justify-content: flex-start;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+      }
+
+      .form-group {
+        margin-bottom: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .form-group label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .form-row {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .form-row .form-group {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .form-control {
+        width: 100%;
+        border: 1px solid var(--border);
+        padding: 9px 12px;
+        border-radius: var(--radius-sm);
+        outline: none;
+        font-size: 0.88rem;
+        font-family: inherit;
+        box-sizing: border-box;
+        background: #ffffff;
+        color: var(--text-main);
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .form-control:focus {
+        border-color: var(--cqi-ready);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 24px;
+      }
+
+      /* Mobile Responsiveness */
+      @media (max-width: 768px) {
+        header {
+          height: auto;
+          padding: 12px 16px;
+          flex-wrap: wrap;
+          gap: 12px;
+          justify-content: center;
+        }
+        .brand {
+          margin-bottom: 4px;
+        }
+        .controls {
+          flex-wrap: wrap;
+          width: 100%;
+          justify-content: center;
+          gap: 8px;
+        }
+        .btn {
+          flex: 1 1 auto;
+          font-size: 0.75rem;
+          padding: 8px 10px;
+        }
+        .toast-container {
+          top: 100px;
+          right: 16px;
+          left: 16px;
+          align-items: stretch;
+        }
+        .zoom-controls {
+          bottom: 16px;
+          right: 16px;
+        }
+        .modal-card {
+          padding: 16px;
+          margin: 16px;
+          max-height: 80vh;
+        }
+      }
+    </style>
+  </head>
+  <body class="mode-landing">
+    <header>
+      <div style="display: flex; align-items: center; gap: 10px">
+        <button
+          id="sidebarToggleBtn"
+          class="btn control-landing"
+          onclick="toggleSidePanel()"
+          title="Filter & Status"
+          style="
+            padding: 6px 10px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+            height: 36px;
+          "
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            style="display: block"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+        <div class="brand">
+          MAP LIQUID 3
+          <span class="tag">Production View</span>
+        </div>
+      </div>
+      <div class="controls">
+        <span id="offlineIndicator" style="display:none; font-size:11px; padding:4px 8px; background:#d97706; color:#fff; border-radius:4px; font-weight:700;">⚡ Offline</span>
+        <button id="pwaInstallBtn" class="btn btn-primary" style="display:none;" onclick="installPWA()">
+          📱 Install App
+        </button>
+        <button id="settingsBtn" class="btn" onclick="handleSettingsClick()" title="Pengaturan & Menu Map">
+          ⚙️ Setelan
+        </button>
+        <button
+          id="menuHeatmapBtn"
+          class="btn btn-danger control-landing"
+          onclick="toggleHeatmap()"
+        >
+          🔥 Heatmap OFF
+        </button>
+        <button
+          id="goConfigBtn"
+          class="btn btn-primary control-landing"
+          onclick="goToConfig()"
+        >
+          Lanjut Konfigurasi ➔
+        </button>
+      </div>
+    </header>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="main-layout">
+      <div class="side-panel control-landing" id="sidePanel">
+        <div class="panel-header"><h3>Filter & Status</h3></div>
+        <div class="panel-body">
+          <div>
+            <div class="ws-group-title" style="margin-bottom: 6px">KONTROL MESIN</div>
+            <div style="display: flex; gap: 8px">
+              <button
+                class="btn btn-success"
+                style="flex: 1; font-size: 0.75rem"
+                onclick="setAllMachinesRunning()"
+              >
+                Run All
+              </button>
+              <button
+                class="btn btn-danger"
+                style="flex: 1; font-size: 0.75rem"
+                onclick="setAllMachinesOff()"
+              >
+                All Off
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="ws-group-title" style="margin-bottom: 6px">KONTROL CQI</div>
+            <div style="display: flex; gap: 8px">
+              <button
+                class="btn btn-primary"
+                style="flex: 1; font-size: 0.75rem"
+                onclick="setAllCqiReady()"
+              >
+                Ready All
+              </button>
+              <button
+                class="btn btn-danger"
+                style="flex: 1; font-size: 0.75rem"
+                onclick="setAllCqiOff()"
+              >
+                All Off
+              </button>
+            </div>
+          </div>
+
+          <div class="stats-box">
+            <div class="stat-line">
+              <span>Mesin Running:</span>
+              <span class="stat-val" id="statMachine">0 / 0</span>
+            </div>
+            <div class="stat-line">
+              <span>CQI Terpakai:</span>
+              <span class="stat-val" id="statCqi">0 / 0</span>
+            </div>
+          </div>
+
+          <div id="wsBtnContainer"></div>
+        </div>
+      </div>
+
+      <div class="map-viewport" id="mapViewport">
+        <div class="grid-wrapper" id="gridWrapper">
+          <div class="factory-grid" id="factoryGrid"></div>
+        </div>
+      </div>
+
+      <div class="zoom-controls">
+        <button
+          class="zoom-btn"
+          id="zoomOutBtn"
+          onclick="zoomOut()"
+          title="Zoom Out"
+        >
+          -
+        </button>
+        <span class="zoom-badge" id="zoomBadge">100%</span>
+        <button
+          class="zoom-btn"
+          id="zoomInBtn"
+          onclick="zoomIn()"
+          title="Zoom In"
+        >
+          +
+        </button>
+        <button
+          class="zoom-btn"
+          id="zoomResetBtn"
+          onclick="resetZoom()"
+          title="Reset Zoom Ke Ukuran Fit Peta"
+        >
+          ↺
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL PENGATURAN -->
+    <div class="modal-overlay" id="settingsModal">
+      <div class="modal-card">
+        <h3>Pengaturan Map</h3>
+        <div class="menu-list">
+          <button class="btn" onclick="activateEditMode()">✏️ Edit Map</button>
+          <button class="btn" onclick="openNodeModal('machine')">
+            ➕ Tambah Mesin
+          </button>
+          <button class="btn" onclick="openNodeModal('cqi')">
+            ➕ Tambah CQI
+          </button>
+          <button class="btn" onclick="openNodeModal('label')">
+            ➕ Tambah Label
+          </button>
+          <button class="btn" onclick="openNodeModal('line')">
+            🔲 Tambah Batas Line
+          </button>
+          <button class="btn btn-success" onclick="exportMapJson()">
+            💾 Save map.json
+          </button>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="closeSettingsModal()">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL EDITOR NODE -->
+    <div class="modal-overlay" id="nodeModal">
+      <div class="modal-card">
+        <h3 id="modalTitle">Kustomisasi Object</h3>
+        <div id="modalFormContainer"></div>
+        <div class="modal-actions">
+          <button class="btn" onclick="closeNodeModal()">Batal</button>
+          <button
+            id="modalSaveBtn"
+            class="btn btn-primary"
+            onclick="submitNodeModal()"
+          >
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Standalone synchronous bundle so BrainAI is immediately available -->
+    <script src="./src/brain/bundle.js"></script>
+
+    <script type="module">
+      import BrainAIModule from './src/brain/index.js';
+      if (!window.BrainAI) window.BrainAI = BrainAIModule;
+      var activeBrain = window.BrainAI || BrainAIModule;
+      if (activeBrain && typeof activeBrain.loadAllHistory === "function") {
+        activeBrain.loadAllHistory().then((data) => {
+          console.log("BrainAI Learning Matrix aktif:", data.length, "data points");
+        }).catch((e) => console.warn("Load history warning:", e));
+      }
+      if (typeof renderGrid === "function") {
+        renderGrid();
+      }
+    </script>
+    <script>
+      var BrainAI = (typeof window !== "undefined" && window.BrainAI)
+        ? window.BrainAI
+        : (typeof globalThis !== "undefined" && globalThis.BrainAI ? globalThis.BrainAI : null);
+
+      let mapData = { machines: [], cqis: [], labels: [], lines: [] };
+      let currentZoom = null,
+        initialFitZoom = null,
+        showHeatmap = false,
+        activePlanning = null;
+      let editMode = false,
+        draggedNode = null;
+      let activeModalType = null,
+        editingNodeId = null;
+      let totalCols = 55,
+        totalRows = 20;
+
+      const mapViewport = document.getElementById("mapViewport");
+
+      function showToast(msg, type = "info") {
+        const container = document.getElementById("toastContainer");
+        const t = document.createElement("div");
+        t.className = `toast ${type}`;
+        t.innerHTML = `<span>${type === "success" ? "✅" : "ℹ️"}</span> ${msg}`;
+        container.appendChild(t);
+        setTimeout(() => {
+          if (t.parentNode) t.remove();
+        }, 2500);
+      }
+
+      let isWheelTicking = false;
+      mapViewport.addEventListener(
+        "wheel",
+        function (e) {
+          if (e.deltaY === 0) return;
+          e.preventDefault();
+          if (!isWheelTicking) {
+            window.requestAnimationFrame(() => {
+              mapViewport.scrollLeft += e.deltaY;
+              isWheelTicking = false;
+            });
+            isWheelTicking = true;
+          }
+        },
+        { passive: false },
+      );
+
+      async function loadMap() {
+        try {
+          const res = await fetch("data/map.json");
+          if (!res.ok) throw new Error();
+          mapData = await res.json();
+        } catch (e) {
+          try {
+            const resL = await fetch(
+              "https://raw.githubusercontent.com/IPCQuality/PLANING-MAKER/refs/heads/main/data/map.json",
+            );
+            if (resL.ok) mapData = await resL.json();
+          } catch (err) {}
+        }
+
+        if (!mapData || typeof mapData !== "object") {
+          mapData = { machines: [], cqis: [], labels: [], lines: [] };
+          showToast(
+            "Gagal memuat peta layout (map.json). Periksa file data.",
+            "info",
+          );
+        }
+
+        const normalizeNode = (n) => {
+          if (!n) return null;
+          if (n.position) {
+            n.row = n.position.row;
+            n.col = n.position.col;
+          }
+          return n;
+        };
+        mapData.machines = (mapData.machines || [])
+          .map(normalizeNode)
+          .filter(Boolean);
+        mapData.cqis = (mapData.cqis || []).map(normalizeNode).filter(Boolean);
+        mapData.labels = (mapData.labels || [])
+          .map(normalizeNode)
+          .filter(Boolean);
+        mapData.lines = mapData.lines || [];
+
+        calculateGridBounds();
+        initializeStatuses();
+        renderWorkstationButtons();
+        applyZoom(true);
+      }
+
+      function calculateGridBounds() {
+        let maxR = 20,
+          maxC = 55;
+        const checkMax = (r, c) => {
+          if (r > maxR) maxR = r;
+          if (c > maxC) maxC = c;
+        };
+
+        mapData.machines.forEach((n) => checkMax(n.row, n.col));
+        mapData.cqis.forEach((n) => checkMax(n.row, n.col));
+        mapData.labels.forEach((n) => checkMax(n.row, n.col));
+        mapData.lines.forEach((l) =>
+          checkMax(
+            (l.row || 1) + (l.height || 1) - 1,
+            (l.col || 1) + (l.width || 1) - 1,
+          ),
+        );
+
+        let buffer = editMode ? 10 : 2;
+        totalRows = maxR + buffer;
+        totalCols = maxC + buffer;
+      }
+
+      function initializeStatuses() {
+        try {
+          const raw = sessionStorage.getItem("active_planning");
+          activePlanning = raw ? JSON.parse(raw) : null;
+        } catch (e) {}
+
+        const saved = localStorage.getItem("factory_internal_storage");
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed.machines)
+              parsed.machines.forEach((sm) => {
+                let m = mapData.machines.find((x) => x.id === sm.id);
+                if (m) m.status = sm.status;
+              });
+            if (parsed.cqis)
+              parsed.cqis.forEach((sc) => {
+                let c = mapData.cqis.find((x) => x.id === sc.id);
+                if (c) c.status = sc.status;
+              });
+          } catch (e) {}
+        } else {
+          mapData.machines.forEach(
+            (m) => (m.status = m.status === "RUNNING" ? "RUNNING" : "OFF"),
+          );
+          mapData.cqis.forEach(
+            (c) => (c.status = c.status === "READY" ? "READY" : "OFF"),
+          );
+        }
+
+        if (activePlanning && Array.isArray(activePlanning.slots)) {
+          showHeatmap = true;
+          document.getElementById("menuHeatmapBtn").innerText = "🔥 Heatmap ON";
+          document.getElementById("menuHeatmapBtn").className =
+            "btn btn-success";
+        }
+
+        renderGrid();
+      }
+
+      function renderWorkstationButtons() {
+        const container = document.getElementById("wsBtnContainer");
+        if (!container) return;
+        container.innerHTML = "";
+
+        const groups = [
+          {
+            title: "LINE A",
+            keys: [
+              "0A",
+              "1A",
+              "2A",
+              "3A",
+              "4A",
+              "5A",
+              "6A",
+              "7A",
+              "8A",
+              "9A",
+              "10A",
+            ],
+          },
+          {
+            title: "LINE B",
+            keys: [
+              "0B",
+              "1B",
+              "2B",
+              "3B",
+              "4B",
+              "5B",
+              "6B",
+              "7B",
+              "8B",
+              "9B",
+              "10B",
+              "11B",
+            ],
+          },
+          {
+            title: "LINE C",
+            keys: ["1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C"],
+          },
+          { title: "LAINNYA", keys: ["WW", "OT"] },
+        ];
+
+        groups.forEach((g) => {
+          let box = document.createElement("div");
+          box.className = "ws-group";
+          box.innerHTML = `<div class="ws-group-title">${g.title}</div>`;
+          let btns = document.createElement("div");
+          btns.className = "ws-group-buttons";
+          g.keys.forEach((k) => {
+            let b = document.createElement("button");
+            b.className = "ws-btn";
+            b.innerText = k;
+            b.id = "ws-btn-" + k;
+            b.onclick = () => toggleWorkstation(k);
+            btns.appendChild(b);
+          });
+          box.appendChild(btns);
+          container.appendChild(box);
+        });
+        updateStatsAndButtons();
+      }
+
+      function getMachinesByWs(wsKey) {
+        if (!wsKey || !mapData || !mapData.machines) return [];
+        const targetWs = String(wsKey).trim().toUpperCase();
+        return mapData.machines.filter((m) => {
+          // 1. Cek langsung properti workstation pada objek mesin
+          if (
+            m.workstation &&
+            String(m.workstation).trim().toUpperCase() === targetWs
+          )
+            return true;
+          if (m.ws && String(m.ws).trim().toUpperCase() === targetWs)
+            return true;
+          // 2. Gunakan BrainAI.getWorkstationKey jika ada
+          const brain = typeof window.BrainAI !== "undefined" ? window.BrainAI : (typeof BrainAI !== "undefined" ? BrainAI : null);
+          if (brain) {
+            const keyObj = brain.getWorkstationKey(m, mapData.labels);
+            if (String(keyObj).trim().toUpperCase() === targetWs) return true;
+            const keyName = brain.getWorkstationKey(
+              m.name || m.id,
+              mapData.labels,
+            );
+            if (String(keyName).trim().toUpperCase() === targetWs) return true;
+          }
+          return false;
+        });
+      }
+
+      function updateStatsAndButtons() {
+        const statMachineEl = document.getElementById("statMachine");
+        const statCqiEl = document.getElementById("statCqi");
+        if (statMachineEl) {
+          statMachineEl.innerText = `${mapData.machines.filter((m) => m.status === "RUNNING").length} / ${mapData.machines.length}`;
+        }
+        if (statCqiEl) {
+          statCqiEl.innerText = `${mapData.cqis.filter((c) => c.status === "READY").length} / ${mapData.cqis.length}`;
+        }
+
+        const wsKeys = [
+          "0A",
+          "1A",
+          "2A",
+          "3A",
+          "4A",
+          "5A",
+          "6A",
+          "7A",
+          "8A",
+          "9A",
+          "10A",
+          "0B",
+          "1B",
+          "2B",
+          "3B",
+          "4B",
+          "5B",
+          "6B",
+          "7B",
+          "8B",
+          "9B",
+          "10B",
+          "11B",
+          "1C",
+          "2C",
+          "3C",
+          "4C",
+          "5C",
+          "6C",
+          "7C",
+          "8C",
+          "9C",
+          "10C",
+          "WW",
+          "OT",
+        ];
+
+        for (let k of wsKeys) {
+          let b = document.getElementById("ws-btn-" + k);
+          if (!b) continue;
+          let macs = getMachinesByWs(k);
+          if (macs.length === 0) {
+            b.className = "ws-btn";
+            continue;
+          }
+
+          const runningCount = macs.filter(
+            (m) => m.status === "RUNNING",
+          ).length;
+          if (runningCount === macs.length) {
+            b.className = "ws-btn active-all";
+          } else if (runningCount > 0) {
+            b.className = "ws-btn active-partial";
+          } else {
+            b.className = "ws-btn";
+          }
+        }
+      }
+
+      function toggleWorkstation(wsKey) {
+        let macs = getMachinesByWs(wsKey);
+        if (macs.length === 0) return;
+
+        let tgt = macs.every((m) => m.status === "RUNNING") ? "OFF" : "RUNNING";
+        macs.forEach((m) => (m.status = tgt));
+        renderGrid();
+        saveInternalStorage();
+      }
+
+      // Fungsi Global Button yang Diperbaiki agar berfungsi & tersimpan
+      function setAllMachinesRunning() {
+        mapData.machines.forEach((m) => (m.status = "RUNNING"));
+        renderGrid();
+        saveInternalStorage();
+      }
+      function setAllMachinesOff() {
+        mapData.machines.forEach((m) => (m.status = "OFF"));
+        renderGrid();
+        saveInternalStorage();
+      }
+      function setAllCqiReady() {
+        mapData.cqis.forEach((c) => (c.status = "READY"));
+        renderGrid();
+        saveInternalStorage();
+      }
+      function setAllCqiOff() {
+        mapData.cqis.forEach((c) => (c.status = "OFF"));
+        renderGrid();
+        saveInternalStorage();
+      }
+
+      function saveInternalStorage() {
+        localStorage.setItem(
+          "factory_internal_storage",
+          JSON.stringify({ machines: mapData.machines, cqis: mapData.cqis }),
+        );
+      }
+
+      function toggleSidePanel() {
+        const p = document.getElementById("sidePanel");
+        p.classList.toggle("closed");
+        const btn = document.getElementById("sidebarToggleBtn");
+        if (btn) {
+          if (p.classList.contains("closed")) {
+            btn.style.background = "#ffffff";
+            btn.style.borderColor = "var(--border)";
+            btn.style.color = "var(--text-main)";
+          } else {
+            btn.style.background = "#eff6ff";
+            btn.style.borderColor = "#bfdbfe";
+            btn.style.color = "var(--cqi-ready)";
+          }
+        }
+        setTimeout(() => applyZoom(false), 310);
+      }
+
+      function toggleHeatmap() {
+        if (!activePlanning) {
+          showToast("Tidak ada plan aktif dari Config!", "error");
+          return;
+        }
+        showHeatmap = !showHeatmap;
+
+        const btn = document.getElementById("menuHeatmapBtn");
+        if (showHeatmap) {
+          btn.innerText = "🔥 Heatmap ON";
+          btn.className = "btn btn-success";
+        } else {
+          btn.innerText = "🔥 Heatmap OFF";
+          btn.className = "btn btn-danger";
+        }
+        renderGrid();
+      }
+
+      function handleSettingsClick() {
+        if (editMode) {
+          editMode = false;
+          document.body.classList.remove("mode-edit");
+          document.getElementById("settingsBtn").innerHTML = "⚙️ Setelan";
+          document
+            .getElementById("settingsBtn")
+            .classList.remove("btn-success");
+
+          document
+            .querySelectorAll(".control-landing")
+            .forEach((el) => (el.style.display = ""));
+          calculateGridBounds();
+          renderGrid();
+          showToast("Keluar dari Mode Edit", "success");
+        } else {
+          document.getElementById("settingsModal").classList.add("active");
+        }
+      }
+
+      function closeSettingsModal() {
+        document.getElementById("settingsModal").classList.remove("active");
+      }
+
+      function activateEditMode() {
+        closeSettingsModal();
+        editMode = true;
+        document.body.classList.add("mode-edit");
+
+        let btn = document.getElementById("settingsBtn");
+        btn.innerHTML = "✔️ Selesai Edit";
+        btn.classList.add("btn-success");
+
+        document
+          .querySelectorAll(".control-landing")
+          .forEach((el) => (el.style.display = "none"));
+
+        calculateGridBounds();
+        renderGrid();
+        showToast(
+          "Mode Edit Aktif: Bisa Drag/Drop, Edit (Klik), atau Hapus",
+          "info",
+        );
+      }
+
+      function cycleStatus(node, type) {
+        if (type === "machine") {
+          node.status = node.status === "RUNNING" ? "OFF" : "RUNNING";
+        } else if (type === "cqi") {
+          node.status = node.status === "READY" ? "OFF" : "READY";
+        }
+        renderGrid();
+        saveInternalStorage();
+      }
+
+      function renderGrid() {
+        const grid = document.getElementById("factoryGrid");
+        grid.innerHTML = "";
+
+        const fragment = document.createDocumentFragment();
+
+        grid.style.gridTemplateColumns = `40px repeat(${totalCols}, 78px)`;
+        grid.style.gridTemplateRows = `28px repeat(${totalRows}, 52px)`;
+
+        const cellMap = {};
+
+        let corner = document.createElement("div");
+        corner.className = "excel-header excel-corner";
+        corner.innerText = "R\\C";
+        corner.style.gridRow = "1";
+        corner.style.gridColumn = "1";
+        fragment.appendChild(corner);
+
+        for (let c = 1; c <= totalCols; c++) {
+          let h = document.createElement("div");
+          h.className = "excel-header";
+          h.innerText = c;
+          h.style.gridRow = "1";
+          h.style.gridColumn = `${c + 1}`;
+          fragment.appendChild(h);
+        }
+        for (let r = 1; r <= totalRows; r++) {
+          let h = document.createElement("div");
+          h.className = "excel-header";
+          h.innerText = r;
+          h.style.gridRow = `${r + 1}`;
+          h.style.gridColumn = "1";
+          fragment.appendChild(h);
+          for (let c = 1; c <= totalCols; c++) {
+            let cell = document.createElement("div");
+            cell.className = "grid-cell";
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+            cell.style.gridRow = `${r + 1}`;
+            cell.style.gridColumn = `${c + 1}`;
+
+            cell.ondragover = (e) => {
+              if (editMode) {
+                e.preventDefault();
+                cell.classList.add("drag-over");
+              }
+            };
+            cell.ondragleave = (e) => {
+              cell.classList.remove("drag-over");
+            };
+            cell.ondrop = (e) => handleDrop(e, r, c, cell);
+
+            cellMap[`${r}-${c}`] = cell;
+            fragment.appendChild(cell);
+          }
+        }
+
+        // 1. Hitung Heatmap State & Densitas Beban Line
+        let heatmapState = null;
+        const brainInstance = typeof window.BrainAI !== "undefined" ? window.BrainAI : (typeof BrainAI !== "undefined" ? BrainAI : null);
+        if (
+          activePlanning &&
+          Array.isArray(activePlanning.slots) &&
+          brainInstance &&
+          typeof brainInstance.calculateHeatmapState === "function"
+        ) {
+          heatmapState = brainInstance.calculateHeatmapState(
+            activePlanning.slots,
+            mapData,
+          );
+        }
+
+        if (Array.isArray(mapData.lines)) {
+          mapData.lines.forEach((line) => {
+            let lEl = document.createElement("div");
+            lEl.className = "line-box";
+            lEl.id = `line-${line.id}`;
+            const row = Math.max(1, line.row || 1);
+            const col = Math.max(1, line.col || 1);
+            const width = Math.max(1, line.width || 1);
+            const height = Math.max(1, line.height || 1);
+
+            lEl.style.gridRow = `${row + 1} / span ${height}`;
+            lEl.style.gridColumn = `${col + 1} / span ${width}`;
+            if (line.borderColor) lEl.style.borderColor = line.borderColor;
+
+            let headerEl = document.createElement("div");
+            headerEl.className = "line-box-header";
+            if (line.textColor) headerEl.style.color = line.textColor;
+            if (line.borderColor) {
+              headerEl.style.borderColor = line.borderColor;
+            }
+            headerEl.innerText = line.name;
+
+            lEl.appendChild(headerEl);
+
+            if (editMode) {
+              headerEl.title =
+                "Klik untuk edit parameter / Tarik teks ini untuk memindahkan posisi batas line";
+              headerEl.draggable = true;
+              headerEl.ondragstart = (e) => {
+                e.stopPropagation();
+                draggedNode = { id: line.id, type: "line" };
+                e.dataTransfer.effectAllowed = "move";
+                setTimeout(() => {
+                  lEl.style.opacity = "0.4";
+                }, 0);
+              };
+              headerEl.ondragend = () => {
+                lEl.style.opacity = "1";
+                draggedNode = null;
+              };
+              headerEl.onclick = (e) => {
+                e.stopPropagation();
+                openEditModal(line, "line");
+              };
+
+              let delBtn = document.createElement("div");
+              delBtn.className = "del-btn";
+              delBtn.innerText = "×";
+              delBtn.title = "Hapus Batas Line";
+              delBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteNode(line.id, "line");
+              };
+              lEl.appendChild(delBtn);
+
+              let resizer = document.createElement("div");
+              resizer.className = "resize-handle";
+              resizer.title =
+                "Tarik sudut ini untuk mengubah panjang/lebar batas line";
+              resizer.onmousedown = (e) => initResizeLine(e, line, lEl);
+              lEl.appendChild(resizer);
+            }
+
+            fragment.appendChild(lEl);
+          });
+        }
+
+        const assignments = new Map();
+        const plannedCqiIds = new Set();
+        let cqiColorMap = {};
+
+        if (heatmapState && heatmapState.cqiColorMap) {
+          cqiColorMap = heatmapState.cqiColorMap;
+        }
+
+        if (activePlanning && Array.isArray(activePlanning.slots)) {
+          const fallbackColors = [
+            "#be123c",
+            "#ea580c",
+            "#d97706",
+            "#4f46e5",
+            "#0284c7",
+            "#059669",
+            "#7c3aed",
+            "#c026d3",
+            "#0891b2",
+            "#16a34a",
+          ];
+          activePlanning.slots.forEach((s, idx) => {
+            if (s && s.cqi && s.machines) {
+              if (!cqiColorMap[s.cqi.id]) {
+                cqiColorMap[s.cqi.id] =
+                  fallbackColors[idx % fallbackColors.length];
+              }
+              s.machines.forEach((m) => {
+                const k1 = typeof m === "string" ? m.trim() : String(m.id || m.name || "").trim();
+                const k2 = typeof m === "object" ? String(m.name || m.id || "").trim() : k1;
+                if (k1) assignments.set(k1, s.cqi);
+                if (k2) assignments.set(k2, s.cqi);
+              });
+              if (s.machines.length > 0) plannedCqiIds.add(s.cqi.id);
+            }
+          });
+        }
+
+        const appendNode = (node, type) => {
+          let cell = cellMap[`${node.row}-${node.col}`];
+          if (!cell) return;
+          let div = document.createElement("div");
+          div.className = `node node-${type} ${node.status || ""}`;
+          div.id = node.id;
+          div.innerHTML = `<span>${node.name}</span>`;
+
+          if (type === "machine") {
+            let planCqi =
+              assignments.get(String(node.id || "").trim()) ||
+              assignments.get(String(node.name || "").trim());
+            if (planCqi) {
+              div.classList.add("planned");
+              let nodeColor = cqiColorMap[planCqi.id] || "#16a34a";
+              if (showHeatmap && !editMode) {
+                div.style.backgroundColor = nodeColor;
+                div.style.borderColor = nodeColor;
+                div.style.color = "#ffffff";
+                div.style.boxShadow = `0 2px 8px ${nodeColor}80`;
+                div.innerHTML += `<span class="heatmap-badge" style="background:#ffffff; color:${nodeColor};">${planCqi.name}</span>`;
+              }
+            }
+          } else if (type === "cqi") {
+            if (plannedCqiIds.has(node.id)) {
+              div.classList.add("planned-target");
+              let nodeColor = cqiColorMap[node.id] || "#16a34a";
+              if (showHeatmap && !editMode) {
+                div.style.backgroundColor = nodeColor;
+                div.style.borderColor = nodeColor;
+                div.style.color = "#ffffff";
+                div.style.boxShadow = `0 0 0 3px white, 0 0 18px ${nodeColor}`;
+              }
+            }
+          }
+
+          if (editMode) {
+            div.draggable = true;
+            div.ondragstart = (e) => {
+              draggedNode = { id: node.id, type: type };
+              e.dataTransfer.effectAllowed = "move";
+              setTimeout(() => (div.style.opacity = "0.5"), 0);
+            };
+            div.ondragend = () => {
+              div.style.opacity = "1";
+              draggedNode = null;
+            };
+            div.onclick = (e) => {
+              e.stopPropagation();
+              openEditModal(node, type);
+            };
+
+            let d = document.createElement("div");
+            d.className = "del-btn";
+            d.innerText = "X";
+            d.onclick = (e) => {
+              e.stopPropagation();
+              deleteNode(node.id, type);
+            };
+            div.appendChild(d);
+          } else {
+            if (type === "machine" || type === "cqi") {
+              div.onclick = (e) => {
+                e.stopPropagation();
+                cycleStatus(node, type);
+              };
+            }
+          }
+
+          cell.appendChild(div);
+        };
+
+        mapData.machines.forEach((m) => appendNode(m, "machine"));
+        mapData.cqis.forEach((c) => appendNode(c, "cqi"));
+        mapData.labels.forEach((l) => appendNode(l, "label"));
+
+        if (showHeatmap && assignments.size > 0 && !editMode) {
+          const svgNS = "http://www.w3.org/2000/svg";
+          let svg = document.createElementNS(svgNS, "svg");
+          svg.style.position = "absolute";
+          svg.style.top = "0";
+          svg.style.left = "0";
+          svg.style.width = "100%";
+          svg.style.height = "100%";
+          svg.style.pointerEvents = "none";
+          svg.style.zIndex = "8";
+          const getCenter = (n) => ({
+            x: 40 + (n.col - 1) * 78 + 39,
+            y: 28 + (n.row - 1) * 52 + 26,
+          });
+
+          // Hindari menggambar garis ganda untuk mesin yang sama
+          const processedMachines = new Set();
+
+          assignments.forEach((cqiTarget, mId) => {
+            let mac = mapData.machines.find(
+              (x) =>
+                String(x.id || "").trim() === mId ||
+                String(x.name || "").trim() === mId,
+            );
+            if (!mac || processedMachines.has(mac.id || mac.name)) return;
+            processedMachines.add(mac.id || mac.name);
+
+            let tgt = mapData.cqis.find(
+              (x) =>
+                String(x.id || "").trim() ===
+                  String(cqiTarget.id || cqiTarget.name || cqiTarget).trim() ||
+                String(x.name || "").trim() ===
+                  String(cqiTarget.name || cqiTarget.id || cqiTarget).trim(),
+            );
+            if (!tgt) return;
+
+            let pathColor = cqiColorMap[tgt.id] || "#16a34a";
+
+            // Gunakan logika rute lorong cerdas dari BrainAI agar garis tidak memotong/menerobos blok mesin
+            const currentBrain = typeof window.BrainAI !== "undefined" ? window.BrainAI : (typeof BrainAI !== "undefined" ? BrainAI : null);
+            let waypoints =
+              currentBrain && typeof currentBrain.getAisleWaypoints === "function"
+                ? currentBrain.getAisleWaypoints(mac, tgt, mapData.labels)
+                : [];
+
+            if (!waypoints || waypoints.length === 0) {
+              const mRow = mac.row || (mac.position ? mac.position.row : 0);
+              const mCol = mac.col || (mac.position ? mac.position.col : 0);
+              const cRow = tgt.row || (tgt.position ? tgt.position.row : 0);
+              const cCol = tgt.col || (tgt.position ? tgt.position.col : 0);
+              if (mRow > 0 && mCol > 0 && cRow > 0 && cCol > 0) {
+                const midRow = mRow <= 9 ? 9 : mCol >= 32 ? 13 : 11;
+                waypoints = [
+                  { row: mRow, col: mCol },
+                  { row: midRow, col: mCol },
+                  { row: midRow, col: cCol },
+                  { row: cRow, col: cCol },
+                ];
+              }
+            }
+
+            if (!waypoints || waypoints.length === 0) return;
+
+            let pixelPoints = waypoints.map((pt) => getCenter(pt));
+            let dPath = `M ${pixelPoints[0].x} ${pixelPoints[0].y}`;
+            for (let i = 1; i < pixelPoints.length; i++) {
+              dPath += ` L ${pixelPoints[i].x} ${pixelPoints[i].y}`;
+            }
+
+            let path = document.createElementNS(svgNS, "path");
+            path.setAttribute("d", dPath);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", pathColor);
+            path.setAttribute("stroke-width", "4");
+            path.setAttribute("stroke-dasharray", "8,5");
+            path.setAttribute("stroke-linejoin", "round");
+            path.setAttribute("stroke-linecap", "round");
+            svg.appendChild(path);
+          });
+          fragment.appendChild(svg);
+        }
+
+        grid.appendChild(fragment);
+        updateStatsAndButtons();
+      }
+
+      function handleDropAt(r, c) {
+        if (!editMode || !draggedNode) return;
+        let list = mapData[draggedNode.type + "s"];
+        if (!list) return;
+        let targetObj = list.find((x) => x.id === draggedNode.id);
+        if (targetObj) {
+          targetObj.row = r;
+          targetObj.col = c;
+          if (targetObj.position) {
+            targetObj.position.row = r;
+            targetObj.position.col = c;
+          }
+          calculateGridBounds();
+          renderGrid();
+          showToast(
+            `Posisi ${targetObj.name || targetObj.id} berhasil dipindahkan ke Row ${r}, Col ${c}`,
+            "success",
+          );
+        }
+        draggedNode = null;
+      }
+
+      function handleDrop(e, r, c, cellElem) {
+        if (!editMode || !draggedNode) return;
+        e.preventDefault();
+        if (cellElem) cellElem.classList.remove("drag-over");
+        handleDropAt(r, c);
+      }
+
+      function initResizeLine(e, line, lEl) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startWidth = line.width || 4;
+        const startHeight = line.height || 4;
+        const cellWidth = 78;
+        const cellHeight = 52;
+        const zoom = currentZoom || 1;
+
+        let newW = startWidth;
+        let newH = startHeight;
+
+        function onMouseMove(moveEvent) {
+          moveEvent.preventDefault();
+          const deltaX = (moveEvent.clientX - startX) / zoom;
+          const deltaY = (moveEvent.clientY - startY) / zoom;
+
+          const colsDelta = Math.round(deltaX / cellWidth);
+          const rowsDelta = Math.round(deltaY / cellHeight);
+
+          newW = Math.max(1, startWidth + colsDelta);
+          newH = Math.max(1, startHeight + rowsDelta);
+
+          lEl.style.gridColumn = `${(line.col || 1) + 1} / span ${newW}`;
+          lEl.style.gridRow = `${(line.row || 1) + 1} / span ${newH}`;
+        }
+
+        function onMouseUp() {
+          document.removeEventListener("mousemove", onMouseMove);
+          document.removeEventListener("mouseup", onMouseUp);
+
+          line.width = newW;
+          line.height = newH;
+          calculateGridBounds();
+          renderGrid();
+          showToast(
+            `Ukuran ${line.name} berhasil diubah: ${line.width} kolom × ${line.height} baris`,
+            "success",
+          );
+        }
+
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+      }
+
+      function deleteNode(id, type) {
+        let typeLabel =
+          type === "line"
+            ? "Batas Line"
+            : type === "machine"
+              ? "Mesin"
+              : type === "cqi"
+                ? "CQI"
+                : "Label";
+        if (!confirm(`Hapus ${typeLabel} ini?`)) return;
+        let key = type + "s";
+        if (Array.isArray(mapData[key])) {
+          mapData[key] = mapData[key].filter((x) => x.id !== id);
+        }
+        calculateGridBounds();
+        renderGrid();
+        showToast(`${typeLabel} berhasil dihapus`, "info");
+      }
+
+      function openNodeModal(type) {
+        closeSettingsModal();
+        activeModalType = type;
+        editingNodeId = null;
+
+        let centerRow = Math.max(
+          1,
+          Math.floor(
+            (mapViewport.scrollTop + mapViewport.clientHeight / 2) /
+              (52 * (currentZoom || 1)),
+          ),
+        );
+        let centerCol = Math.max(
+          1,
+          Math.floor(
+            (mapViewport.scrollLeft + mapViewport.clientWidth / 2) /
+              (78 * (currentZoom || 1)),
+          ),
+        );
+
+        buildModalForm(type, { name: "", row: centerRow, col: centerCol });
+        document.getElementById("nodeModal").classList.add("active");
+      }
+
+      function openEditModal(node, type) {
+        activeModalType = type;
+        editingNodeId = node.id;
+        buildModalForm(type, node);
+        document.getElementById("nodeModal").classList.add("active");
+      }
+
+      function buildModalForm(type, data) {
+        const c = document.getElementById("modalFormContainer");
+        document.getElementById("modalTitle").innerText = editingNodeId
+          ? `Edit ${type.toUpperCase()}`
+          : `Tambah ${type.toUpperCase()}`;
+
+        let html = `<div class="form-group"><label>Nama</label><input type="text" id="nName" class="form-control" value="${data.name || ""}" placeholder="Nama..." required></div>`;
+
+        if (type === "line") {
+          html += `
+                <div class="form-row">
+                    <div class="form-group"><label>Row (Y)</label><input type="number" id="nRow" class="form-control" value="${data.row || 1}"></div>
+                    <div class="form-group"><label>Col (X)</label><input type="number" id="nCol" class="form-control" value="${data.col || 1}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Tinggi (Rows)</label><input type="number" id="nHeight" class="form-control" value="${data.height || 4}"></div>
+                    <div class="form-group"><label>Lebar (Cols)</label><input type="number" id="nWidth" class="form-control" value="${data.width || 4}"></div>
+                </div>
+                <div class="form-group"><label>Warna Garis (Hex)</label><input type="text" id="nBorder" class="form-control" value="${data.borderColor || "#3b82f6"}"></div>
+                <div class="form-group"><label>Warna Teks (Hex)</label><input type="text" id="nText" class="form-control" value="${data.textColor || "#60a5fa"}"></div>
+            `;
+        } else {
+          html += `
+                <div class="form-row">
+                    <div class="form-group"><label>Row (Y)</label><input type="number" id="nRow" class="form-control" value="${data.row || 1}"></div>
+                    <div class="form-group"><label>Col (X)</label><input type="number" id="nCol" class="form-control" value="${data.col || 1}"></div>
+                </div>
+            `;
+          if (type === "machine") {
+            html += `
+                  <div class="form-group"><label>Cluster</label><input type="text" id="nCluster" class="form-control" value="${data.cluster || ""}"></div>
+                  <div class="form-group"><label>Qty Timbang</label><input type="number" id="nQty" class="form-control" value="${data.qtytimbang || 8}"></div>
+                `;
+          } else if (type === "cqi") {
+            html += `<div class="form-group"><label>Prioritas Mesin (Pisahkan dg koma)</label><input type="text" id="nPrio" class="form-control" value="${(data.priority || []).join(",")}"></div>`;
+          }
+        }
+
+        c.innerHTML = html;
+        setTimeout(() => {
+          const ni = document.getElementById("nName");
+          if (ni) ni.focus();
+        }, 50);
+      }
+
+      function closeNodeModal() {
+        document.getElementById("nodeModal").classList.remove("active");
+      }
+
+      function submitNodeModal() {
+        const nameEl = document.getElementById("nName");
+        let name = nameEl ? nameEl.value.trim() : "";
+        if (!name) {
+          alert("Nama wajib diisi");
+          return;
+        }
+
+        let rVal = parseInt(document.getElementById("nRow").value, 10) || 1;
+        let cVal = parseInt(document.getElementById("nCol").value, 10) || 1;
+
+        let list = mapData[activeModalType + "s"];
+        let targetObj = editingNodeId
+          ? list.find((x) => x.id === editingNodeId)
+          : null;
+
+        if (!targetObj) {
+          targetObj = {
+            id: activeModalType.toUpperCase().charAt(0) + "-" + Date.now(),
+            status: "OFF",
+          };
+          list.push(targetObj);
+        }
+
+        targetObj.name = name;
+        targetObj.row = rVal;
+        targetObj.col = cVal;
+        targetObj.position = { row: rVal, col: cVal };
+
+        if (activeModalType === "line") {
+          targetObj.height =
+            parseInt(document.getElementById("nHeight").value, 10) || 4;
+          targetObj.width =
+            parseInt(document.getElementById("nWidth").value, 10) || 4;
+          targetObj.borderColor =
+            document.getElementById("nBorder").value || "#3b82f6";
+          targetObj.textColor =
+            document.getElementById("nText").value || "#60a5fa";
+        } else if (activeModalType === "machine") {
+          targetObj.cluster = document.getElementById("nCluster")
+            ? document.getElementById("nCluster").value
+            : "";
+          targetObj.qtytimbang = document.getElementById("nQty")
+            ? document.getElementById("nQty").value
+            : 8;
+        } else if (activeModalType === "cqi") {
+          let prioRaw = document.getElementById("nPrio")
+            ? document.getElementById("nPrio").value
+            : "";
+          targetObj.priority = prioRaw
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0);
+        }
+
+        closeNodeModal();
+        calculateGridBounds();
+        renderGrid();
+      }
+
+      function exportMapJson() {
+        let blob = new Blob([JSON.stringify(mapData, null, 2)], {
+          type: "application/json",
+        });
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "map.json";
+        a.click();
+        closeSettingsModal();
+      }
+
+      function applyZoom(init = false) {
+        const currentGridWidth = 40 + totalCols * 78;
+        const currentGridHeight = 28 + totalRows * 52;
+
+        let mx = mapViewport.clientWidth / currentGridWidth;
+        let my = mapViewport.clientHeight / currentGridHeight;
+        let fitZoom = Math.max(mx, my);
+
+        if (!isFinite(fitZoom) || fitZoom <= 0) fitZoom = 0.1;
+        if (init || currentZoom === null) {
+          currentZoom = fitZoom;
+          initialFitZoom = fitZoom;
+        }
+        currentZoom = Math.max(0.1, Math.min(3, currentZoom));
+
+        document.getElementById("factoryGrid").style.transform =
+          `scale(${currentZoom})`;
+        document.getElementById("gridWrapper").style.width =
+          `${currentGridWidth * currentZoom}px`;
+        document.getElementById("gridWrapper").style.height =
+          `${currentGridHeight * currentZoom}px`;
+
+        updateZoomButtons();
+      }
+
+      function updateZoomButtons() {
+        const badge = document.getElementById("zoomBadge");
+        if (badge) {
+          badge.innerText = `${Math.round((currentZoom || 1) * 100)}%`;
+        }
+      }
+
+      function resetZoom() {
+        if (initialFitZoom) {
+          currentZoom = initialFitZoom;
+        } else {
+          currentZoom = 1;
+        }
+        applyZoom();
+        showToast("Zoom dikembalikan ke ukuran fit peta", "info");
+      }
+
+      function zoomIn() {
+        currentZoom = (currentZoom || 1) + 0.1;
+        applyZoom();
+      }
+      function zoomOut() {
+        currentZoom = (currentZoom || 1) - 0.1;
+        applyZoom();
+      }
+
+      function goToConfig() {
+        let runM = mapData.machines.filter((m) => m.status === "RUNNING");
+        let rdyC = mapData.cqis.filter((c) => c.status === "READY");
+
+        if (runM.length === 0 || rdyC.length === 0) {
+          showToast(
+            "Pastikan ada mesin RUNNING & CQI READY sebelum lanjut config!",
+            "error",
+          );
+          return;
+        }
+
+        localStorage.setItem(
+          "factory_internal_storage",
+          JSON.stringify({ machines: mapData.machines, cqis: mapData.cqis }),
+        );
+        sessionStorage.setItem(
+          "planning_state",
+          JSON.stringify({
+            machines: runM,
+            cqis: rdyC,
+            labels: mapData.labels,
+          }),
+        );
+        window.location.href = "config.html";
+      }
+
+      let resizeTimeout;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => applyZoom(), 150);
+      });
+
+      // Universal Modal Scroll Lock Manager & Backdrop handlers
+      function updateModalScrollLock() {
+        const hasActiveModal =
+          document.querySelector(".modal-overlay.active") !== null;
+        if (hasActiveModal) {
+          document.documentElement.classList.add("modal-open");
+          document.body.classList.add("modal-open");
+        } else {
+          document.documentElement.classList.remove("modal-open");
+          document.body.classList.remove("modal-open");
+        }
+      }
+
+      const modalObserver = new MutationObserver(updateModalScrollLock);
+      document.querySelectorAll(".modal-overlay").forEach((modal) => {
+        modalObserver.observe(modal, {
+          attributes: true,
+          attributeFilter: ["class", "style"],
+        });
+        modal.addEventListener(
+          "wheel",
+          (e) => {
+            if (e.target === modal) e.preventDefault();
+          },
+          { passive: false },
+        );
+        modal.addEventListener(
+          "touchmove",
+          (e) => {
+            if (e.target === modal) e.preventDefault();
+          },
+          { passive: false },
+        );
+      });
+
+      // PWA & Service Worker Manager
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('[PWA] Service Worker Registered:', reg.scope))
+            .catch(err => console.log('[PWA] Service Worker registration failed:', err));
+        });
+      }
+
+      let deferredPWAInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPWAInstallPrompt = e;
+        const btn = document.getElementById('pwaInstallBtn');
+        if (btn) btn.style.display = 'inline-flex';
+      });
+
+      function installPWA() {
+        if (deferredPWAInstallPrompt) {
+          deferredPWAInstallPrompt.prompt();
+          deferredPWAInstallPrompt.userChoice.then((choice) => {
+            if (choice.outcome === 'accepted') {
+              const btn = document.getElementById('pwaInstallBtn');
+              if (btn) btn.style.display = 'none';
+            }
+            deferredPWAInstallPrompt = null;
+          });
+        }
+      }
+
+      function updateOnlineStatus() {
+        const badge = document.getElementById('offlineIndicator');
+        if (badge) {
+          badge.style.display = navigator.onLine ? 'none' : 'inline-block';
+        }
+      }
+
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      document.addEventListener('DOMContentLoaded', updateOnlineStatus);
+
+      loadMap();
+
+      window.goToConfig = goToConfig;
+      window.zoomIn = zoomIn;
+      window.zoomOut = zoomOut;
+      window.resetZoom = resetZoom;
+    </script>
+  </body>
+</html>
