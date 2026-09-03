@@ -1,0 +1,111 @@
+{
+  "updated_at": "2026-09-03T01:45:05.184Z",
+  "total_files": 12,
+  "total_learning_records": 1933,
+  "files": [
+    "planning-2026-01-02-pagi.json",
+    "planning-2026-01-03-siang.json",
+    "planning-2026-01-04-malam.json",
+    "planning-2026-01-05-pagi.json",
+    "planning-2026-01-06-siang.json",
+    "planning-2026-01-07-malam.json",
+    "planning-2026-01-08-pagi.json",
+    "planning-2026-01-09-siang.json",
+    "planning-2026-01-10-malam.json",
+    "planning-2026-01-11-pagi.json",
+    "planning-2026-09-01-pagi.json",
+    "planning-2026-09-02-pagi.json"
+  ],
+  "generated_sessions": [
+    {
+      "fileName": "planning-2026-01-02-pagi.json",
+      "filePath": "/app/applet/history/planning-2026-01-02-pagi.json",
+      "date": "02-01-2026",
+      "shift": "Pagi",
+      "totalMachines": 77,
+      "totalCqi": 14,
+      "totalPairs": 77
+    },
+    {
+      "fileName": "planning-2026-01-03-siang.json",
+      "filePath": "/app/applet/history/planning-2026-01-03-siang.json",
+      "date": "03-01-2026",
+      "shift": "Siang",
+      "totalMachines": 73,
+      "totalCqi": 14,
+      "totalPairs": 73
+    },
+    {
+      "fileName": "planning-2026-01-04-malam.json",
+      "filePath": "/app/applet/history/planning-2026-01-04-malam.json",
+      "date": "04-01-2026",
+      "shift": "Malam",
+      "totalMachines": 84,
+      "totalCqi": 14,
+      "totalPairs": 84
+    },
+    {
+      "fileName": "planning-2026-01-05-pagi.json",
+      "filePath": "/app/applet/history/planning-2026-01-05-pagi.json",
+      "date": "05-01-2026",
+      "shift": "Pagi",
+      "totalMachines": 71,
+      "totalCqi": 14,
+      "totalPairs": 71
+    },
+    {
+      "fileName": "planning-2026-01-06-siang.json",
+      "filePath": "/app/applet/history/planning-2026-01-06-siang.json",
+      "date": "06-01-2026",
+      "shift": "Siang",
+      "totalMachines": 77,
+      "totalCqi": 14,
+      "totalPairs": 77
+    },
+    {
+      "fileName": "planning-2026-01-07-malam.json",
+      "filePath": "/app/applet/history/planning-2026-01-07-malam.json",
+      "date": "07-01-2026",
+      "shift": "Malam",
+      "totalMachines": 81,
+      "totalCqi": 14,
+      "totalPairs": 81
+    },
+    {
+      "fileName": "planning-2026-01-08-pagi.json",
+      "filePath": "/app/applet/history/planning-2026-01-08-pagi.json",
+      "date": "08-01-2026",
+      "shift": "Pagi",
+      "totalMachines": 88,
+      "totalCqi": 14,
+      "totalPairs": 88
+    },
+    {
+      "fileName": "planning-2026-01-09-siang.json",
+      "filePath": "/app/applet/history/planning-2026-01-09-siang.json",
+      "date": "09-01-2026",
+      "shift": "Siang",
+      "totalMachines": 83,
+      "totalCqi": 14,
+      "totalPairs": 83
+    },
+    {
+      "fileName": "planning-2026-01-10-malam.json",
+      "filePath": "/app/applet/history/planning-2026-01-10-malam.json",
+      "date": "10-01-2026",
+      "shift": "Malam",
+      "totalMachines": 68,
+      "totalCqi": 14,
+      "totalPairs": 68
+    },
+    {
+      "fileName": "planning-2026-01-11-pagi.json",
+      "filePath": "/app/applet/history/planning-2026-01-11-pagi.json",
+      "date": "11-01-2026",
+      "shift": "Pagi",
+      "totalMachines": 64,
+      "totalCqi": 14,
+      "totalPairs": 64
+    }
+  ]
+}

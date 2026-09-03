@@ -1,0 +1,960 @@
+{
+  "meta": {
+    "app": "MAP LIQUID 3 - Production View",
+    "date": "01-09-2026",
+    "date_iso": "2026-09-01",
+    "shift": "Pagi",
+    "generated_at": "2026-09-02T14:41:19.756Z",
+    "total_cqi": 17,
+    "total_machines_running": 61,
+    "mode": 1
+  },
+  "planning": [
+    {
+      "no": 1,
+      "cqi": "CQI 1",
+      "cqi_line": "LINE A",
+      "core": [
+        "Riri"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "machines": [
+        "AST 36-16L",
+        "AST 44-16L",
+        "AST 53-16L",
+        "AST 52-16L"
+      ]
+    },
+    {
+      "no": 2,
+      "cqi": "CQI 2",
+      "cqi_line": "LINE A",
+      "core": [
+        "Farhan"
+      ],
+      "non_core": [
+        "Yaya"
+      ],
+      "longshift": [],
+      "machines": [
+        "AST 70-16L",
+        "AST 69-16L",
+        "AST 67-16L",
+        "AST 68-16L",
+        "AST 24-12L",
+        "AST 31-12L"
+      ]
+    },
+    {
+      "no": 3,
+      "cqi": "CQI 3",
+      "cqi_line": "LINE A",
+      "core": [
+        "Allyssa"
+      ],
+      "non_core": [
+        "Wulan"
+      ],
+      "longshift": [],
+      "machines": [
+        "AST 54-16L",
+        "AST 55-16L",
+        "AST 22-16L",
+        "AST 33-16L"
+      ]
+    },
+    {
+      "no": 4,
+      "cqi": "CQI 4",
+      "cqi_line": "LINE A",
+      "core": [
+        "Allyssa"
+      ],
+      "non_core": [
+        "Syifa"
+      ],
+      "longshift": [],
+      "machines": [
+        "AST 26-16L",
+        "AST 27-16L",
+        "AST 28-16L",
+        "AST 65-16L"
+      ]
+    },
+    {
+      "no": 5,
+      "cqi": "CQI 5",
+      "cqi_line": "LINE A",
+      "core": [
+        "Manda"
+      ],
+      "non_core": [
+        "Allen"
+      ],
+      "longshift": [],
+      "machines": [
+        "AST 29-16L",
+        "AST 8-16L",
+        "AST 10-16L",
+        "AST 12-16L"
+      ]
+    },
+    {
+      "no": 6,
+      "cqi": "CQI 6",
+      "cqi_line": "LINE A",
+      "core": [
+        "Manda"
+      ],
+      "non_core": [],
+      "longshift": [
+        "(LS)"
+      ],
+      "machines": [
+        "AST 30-16L",
+        "AST 7-16L",
+        "AST 9-16L",
+        "AST 11-16L"
+      ]
+    },
+    {
+      "no": 7,
+      "cqi": "CQI 7",
+      "cqi_line": "LINE A",
+      "core": [
+        "Fira"
+      ],
+      "non_core": [
+        "Kirana"
+      ],
+      "longshift": [],
+      "machines": [
+        "AST 71-16L",
+        "AST 3-16L",
+        "AST 5-16L",
+        "AST 4-16L"
+      ]
+    },
+    {
+      "no": 8,
+      "cqi": "CQI 8",
+      "cqi_line": "LINE A",
+      "core": [
+        "Fira"
+      ],
+      "non_core": [
+        "Dinda"
+      ],
+      "longshift": [],
+      "machines": [
+        "AST 72-16L",
+        "AST 18-16L",
+        "AST 6-16L",
+        "AST 2-16L"
+      ]
+    },
+    {
+      "no": 9,
+      "cqi": "CQI 9",
+      "cqi_line": "LINE A",
+      "core": [
+        "Chalista"
+      ],
+      "non_core": [
+        "Litha"
+      ],
+      "longshift": [],
+      "machines": [
+        "AST 63-16L",
+        "AST 15-16L",
+        "AST 16-16L",
+        "AST 17-16L"
+      ]
+    },
+    {
+      "no": 10,
+      "cqi": "CQI 10",
+      "cqi_line": "LINE A",
+      "core": [
+        "Chalista"
+      ],
+      "non_core": [],
+      "longshift": [
+        "(LS)"
+      ],
+      "machines": [
+        "AST 19-16L",
+        "AST 20-16L",
+        "AST 21-16L",
+        "AST 60-16L"
+      ]
+    },
+    {
+      "no": 11,
+      "cqi": "CQI 11",
+      "cqi_line": "LINE B",
+      "core": [
+        "Dwi"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "machines": [
+        "AST 41-16L",
+        "AST 47-16L",
+        "AST 51-16L",
+        "AST 50-16L"
+      ]
+    },
+    {
+      "no": 12,
+      "cqi": "CQI 12",
+      "cqi_line": "LINE B",
+      "core": [
+        "Mia"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "machines": [
+        "AST 46-16L",
+        "AST 45-16L",
+        "AST 42-16L",
+        "AST 43-16L"
+      ]
+    },
+    {
+      "no": 13,
+      "cqi": "CQI 13",
+      "cqi_line": "LINE B",
+      "core": [
+        "Ninda"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "machines": [
+        "K1",
+        "K2",
+        "K8",
+        "APK 12",
+        "APK 15"
+      ]
+    },
+    {
+      "no": 14,
+      "cqi": "CQI 14",
+      "cqi_line": "LINE B",
+      "core": [
+        "Nurul"
+      ],
+      "non_core": [
+        "Siska"
+      ],
+      "longshift": [],
+      "machines": [
+        "AST 39-12L",
+        "AST 38-12L",
+        "AST 37-12L",
+        "AST 40-12L",
+        "AST 73-12L",
+        "AST 32-12L",
+        "AST 66-16L"
+      ]
+    },
+    {
+      "no": 16,
+      "cqi": "CQI 16",
+      "cqi_line": "LINE C",
+      "core": [
+        "Thazkia"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "machines": [
+        "K5",
+        "APK 31",
+        "APK 63",
+        "APK 58"
+      ]
+    },
+    {
+      "no": 17,
+      "cqi": "CQI 19",
+      "cqi_line": "OT",
+      "core": [
+        "Dini"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "machines": [
+        "M2",
+        "M3"
+      ]
+    },
+    {
+      "no": 18,
+      "cqi": "CQI 24",
+      "cqi_line": "WW",
+      "core": [
+        "Jiddan"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "machines": [
+        "C1",
+        "APK 54",
+        "APK 19",
+        "APK 26"
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "machineId": "AST 36-16L",
+      "machineName": "AST 36-16L",
+      "cqiId": "CQI 1",
+      "cqiName": "CQI 1",
+      "cqiNum": "1",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 44-16L",
+      "machineName": "AST 44-16L",
+      "cqiId": "CQI 1",
+      "cqiName": "CQI 1",
+      "cqiNum": "1",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 53-16L",
+      "machineName": "AST 53-16L",
+      "cqiId": "CQI 1",
+      "cqiName": "CQI 1",
+      "cqiNum": "1",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 52-16L",
+      "machineName": "AST 52-16L",
+      "cqiId": "CQI 1",
+      "cqiName": "CQI 1",
+      "cqiNum": "1",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 70-16L",
+      "machineName": "AST 70-16L",
+      "cqiId": "CQI 2",
+      "cqiName": "CQI 2",
+      "cqiNum": "2",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 69-16L",
+      "machineName": "AST 69-16L",
+      "cqiId": "CQI 2",
+      "cqiName": "CQI 2",
+      "cqiNum": "2",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 67-16L",
+      "machineName": "AST 67-16L",
+      "cqiId": "CQI 2",
+      "cqiName": "CQI 2",
+      "cqiNum": "2",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 68-16L",
+      "machineName": "AST 68-16L",
+      "cqiId": "CQI 2",
+      "cqiName": "CQI 2",
+      "cqiNum": "2",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 24-12L",
+      "machineName": "AST 24-12L",
+      "cqiId": "CQI 2",
+      "cqiName": "CQI 2",
+      "cqiNum": "2",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 31-12L",
+      "machineName": "AST 31-12L",
+      "cqiId": "CQI 2",
+      "cqiName": "CQI 2",
+      "cqiNum": "2",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 54-16L",
+      "machineName": "AST 54-16L",
+      "cqiId": "CQI 3",
+      "cqiName": "CQI 3",
+      "cqiNum": "3",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 55-16L",
+      "machineName": "AST 55-16L",
+      "cqiId": "CQI 3",
+      "cqiName": "CQI 3",
+      "cqiNum": "3",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 22-16L",
+      "machineName": "AST 22-16L",
+      "cqiId": "CQI 3",
+      "cqiName": "CQI 3",
+      "cqiNum": "3",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 33-16L",
+      "machineName": "AST 33-16L",
+      "cqiId": "CQI 3",
+      "cqiName": "CQI 3",
+      "cqiNum": "3",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 26-16L",
+      "machineName": "AST 26-16L",
+      "cqiId": "CQI 4",
+      "cqiName": "CQI 4",
+      "cqiNum": "4",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 27-16L",
+      "machineName": "AST 27-16L",
+      "cqiId": "CQI 4",
+      "cqiName": "CQI 4",
+      "cqiNum": "4",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 28-16L",
+      "machineName": "AST 28-16L",
+      "cqiId": "CQI 4",
+      "cqiName": "CQI 4",
+      "cqiNum": "4",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 65-16L",
+      "machineName": "AST 65-16L",
+      "cqiId": "CQI 4",
+      "cqiName": "CQI 4",
+      "cqiNum": "4",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 29-16L",
+      "machineName": "AST 29-16L",
+      "cqiId": "CQI 5",
+      "cqiName": "CQI 5",
+      "cqiNum": "5",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 8-16L",
+      "machineName": "AST 8-16L",
+      "cqiId": "CQI 5",
+      "cqiName": "CQI 5",
+      "cqiNum": "5",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 10-16L",
+      "machineName": "AST 10-16L",
+      "cqiId": "CQI 5",
+      "cqiName": "CQI 5",
+      "cqiNum": "5",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 12-16L",
+      "machineName": "AST 12-16L",
+      "cqiId": "CQI 5",
+      "cqiName": "CQI 5",
+      "cqiNum": "5",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 30-16L",
+      "machineName": "AST 30-16L",
+      "cqiId": "CQI 6",
+      "cqiName": "CQI 6",
+      "cqiNum": "6",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 7-16L",
+      "machineName": "AST 7-16L",
+      "cqiId": "CQI 6",
+      "cqiName": "CQI 6",
+      "cqiNum": "6",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 9-16L",
+      "machineName": "AST 9-16L",
+      "cqiId": "CQI 6",
+      "cqiName": "CQI 6",
+      "cqiNum": "6",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 11-16L",
+      "machineName": "AST 11-16L",
+      "cqiId": "CQI 6",
+      "cqiName": "CQI 6",
+      "cqiNum": "6",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 71-16L",
+      "machineName": "AST 71-16L",
+      "cqiId": "CQI 7",
+      "cqiName": "CQI 7",
+      "cqiNum": "7",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 3-16L",
+      "machineName": "AST 3-16L",
+      "cqiId": "CQI 7",
+      "cqiName": "CQI 7",
+      "cqiNum": "7",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 5-16L",
+      "machineName": "AST 5-16L",
+      "cqiId": "CQI 7",
+      "cqiName": "CQI 7",
+      "cqiNum": "7",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 4-16L",
+      "machineName": "AST 4-16L",
+      "cqiId": "CQI 7",
+      "cqiName": "CQI 7",
+      "cqiNum": "7",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 72-16L",
+      "machineName": "AST 72-16L",
+      "cqiId": "CQI 8",
+      "cqiName": "CQI 8",
+      "cqiNum": "8",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 18-16L",
+      "machineName": "AST 18-16L",
+      "cqiId": "CQI 8",
+      "cqiName": "CQI 8",
+      "cqiNum": "8",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 6-16L",
+      "machineName": "AST 6-16L",
+      "cqiId": "CQI 8",
+      "cqiName": "CQI 8",
+      "cqiNum": "8",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 2-16L",
+      "machineName": "AST 2-16L",
+      "cqiId": "CQI 8",
+      "cqiName": "CQI 8",
+      "cqiNum": "8",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 63-16L",
+      "machineName": "AST 63-16L",
+      "cqiId": "CQI 9",
+      "cqiName": "CQI 9",
+      "cqiNum": "9",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 15-16L",
+      "machineName": "AST 15-16L",
+      "cqiId": "CQI 9",
+      "cqiName": "CQI 9",
+      "cqiNum": "9",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 16-16L",
+      "machineName": "AST 16-16L",
+      "cqiId": "CQI 9",
+      "cqiName": "CQI 9",
+      "cqiNum": "9",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 17-16L",
+      "machineName": "AST 17-16L",
+      "cqiId": "CQI 9",
+      "cqiName": "CQI 9",
+      "cqiNum": "9",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 19-16L",
+      "machineName": "AST 19-16L",
+      "cqiId": "CQI 10",
+      "cqiName": "CQI 10",
+      "cqiNum": "10",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 20-16L",
+      "machineName": "AST 20-16L",
+      "cqiId": "CQI 10",
+      "cqiName": "CQI 10",
+      "cqiNum": "10",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 21-16L",
+      "machineName": "AST 21-16L",
+      "cqiId": "CQI 10",
+      "cqiName": "CQI 10",
+      "cqiNum": "10",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 60-16L",
+      "machineName": "AST 60-16L",
+      "cqiId": "CQI 10",
+      "cqiName": "CQI 10",
+      "cqiNum": "10",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 41-16L",
+      "machineName": "AST 41-16L",
+      "cqiId": "CQI 11",
+      "cqiName": "CQI 11",
+      "cqiNum": "11",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 47-16L",
+      "machineName": "AST 47-16L",
+      "cqiId": "CQI 11",
+      "cqiName": "CQI 11",
+      "cqiNum": "11",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 51-16L",
+      "machineName": "AST 51-16L",
+      "cqiId": "CQI 11",
+      "cqiName": "CQI 11",
+      "cqiNum": "11",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 50-16L",
+      "machineName": "AST 50-16L",
+      "cqiId": "CQI 11",
+      "cqiName": "CQI 11",
+      "cqiNum": "11",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 46-16L",
+      "machineName": "AST 46-16L",
+      "cqiId": "CQI 12",
+      "cqiName": "CQI 12",
+      "cqiNum": "12",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 45-16L",
+      "machineName": "AST 45-16L",
+      "cqiId": "CQI 12",
+      "cqiName": "CQI 12",
+      "cqiNum": "12",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 42-16L",
+      "machineName": "AST 42-16L",
+      "cqiId": "CQI 12",
+      "cqiName": "CQI 12",
+      "cqiNum": "12",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 43-16L",
+      "machineName": "AST 43-16L",
+      "cqiId": "CQI 12",
+      "cqiName": "CQI 12",
+      "cqiNum": "12",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "K1",
+      "machineName": "K1",
+      "cqiId": "CQI 13",
+      "cqiName": "CQI 13",
+      "cqiNum": "13",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "K2",
+      "machineName": "K2",
+      "cqiId": "CQI 13",
+      "cqiName": "CQI 13",
+      "cqiNum": "13",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "K8",
+      "machineName": "K8",
+      "cqiId": "CQI 13",
+      "cqiName": "CQI 13",
+      "cqiNum": "13",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "APK 12",
+      "machineName": "APK 12",
+      "cqiId": "CQI 13",
+      "cqiName": "CQI 13",
+      "cqiNum": "13",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "APK 15",
+      "machineName": "APK 15",
+      "cqiId": "CQI 13",
+      "cqiName": "CQI 13",
+      "cqiNum": "13",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 39-12L",
+      "machineName": "AST 39-12L",
+      "cqiId": "CQI 14",
+      "cqiName": "CQI 14",
+      "cqiNum": "14",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 38-12L",
+      "machineName": "AST 38-12L",
+      "cqiId": "CQI 14",
+      "cqiName": "CQI 14",
+      "cqiNum": "14",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 37-12L",
+      "machineName": "AST 37-12L",
+      "cqiId": "CQI 14",
+      "cqiName": "CQI 14",
+      "cqiNum": "14",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 40-12L",
+      "machineName": "AST 40-12L",
+      "cqiId": "CQI 14",
+      "cqiName": "CQI 14",
+      "cqiNum": "14",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 73-12L",
+      "machineName": "AST 73-12L",
+      "cqiId": "CQI 14",
+      "cqiName": "CQI 14",
+      "cqiNum": "14",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 32-12L",
+      "machineName": "AST 32-12L",
+      "cqiId": "CQI 14",
+      "cqiName": "CQI 14",
+      "cqiNum": "14",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "AST 66-16L",
+      "machineName": "AST 66-16L",
+      "cqiId": "CQI 14",
+      "cqiName": "CQI 14",
+      "cqiNum": "14",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "K5",
+      "machineName": "K5",
+      "cqiId": "CQI 16",
+      "cqiName": "CQI 16",
+      "cqiNum": "16",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "APK 31",
+      "machineName": "APK 31",
+      "cqiId": "CQI 16",
+      "cqiName": "CQI 16",
+      "cqiNum": "16",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "APK 63",
+      "machineName": "APK 63",
+      "cqiId": "CQI 16",
+      "cqiName": "CQI 16",
+      "cqiNum": "16",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "APK 58",
+      "machineName": "APK 58",
+      "cqiId": "CQI 16",
+      "cqiName": "CQI 16",
+      "cqiNum": "16",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "M2",
+      "machineName": "M2",
+      "cqiId": "CQI 19",
+      "cqiName": "CQI 19",
+      "cqiNum": "19",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "M3",
+      "machineName": "M3",
+      "cqiId": "CQI 19",
+      "cqiName": "CQI 19",
+      "cqiNum": "19",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "C1",
+      "machineName": "C1",
+      "cqiId": "CQI 24",
+      "cqiName": "CQI 24",
+      "cqiNum": "24",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "APK 54",
+      "machineName": "APK 54",
+      "cqiId": "CQI 24",
+      "cqiName": "CQI 24",
+      "cqiNum": "24",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "APK 19",
+      "machineName": "APK 19",
+      "cqiId": "CQI 24",
+      "cqiName": "CQI 24",
+      "cqiNum": "24",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    },
+    {
+      "machineId": "APK 26",
+      "machineName": "APK 26",
+      "cqiId": "CQI 24",
+      "cqiName": "CQI 24",
+      "cqiNum": "24",
+      "timestamp": "2026-09-01",
+      "date": "2026-09-01"
+    }
+  ]
+}
