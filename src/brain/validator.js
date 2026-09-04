@@ -4,13 +4,12 @@ export default {
   // ==========================================================================
 
   /**
-   * Validasi hasil perencanaan terhadap batasan operasional pabrik, mode alokasi, dan mixing cluster
+   * Validasi hasil perencanaan terhadap batasan operasional pabrik dan mixing cluster
    * @param {Array} slots - Slot hasil generatePlan
    * @param {Array} machines - Daftar mesin running input
-   * @param {number} mode - Mode perencanaan (1 atau 2)
    * @returns {Object} { valid: boolean, violations: string[], info: string[] }
    */
-  validate(slots, machines = [], mode = 1) {
+  validate(slots, machines = []) {
     const violations = [];
     const info = [];
 
@@ -18,11 +17,6 @@ export default {
       violations.push("Tidak ada slot perencanaan yang tergenerasi.");
       return { valid: false, violations, info };
     }
-
-    const maxNcPerCqi = mode === 2 ? 1 : 2;
-    info.push(
-      `INFO: Beroperasi pada MODE ${mode} (Maks ${maxNcPerCqi} Non-Core/LS per CQI).`,
-    );
 
     // 1. Verifikasi kelengkapan alokasi mesin
     const assignedMachineIds = new Set();
@@ -69,48 +63,30 @@ export default {
       }
     });
 
-    // 3. Verifikasi rasio Manpower vs Beban Mesin sesuai Mode 1 / Mode 2 & Aturan Kapasitas Cluster
+    // 3. Verifikasi rasio Manpower vs Beban Mesin sesuai Aturan Kapasitas Cluster
     slots.forEach((s) => {
       const cqiNum = this.getCqiNumber(s.cqi);
       const mCount = s.machines.length;
       const totalNc = s.nonCore.length + s.longshift.length;
       const rule = this.getClusterCapacityRule(s);
 
-      if (mode === 1) {
-        if (totalNc === 0 && mCount > rule.maxCoreOnly) {
-          violations.push(
-            `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 0 Non-Core (Maksimal ${rule.maxCoreOnly} mesin untuk 1 Core).`,
-          );
-        } else if (totalNc === 1 && mCount > rule.max1Nc) {
-          violations.push(
-            `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 1 Non-Core (Maksimal ${rule.max1Nc} mesin untuk 1 Core + 1 Non-Core).`,
-          );
-        } else if (totalNc >= 2 && mCount > rule.max2Nc) {
-          violations.push(
-            `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin (Maksimal ${rule.max2Nc} mesin untuk 1 Core + 2 Non-Core).`,
-          );
-        }
-        if (totalNc > 2) {
-          violations.push(
-            `CQI ${cqiNum} melebihi batas maksimal 2 Non-Core/LS di Mode 1.`,
-          );
-        }
-      } else {
-        // Mode 2 (Maks 1 Non-Core per CQI)
-        if (totalNc === 0 && mCount > rule.maxCoreOnly) {
-          violations.push(
-            `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 0 Non-Core (Maksimal ${rule.maxCoreOnly} mesin untuk 1 Core di Mode 2).`,
-          );
-        } else if (totalNc === 1 && mCount > rule.max1Nc) {
-          violations.push(
-            `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 1 Non-Core (Maksimal ${rule.max1Nc} mesin untuk 1 Core + 1 Non-Core di Mode 2).`,
-          );
-        }
-        if (totalNc > 1) {
-          violations.push(
-            `CQI ${cqiNum} melebihi batas maksimal 1 Non-Core/LS di Mode 2.`,
-          );
-        }
+      if (totalNc === 0 && mCount > rule.maxCoreOnly) {
+        violations.push(
+          `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 0 Non-Core (Maksimal ${rule.maxCoreOnly} mesin untuk 1 Core).`,
+        );
+      } else if (totalNc === 1 && mCount > rule.max1Nc) {
+        violations.push(
+          `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 1 Non-Core (Maksimal ${rule.max1Nc} mesin untuk 1 Core + 1 Non-Core).`,
+        );
+      } else if (totalNc >= 2 && mCount > rule.max2Nc) {
+        violations.push(
+          `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin (Maksimal ${rule.max2Nc} mesin untuk 1 Core + 2 Non-Core).`,
+        );
+      }
+      if (totalNc > 2) {
+        violations.push(
+          `CQI ${cqiNum} melebihi batas maksimal 2 Non-Core/LS.`,
+        );
       }
     });
 
@@ -142,38 +118,53 @@ export default {
           violations.push(
             `CQI 24 memuat mesin tidak diizinkan: ${this.formatMachineList(invalidIn24)} (Mesin Line A dan Line B dilarang masuk CQI 24, hanya mesin WW & APK Line C saja yang diperbolehkan).`,
           );
-        } else if (nonWwIn24.length > 4) {
-          violations.push(
-            `CQI 24 memuat lebih dari 4 mesin APK Line C (${nonWwIn24.length} mesin).`,
-          );
         } else {
-          const wsList = [
-            ...new Set(
-              nonWwIn24.map((m) =>
-                this.getWorkstationKey(m).toUpperCase(),
-              ),
-            ),
-          ];
-          if (wsList.length > 2) {
-            violations.push(
-              `CQI 24 memuat mesin Line C dari ${wsList.length} workstation berbeda (${wsList.join(", ")}). Dilarang keras lebih dari 2 workstation (utamakan 1 workstation atau maksimal 2 workstation).`,
-            );
+          const wwIn24 = slot24.machines.filter((m) => this.isWwMachine(m)).length;
+          const totalNc24 = slot24.nonCore.length + slot24.longshift.length;
+          let maxPouchAllowed = 0;
+          let minNcRequired = 0;
+
+          if (wwIn24 >= 2) {
+            maxPouchAllowed = totalNc24 >= 1 ? 5 : 0;
+            if (nonWwIn24.length > 0) minNcRequired = 1;
+          } else if (wwIn24 === 1) {
+            maxPouchAllowed = totalNc24 >= 1 ? 6 : 3;
+            if (nonWwIn24.length > 3) minNcRequired = 1;
+          } else {
+            maxPouchAllowed = totalNc24 >= 1 ? 6 : 4;
           }
 
-          const totalManpower =
-            slot24.core + slot24.nonCore.length + slot24.longshift.length;
-          if (totalManpower < 2) {
+          if (nonWwIn24.length > maxPouchAllowed) {
             violations.push(
-              `CQI 24 mendapat tambahan mesin APK Line C tetapi belum memiliki minimal 1 Non-Core / (LS).`,
+              `CQI 24 memuat ${nonWwIn24.length} mesin Pouch/APK Line C (Maksimal ${maxPouchAllowed} mesin pouch untuk kondisi ${wwIn24} WW dengan ${totalNc24} Non-Core/LS).`,
             );
           } else {
-            const wsDetail =
-              wsList.length === 1
-                ? `1 workstation (${wsList[0]}) - Sesuai preferensi utama agar lebih mudah`
-                : `${wsList.length} workstation (${wsList.join(" & ")})`;
-            info.push(
-              `INFO: CQI 24 mengcover ${slot24.machines.length} Mesin (WW + ${nonWwIn24.length} APK Line C dari ${wsDetail}) dengan dukungan Non-Core/(LS).`,
-            );
+            const wsList = [
+              ...new Set(
+                nonWwIn24.map((m) =>
+                  this.getWorkstationKey(m).toUpperCase(),
+                ),
+              ),
+            ];
+            if (wsList.length > 2) {
+              violations.push(
+                `CQI 24 memuat mesin Line C dari ${wsList.length} workstation berbeda (${wsList.join(", ")}). Dilarang keras lebih dari 2 workstation (utamakan 1 workstation atau maksimal 2 workstation).`,
+              );
+            }
+
+            if (minNcRequired > 0 && totalNc24 < minNcRequired) {
+              violations.push(
+                `CQI 24 mendapat tambahan ${nonWwIn24.length} mesin Pouch Line C tetapi belum memiliki minimal 1 Non-Core / (LS).`,
+              );
+            } else {
+              const wsDetail =
+                wsList.length === 1
+                  ? `1 workstation (${wsList[0]}) - Sesuai preferensi utama agar lebih mudah`
+                  : `${wsList.length} workstation (${wsList.join(" & ")})`;
+              info.push(
+                `INFO: CQI 24 mengcover ${slot24.machines.length} Mesin (WW + ${nonWwIn24.length} APK Line C dari ${wsDetail}) dengan dukungan Non-Core/(LS).`,
+              );
+            }
           }
         }
       }
@@ -194,6 +185,18 @@ export default {
       } else {
         info.push(
           `INFO: CQI 19 strictly mengcover ${slot19.machines.length} Mesin OT (Maksimal 2 Mesin).`,
+        );
+      }
+
+      const totalNc19 = slot19.nonCore.length + slot19.longshift.length;
+      if (totalNc19 > 0) {
+        violations.push(
+          `CQI 19 tidak boleh diberi Non-Core / Longshift (strictly 1 Core saja tanpa Non-Core/LS).`,
+        );
+      }
+      if (slot19.core > 1) {
+        violations.push(
+          `CQI 19 hanya boleh ditugaskan 1 Core personil.`,
         );
       }
     }

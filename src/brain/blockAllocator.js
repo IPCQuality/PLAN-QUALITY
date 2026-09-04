@@ -523,7 +523,9 @@ export default {
 
         slots.forEach((s) => {
           if (s.cqiNum === "19") return; // CQI 19 strictly 2 mesin OT
-          if (s.machines.length >= 8) return; // Maksimal 8 mesin
+          const sRule = engine.getClusterCapacityRule(s);
+          const maxLimit = Math.min(8, sRule.absoluteMax || 8);
+          if (s.machines.length >= maxLimit) return;
 
           if (
             engine.canAddMachineToSlot(
@@ -543,6 +545,19 @@ export default {
             ).map((c) => String(c).toUpperCase());
 
             let score = 0;
+
+            // Kriteria 0: Meminimalkan Penggunaan Non-Core / Longshift
+            const baseCap = engine.getBaseCoreCapacity(s);
+            if (s.machines.length < baseCap) {
+              // Masih dalam kuota 1 core murni tanpa butuh NC/LS!
+              score += 2000;
+            } else if (s.machines.length < sRule.max1Nc) {
+              // Membutuhkan 1 NC/LS
+              score += 400;
+            } else {
+              // Membutuhkan 2 NC/LS
+              score -= 300;
+            }
 
             // Kriteria 1: CQI Priority Map
             const wsIdx = wsPrioList.indexOf(mWs);

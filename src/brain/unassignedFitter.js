@@ -108,7 +108,6 @@ export default {
     }
 
     const labels = mapData.labels || [];
-    const mode = parseInt(config.mode || 1, 10) === 2 ? 2 : 1;
 
     let ncCount = 0;
     if (Array.isArray(config.nonCoreData) && config.nonCoreData.length > 0) {
@@ -126,8 +125,13 @@ export default {
       if (slot.cqiNum === "24") {
         if (engine.isWwMachine(m)) return true;
         if (engine.isMachineLineC(m, labels)) {
+          const wwCount = slot.machines.filter((sm) => engine.isWwMachine(sm)).length;
           const nonWw = slot.machines.filter((sm) => !engine.isWwMachine(sm));
-          if (nonWw.length >= 4) return false;
+          // Aturan CQI 24:
+          // Tanpa NC/LS: 2 WW (0 pouch) atau 1 WW + 3 pouch
+          // Dengan 1 NC/LS: 2 WW + 5 pouch atau 1 WW + 6 pouch
+          const maxPouch = wwCount >= 2 ? (totalNcPool > 0 ? 5 : 0) : (totalNcPool > 0 ? 6 : 3);
+          if (nonWw.length >= maxPouch) return false;
           if (
             !engine.isPouchMachine(m) &&
             !String(m.name || m.id || "").toUpperCase().startsWith("APK")
@@ -148,6 +152,19 @@ export default {
         const ws = engine.getWorkstationKey(m, labels).toUpperCase();
         if (ws !== "1C" && ws !== "2C") return false;
       }
+
+      // Aturan Khusus Cluster Botol:
+      // * Cluster Botol di line B, CQI wajib di line B
+      // * Cluster Botol di line C, CQI wajib di line C
+      const mCluster = engine.getMachineClusterGroup(m);
+      const mLine = engine.getMachineLine(m, labels);
+      const cqiLine = engine.getCqiPrimaryLine(slot.cqi);
+
+      if (mCluster === "BOTOL") {
+        if (mLine === "LINE B" && cqiLine !== "LINE B") return false;
+        if (mLine === "LINE C" && cqiLine !== "LINE C") return false;
+      }
+
       return engine.canAddMachineToSlotCluster(m, slot);
     };
 
@@ -162,7 +179,6 @@ export default {
         const eligibleSlots = slots.filter((slot) => {
           const slotLimit = engine.getDynamicSlotLimit(
             slot,
-            mode,
             totalNcPool,
             slots,
           );
@@ -219,7 +235,6 @@ export default {
 
             const targetLimit = engine.getDynamicSlotLimit(
               targetSlot,
-              mode,
               totalNcPool,
               slots,
             );
@@ -234,45 +249,71 @@ export default {
               break;
             }
 
-            // Jika targetSlot penuh, cari donorSlot untuk pergeseran estafet
-            const candidateDonors = slots.filter((s) => s !== targetSlot);
-            candidateDonors.sort((a, b) => {
-              const aLine = engine.getCqiPrimaryLine(a.cqi);
-              const bLine = engine.getCqiPrimaryLine(b.cqi);
-              const aSame = aLine === mLine ? 0 : 1;
-              const bSame = bLine === mLine ? 0 : 1;
-              if (aSame !== bSame) return aSame - bSame;
-              return a.machines.length - b.machines.length;
-            });
-
-            for (const donorSlot of candidateDonors) {
+            // Jika targetSlot penuh, cari donorSlot untuk pergeseran estafet (Smart Shift & Swap)
+            // (targetSlot) membuang 1 mesin yang masih bisa dimasukan ke (donorSlot) terdekat atau ada di Cqiprioritymap (donorSlot)
+            for (let i = 0; i < targetSlot.machines.length; i++) {
               if (placed) break;
+              const mToMove = targetSlot.machines[i];
+              const wsToMove = engine.getWorkstationKey(mToMove, labels).toUpperCase();
+              const lineToMove = engine.getMachineLine(mToMove, labels);
 
-              const donorLimit = engine.getDynamicSlotLimit(
-                donorSlot,
-                mode,
-                totalNcPool,
-                slots,
-              );
-              if (donorSlot.machines.length >= donorLimit) continue;
+              const candidateDonors = slots.filter((s) => s !== targetSlot);
+              candidateDonors.sort((da, db) => {
+                const prioListA = (engine.CQI_PRIORITY_MAP["cqi " + da.cqiNum] || []).map((w) =>
+                  String(w).toUpperCase(),
+                );
+                const prioListB = (engine.CQI_PRIORITY_MAP["cqi " + db.cqiNum] || []).map((w) =>
+                  String(w).toUpperCase(),
+                );
+                const idxA = prioListA.indexOf(wsToMove);
+                const idxB = prioListB.indexOf(wsToMove);
+                const pA = idxA >= 0 ? idxA : 999;
+                const pB = idxB >= 0 ? idxB : 999;
+                if (pA !== pB) return pA - pB;
 
-              for (let i = 0; i < targetSlot.machines.length; i++) {
-                const mToMove = targetSlot.machines[i];
-                if (isSlotEligibleForMachine(donorSlot, mToMove)) {
-                  targetSlot.machines.splice(i, 1);
-                  donorSlot.machines.push(mToMove);
+                const lineA = engine.getCqiPrimaryLine(da.cqi);
+                const lineB = engine.getCqiPrimaryLine(db.cqi);
+                const sameA = lineA === lineToMove ? 0 : 1;
+                const sameB = lineB === lineToMove ? 0 : 1;
+                if (sameA !== sameB) return sameA - sameB;
 
-                  if (isSlotEligibleForMachine(targetSlot, unassignedM)) {
-                    targetSlot.machines.push(unassignedM);
-                    remaining.splice(rIdx, 1);
-                    placed = true;
-                    shiftProgress = true;
-                    break;
-                  } else {
-                    // Rollback
-                    donorSlot.machines.pop();
-                    targetSlot.machines.splice(i, 0, mToMove);
-                  }
+                const distA = engine.calculateDistance(mToMove, da.cqi, labels);
+                const distB = engine.calculateDistance(mToMove, db.cqi, labels);
+                if (distA !== distB) return distA - distB;
+
+                return da.machines.length - db.machines.length;
+              });
+
+              for (const donorSlot of candidateDonors) {
+                const donorLimit = engine.getDynamicSlotLimit(
+                  donorSlot,
+                  totalNcPool,
+                  slots,
+                );
+                if (donorSlot.machines.length >= donorLimit) continue;
+                if (!isSlotEligibleForMachine(donorSlot, mToMove)) continue;
+
+                // Melakukan simulasi: mesin eksisting dipindahkan ke donorSlot, lalu mesin unassigned dimasukkan ke targetSlot
+                targetSlot.machines.splice(i, 1);
+                donorSlot.machines.push(mToMove);
+
+                const canTargetAccept =
+                  isSlotEligibleForMachine(targetSlot, unassignedM) &&
+                  targetSlot.machines.length + 1 <= targetLimit;
+                const canDonorAccept =
+                  donorSlot.machines.length <= donorLimit;
+
+                // Jika validasi cluster dan kapasitas terpenuhi di kedua slot, perubahan dikonfirmasi (commit)
+                if (canTargetAccept && canDonorAccept) {
+                  targetSlot.machines.push(unassignedM);
+                  remaining.splice(rIdx, 1);
+                  placed = true;
+                  shiftProgress = true;
+                  break;
+                } else {
+                  // Jika tidak, posisi dikembalikan (rollback) dan mencoba kombinasi berikutnya
+                  donorSlot.machines.pop();
+                  targetSlot.machines.splice(i, 0, mToMove);
                 }
               }
             }
@@ -334,7 +375,7 @@ export default {
     // STEP 4: Sinkronisasi Ulang Manpower Non-Core & Longshift
     const activeSlots = slots.filter((s) => s.machines.length > 0);
     const { remainingNonCore, remainingLs } =
-      manpowerAssigner.assignNonCoreAndLongshift(activeSlots, config, mode, engine);
+      manpowerAssigner.assignNonCoreAndLongshift(activeSlots, config, engine);
 
     slots.unassignedMachines = remaining;
     slots.uncoveredMachines = remaining;

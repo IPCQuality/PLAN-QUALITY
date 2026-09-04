@@ -391,19 +391,32 @@ export default {
       }
     }
 
-    // Aturan 4: CQI 10 khusus boleh mencampur (sklsct, pouch line C dan 8B) atau (12ljumbo, pouch)
+    // Aturan Note: Cluster Botol di line B, boleh di gabung dengan cluster 12Ljumbo dan SKLsct
+    const isBotolAndLineBMix =
+      (normA === "BOTOL" && (normB === "12LJUMBO" || normB === "SKLSCT")) ||
+      (normB === "BOTOL" && (normA === "12LJUMBO" || normA === "SKLSCT"));
+    if (isBotolAndLineBMix) {
+      const botolM = normA === "BOTOL" ? machineA : machineB;
+      const otherM = normA === "BOTOL" ? machineB : machineA;
+      const isBotolLineB = botolM ? this.getMachineLine(botolM) === "LINE B" : true;
+      const isCqiLineB = cqiNumStr ? this.getCqiPrimaryLine(cqiNumStr) === "LINE B" : false;
+      if (isBotolLineB || isCqiLineB) {
+        return true;
+      }
+    }
+
+    // Aturan 4: CQI 10 khusus boleh mencampur Cluster SKLsct + Pouch
     if (cqiNumStr === "10") {
       const isSklAndPouch =
         (normA === "SKLSCT" && normB === "POUCH") ||
         (normA === "POUCH" && normB === "SKLSCT");
+      if (isSklAndPouch) {
+        return true;
+      }
       const is12LAndPouch =
         (normA === "12LJUMBO" && normB === "POUCH") ||
         (normA === "POUCH" && normB === "12LJUMBO");
-      if (isSklAndPouch || is12LAndPouch) {
-        if (machineA && machineB) {
-          const pouchM = normA === "POUCH" ? machineA : machineB;
-          return this.isPouchLineCAnd8B(pouchM);
-        }
+      if (is12LAndPouch) {
         return true;
       }
     }
@@ -511,8 +524,32 @@ export default {
       }
     }
 
-    if (!slot.machines || slot.machines.length === 0) return true;
+    // CQI 15: Jika menerima mesin Line C, dibatasi hanya untuk workstation 1C atau 2C
+    if (cqiNum === "15" && this.isMachineLineC(m)) {
+      const ws = this.getWorkstationKey(m).toUpperCase();
+      if (ws !== "1C" && ws !== "2C") {
+        return false;
+      }
+    }
+
+    // Aturan Khusus Cluster Botol:
+    // * Cluster Botol di line B, boleh di gabung dengan cluster 12Ljumbo dan SKLsct,
+    //   walaupun hanya Cluster Botol, CQI wajib di line B.
+    // * Cluster Botol di line C, CQI wajib di line C.
     const mCluster = this.getMachineClusterGroup(m);
+    const mLine = this.getMachineLine(m);
+    const cqiLine = this.getCqiPrimaryLine(slot.cqi);
+
+    if (mCluster === "BOTOL") {
+      if (mLine === "LINE B" && cqiLine !== "LINE B") {
+        return false;
+      }
+      if (mLine === "LINE C" && cqiLine !== "LINE C") {
+        return false;
+      }
+    }
+
+    if (!slot.machines || slot.machines.length === 0) return true;
 
     for (const existingMachine of slot.machines) {
       const existCluster = this.getMachineClusterGroup(existingMachine);
@@ -780,14 +817,13 @@ export default {
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -873,16 +909,15 @@ export default {
         name: "hanya Pouch",
         maxCoreOnly: 4,
         max1Nc: 6,
-        max2Nc: 8,
-        absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        max2Nc: 10,
+        absoluteMax: 10,
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 10;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -896,16 +931,15 @@ export default {
         name: "hanya Botol",
         maxCoreOnly: 4,
         max1Nc: 6,
-        max2Nc: 8,
-        absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        max2Nc: 10,
+        absoluteMax: 10,
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 10;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -919,16 +953,15 @@ export default {
         name: "Pouch + Botol",
         maxCoreOnly: 5,
         max1Nc: 6,
-        max2Nc: 8,
-        absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 5 ? 1 : 0;
+        max2Nc: 10,
+        absoluteMax: 10,
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 5) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 10;
           if (ncCount >= 1) return 6;
           return 5;
         },
@@ -944,14 +977,13 @@ export default {
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -967,14 +999,13 @@ export default {
         max1Nc: 5,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 5) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 5;
           return 4;
         },
@@ -990,14 +1021,13 @@ export default {
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -1016,14 +1046,13 @@ export default {
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -1042,14 +1071,13 @@ export default {
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -1065,14 +1093,13 @@ export default {
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -1086,16 +1113,15 @@ export default {
         name: "12Ljumbo + Pouch",
         maxCoreOnly: 5,
         max1Nc: 6,
-        max2Nc: 8,
-        absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 5 ? 1 : 0;
+        max2Nc: 9,
+        absoluteMax: 9,
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 5) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 9;
           if (ncCount >= 1) return 6;
           return 5;
         },
@@ -1111,14 +1137,13 @@ export default {
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -1134,14 +1159,57 @@ export default {
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
+          if (ncCount >= 1) return 6;
+          return 4;
+        },
+      };
+    }
+
+    // 8. Cluster Botol + 12Ljumbo (Line B)
+    if (hasBotol && has12L && !hasSosoft) {
+      return {
+        type: "botol_12ljumbo",
+        name: "Botol + 12Ljumbo",
+        maxCoreOnly: 4,
+        max1Nc: 6,
+        max2Nc: 8,
+        absoluteMax: 8,
+        getNeededNc: (count) => {
+          if (count > 6) return 2;
+          if (count > 4) return 1;
+          return 0;
+        },
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
+          if (ncCount >= 1) return 6;
+          return 4;
+        },
+      };
+    }
+
+    // 9. Cluster Botol + SKLsct (Line B)
+    if (hasBotol && hasSklsct && !hasSosoft) {
+      return {
+        type: "botol_sklsct",
+        name: "Botol + SKLsct",
+        maxCoreOnly: 4,
+        max1Nc: 6,
+        max2Nc: 8,
+        absoluteMax: 8,
+        getNeededNc: (count) => {
+          if (count > 6) return 2;
+          if (count > 4) return 1;
+          return 0;
+        },
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 6;
           return 4;
         },
@@ -1156,14 +1224,13 @@ export default {
       max1Nc: 6,
       max2Nc: 8,
       absoluteMax: 8,
-      getNeededNc: (count, mode = 1) => {
-        if (mode === 2) return count > 4 ? 1 : 0;
+      getNeededNc: (count) => {
         if (count > 6) return 2;
         if (count > 4) return 1;
         return 0;
       },
-      getMaxAllowed: (ncCount, mode = 1) => {
-        if (ncCount >= 2 && mode === 1) return 8;
+      getMaxAllowed: (ncCount) => {
+        if (ncCount >= 2) return 8;
         if (ncCount >= 1) return 6;
         return 4;
       },
@@ -1218,52 +1285,64 @@ export default {
 
   /**
    * Menghitung batas maksimal mesin yang BISA ditambahkan ke CQI secara aman,
-   * mempertimbangkan ketersediaan sisa manpower Non-Core / Longshift (maksimal 8 mesin).
+   * mempertimbangkan ketersediaan sisa manpower Non-Core / Longshift.
    * @param {Object} slot - Slot CQI
-   * @param {number} mode - Mode Beban (1 atau 2)
    * @param {number} totalNcPool - Total ketersediaan Non-Core + Longshift (angka)
    * @param {Array} allSlots - Seluruh slot aktif
-   * @returns {number} Limit dinamis mesin (misal: 4, 6, atau 8)
+   * @returns {number} Limit dinamis mesin
    */
-  getDynamicSlotLimit(slot, mode, totalNcPool, allSlots) {
+  getDynamicSlotLimit(slot, totalNcPool, allSlots) {
     const rule = this.getClusterCapacityRule(slot);
     // CQI Khusus punya aturan fix
     if (slot.cqiNum === "19") return 2;
-    if (slot.cqiNum === "24") return 8; // WW sudah diamankan di force expansion
+    if (slot.cqiNum === "24") {
+      const wwCount = slot.machines.filter((m) => this.isWwMachine(m)).length;
+      const baseCap = wwCount >= 2 ? 2 : 4;
+      const currentCount = slot.machines.length;
+      return 7;
+    }
 
     const currentCount = slot.machines.length;
-    let limit = Math.min(8, rule.maxCoreOnly);
+    let limit = Math.min(rule.absoluteMax, rule.maxCoreOnly);
 
     // Hitung berapa NC yang sudah terpakai/direserve oleh SEMUA slot sejauh ini
     let globalNeeded = 0;
     allSlots.forEach((s) => {
       if (s.cqiNum === "19") return;
       if (s.cqiNum === "24") {
-        globalNeeded += s.machines.length > 4 ? 1 : 0;
+        const wwIn24 = s.machines.filter((m) => this.isWwMachine(m)).length;
+        const pouchIn24 = s.machines.filter((m) => !this.isWwMachine(m)).length;
+        if (wwIn24 >= 2) {
+          globalNeeded += pouchIn24 > 0 ? 1 : 0;
+        } else if (wwIn24 === 1) {
+          globalNeeded += pouchIn24 > 3 ? 1 : 0;
+        } else {
+          globalNeeded += s.machines.length > this.getBaseCoreCapacity(s) ? 1 : 0;
+        }
         return;
       }
-      globalNeeded += this.getClusterCapacityRule(s).getNeededNc(s.machines.length, mode);
+      globalNeeded += this.getClusterCapacityRule(s).getNeededNc(s.machines.length);
     });
 
     const availableNc = totalNcPool - globalNeeded;
 
     // Jika belum butuh extra NC (atau mau nambah di batas 1 Core), aman
-    if (availableNc <= 0) return Math.min(8, Math.max(currentCount, limit));
+    if (availableNc <= 0) return Math.min(rule.absoluteMax, Math.max(currentCount, limit));
 
     // Hitung kebutuhan NC saat ini vs untuk batas berikutnya
-    const currentSlotNeeded = rule.getNeededNc(currentCount, mode);
-    const neededForMax1 = rule.getNeededNc(rule.max1Nc, mode) - currentSlotNeeded;
+    const currentSlotNeeded = rule.getNeededNc(currentCount);
+    const neededForMax1 = rule.getNeededNc(rule.max1Nc) - currentSlotNeeded;
     
     if (neededForMax1 > 0 && availableNc >= neededForMax1) {
-      limit = Math.min(8, rule.max1Nc);
+      limit = Math.min(rule.absoluteMax, rule.max1Nc);
       
-      const neededForMax2 = rule.getNeededNc(rule.max2Nc, mode) - currentSlotNeeded - neededForMax1;
+      const neededForMax2 = rule.getNeededNc(rule.max2Nc) - currentSlotNeeded - neededForMax1;
       if (neededForMax2 > 0 && (availableNc - neededForMax1) >= neededForMax2) {
-        limit = Math.min(8, rule.max2Nc);
+        limit = Math.min(rule.absoluteMax, rule.max2Nc);
       }
     }
     
-    return Math.min(8, Math.max(currentCount, limit));
+    return Math.min(rule.absoluteMax, Math.max(currentCount, limit));
   },
 
   /**
@@ -1279,8 +1358,11 @@ export default {
     const cluster = String(m.cluster || "").toUpperCase();
     return (
       line === "WW" ||
+      line.includes("WW") ||
       ws === "WW" ||
+      ws.includes("WW") ||
       cluster.includes("WW") ||
+      name.includes("WW") ||
       /^C\d+/.test(name)
     );
   },

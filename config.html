@@ -840,48 +840,6 @@
         color: #166534;
       }
 
-      /* Mode Switcher Toggle */
-      .mode-switch-group {
-        display: inline-flex;
-        align-items: center;
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 3px;
-        gap: 3px;
-      }
-      .mode-btn {
-        border: none;
-        background: transparent;
-        padding: 6px 14px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text-muted);
-        cursor: pointer;
-        transition: all 0.15s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-family: inherit;
-      }
-      .mode-btn:hover {
-        color: var(--text-main);
-      }
-      .mode-btn.active {
-        background: var(--surface);
-        color: var(--accent);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        border: 1px solid var(--border);
-        font-weight: 700;
-      }
-      .mode-desc-tag {
-        font-size: 11px;
-        color: var(--text-muted);
-        font-weight: 500;
-        margin-left: 8px;
-      }
-
       /* Lock background scrolling when any modal is open */
       html:has(.modal-overlay.active),
       body:has(.modal-overlay.active),
@@ -1181,15 +1139,7 @@
           align-items: stretch !important;
           gap: 12px !important;
         }
-        .mode-switch-group {
-          display: flex;
-        }
-        .mode-btn {
-          flex: 1;
-          justify-content: center;
-          padding: 8px 10px;
-          font-size: 11px;
-        }
+
         .topbar > div:last-child .btn {
           width: 100%;
         }
@@ -1247,20 +1197,6 @@
         }
       }
     </style>
-    <script>
-      // Early declaration to guarantee inline onclick attributes can never fail before full script loads
-      window.planningMode = 1;
-      window.setPlanningMode = function (mode) {
-        window.planningMode = parseInt(mode, 10) === 2 ? 2 : 1;
-        try {
-          localStorage.setItem("planning_mode", window.planningMode);
-        } catch (e) {}
-        const b1 = document.getElementById("btnMode1");
-        const b2 = document.getElementById("btnMode2");
-        if (b1) b1.classList.toggle("active", window.planningMode === 1);
-        if (b2) b2.classList.toggle("active", window.planningMode === 2);
-      };
-    </script>
   </head>
   <body>
     <header class="topbar">
@@ -1274,24 +1210,6 @@
         <button id="pwaInstallBtn" class="btn btn-sm" style="display:none; background:#2563eb; color:#fff; border-color:#2563eb;" onclick="installPWA()">
           📱 Install App
         </button>
-        <div class="mode-switch-group">
-          <button
-            class="mode-btn active"
-            id="btnMode1"
-            onclick="setPlanningMode(1)"
-            title="Mesin running banyak, manpower noncore & LS cukup (Maks 2 Non-Core/CQI)"
-          >
-            ⚡ Mode 1 (Kapasitas Penuh)
-          </button>
-          <button
-            class="mode-btn"
-            id="btnMode2"
-            onclick="setPlanningMode(2)"
-            title="Mesin running sedikit, manpower noncore & LS minim (Maks 1 Non-Core/CQI)"
-          >
-            🛡️ Mode 2 (Manpower Minim)
-          </button>
-        </div>
         <button class="btn btn-primary" onclick="executePlan()">
           Generate Planning
         </button>
@@ -1825,34 +1743,14 @@
       let currentPlan = [];
       let manpowerData = { core: [], nonCore: [], qcPassed: [] };
       let masterManpowerData = { core: [], nonCore: [] };
-      let planningMode = 1; // Default: Mode 1
       let lastFinalConfig = null;
       let currentAddType = "core";
-
-      function setPlanningMode(mode) {
-        planningMode = parseInt(mode, 10) === 2 ? 2 : 1;
-        try {
-          localStorage.setItem("planning_mode", planningMode);
-        } catch (e) {}
-        const b1 = document.getElementById("btnMode1");
-        const b2 = document.getElementById("btnMode2");
-        if (b1) b1.classList.toggle("active", planningMode === 1);
-        if (b2) b2.classList.toggle("active", planningMode === 2);
-      }
-      window.setPlanningMode = setPlanningMode;
 
       window.onload = async () => {
         try {
           const rawState = sessionStorage.getItem("planning_state");
           if (rawState) state = JSON.parse(rawState);
         } catch (e) {}
-
-        // Load persisted mode or default 1
-        let savedMode = 1;
-        try {
-          savedMode = localStorage.getItem("planning_mode");
-        } catch (e) {}
-        setPlanningMode(savedMode ? parseInt(savedMode, 10) : 1);
 
         if (!state || !state.machines || state.machines.length === 0) {
           try {
@@ -3085,7 +2983,6 @@
         let validationReport = BrainAI.validate(
           currentPlan,
           state.machines,
-          planningMode,
           lastFinalConfig,
         );
         renderAlerts(validationReport.info, validationReport.violations);
@@ -3093,7 +2990,6 @@
         const planPayload = {
           version: 1,
           updatedAt: new Date().toISOString(),
-          mode: planningMode,
           slots: JSON.parse(JSON.stringify(currentPlan)),
         };
         sessionStorage.setItem("active_planning", JSON.stringify(planPayload));
@@ -3104,7 +3000,7 @@
 
         generateTextOutput(lastFinalConfig);
         document.getElementById("statusBadge").innerText =
-          `Paksa Masuk CQI Sukses (Mode ${planningMode})`;
+          "Paksa Masuk CQI Sukses";
         document.getElementById("statusBadge").classList.add("ok");
 
         closeOverflowModal();
@@ -3117,7 +3013,7 @@
         }
       }
 
-      function applyOverflowResolution(mode) {
+      function applyOverflowResolution() {
         handlePaksaMasukCqi();
       }
 
@@ -3185,7 +3081,6 @@
           }
 
           let finalConfig = {
-            mode: planningMode,
             coreData: manpowerData.core,
             coreNames: coreNames,
             core: coreNames.length > 0 ? coreNames.length : 1,
@@ -3221,7 +3116,6 @@
           let validationReport = brainEngine.validate(
             currentPlan,
             machinesToUse,
-            planningMode,
           );
           renderAlerts(validationReport.info, validationReport.violations);
 
@@ -3234,7 +3128,6 @@
           const planPayload = {
             version: 1,
             updatedAt: new Date().toISOString(),
-            mode: planningMode,
             slots: JSON.parse(JSON.stringify(currentPlan)),
             uncoveredMachines: uncovered,
           };
@@ -3254,7 +3147,7 @@
 
           const statusBadge = document.getElementById("statusBadge");
           if (statusBadge) {
-            statusBadge.innerText = `Generated Sukses (Mode ${planningMode})`;
+            statusBadge.innerText = "Generated Sukses";
             statusBadge.classList.add("ok");
           }
 
@@ -3411,7 +3304,6 @@
         let report = BrainAI.validate(
           currentPlan,
           state.machines,
-          planningMode,
         );
         renderAlerts(report.info, report.violations);
         if (!report.valid)
@@ -3727,7 +3619,6 @@
         const report = BrainAI.validate(
           activeSlots,
           state.machines,
-          planningMode,
         );
         if (!report.valid) {
           renderAlerts(report.info, report.violations);
@@ -3791,7 +3682,6 @@
               timestamp: now.toISOString(),
               total_cqi: structuredPlanning.length,
               total_machines_running: allRunning.length,
-              mode: planningMode || 1,
             },
             planning: structuredPlanning,
             pairs: pairsList,
@@ -3858,7 +3748,7 @@
           const cqiName = slot.cqi.name || `CQI-${slotIdx + 1}`;
           const lineName = BrainAI.getCqiPrimaryLine ? BrainAI.getCqiPrimaryLine(slot.cqi) : "LINE";
           const macCount = slot.machines.length;
-          const maxCapacity = slot.maxAllowedMachines || (planningMode === 2 ? 8 : 10);
+          const maxCapacity = slot.maxAllowedMachines || (BrainAI.getClusterCapacityRule ? BrainAI.getClusterCapacityRule(slot).absoluteMax : 8);
           
           let capClass = "slot-capacity-badge";
           if (macCount > maxCapacity) capClass += " over";
@@ -4096,14 +3986,13 @@
         if (lastFinalConfig) {
           generateTextOutput(lastFinalConfig);
         }
-        const report = BrainAI.validate(currentPlan, window.machinesToUse || [], planningMode || 1);
+        const report = BrainAI.validate(currentPlan, window.machinesToUse || []);
         renderAlerts(report.info, report.violations);
 
         const uncovered = currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [];
         const planPayload = {
           version: 1,
           updatedAt: new Date().toISOString(),
-          mode: planningMode || 1,
           slots: JSON.parse(JSON.stringify(currentPlan)),
           uncoveredMachines: uncovered,
         };
@@ -4163,9 +4052,14 @@
       window.addEventListener('offline', updateOnlineStatus);
       document.addEventListener('DOMContentLoaded', updateOnlineStatus);
 
+      // Backward compatibility stub for setPlanningMode
+      function setPlanningMode(mode) {
+        return mode;
+      }
+      window.setPlanningMode = setPlanningMode;
+
       // Explicit global exports for inline event handlers
       window.executePlan = executePlan;
-      window.setPlanningMode = setPlanningMode;
       window.showOverflowModal = showOverflowModal;
       window.closeOverflowModal = closeOverflowModal;
       window.handlePaksaMasukCqi = handlePaksaMasukCqi;

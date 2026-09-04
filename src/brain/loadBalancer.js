@@ -8,7 +8,7 @@ export default {
   /**
    * Menyeimbangkan beban mesin secara adil dan ergonomis antar CQI pada Line yang sama (Line C, Line A, Line B)
    */
-  balanceIntraLineLoad(generalSlots, mode, totalNcPool, slots, mapData, engine) {
+  balanceIntraLineLoad(generalSlots, totalNcPool, slots, mapData, engine) {
     const labels = mapData.labels || [];
     const linesToBalance = ["LINE C", "LINE A", "LINE B"];
 
@@ -50,7 +50,7 @@ export default {
 
           if (
             minSlot.machines.length + groupSize >
-            engine.getDynamicSlotLimit(minSlot, mode, totalNcPool, slots)
+            engine.getDynamicSlotLimit(minSlot, totalNcPool, slots)
           )
             continue;
 
@@ -155,7 +155,7 @@ export default {
           for (const m of group) {
             if (
               minSlot.machines.length >=
-              engine.getDynamicSlotLimit(minSlot, mode, totalNcPool, slots)
+              engine.getDynamicSlotLimit(minSlot, totalNcPool, slots)
             )
               break;
             if (maxSlot.machines.length - 1 < minSlot.machines.length + 1)
@@ -184,7 +184,7 @@ export default {
    * Aturan: Jika CQI 24 harus mengambil mesin dari Line C, utamakan 1 workstation agar lebih mudah,
    * atau maksimal 2 workstation. Dilarang keras memuat mesin dari 3 workstation atau lebih.
    */
-  handleWwOverflow(slot24, generalSlots, mode, labels, engine, runningMachines = [], slots = []) {
+  handleWwOverflow(slot24, generalSlots, labels, engine, runningMachines = [], slots = []) {
     if (!slot24) return;
 
     const assignedIds = new Set();
@@ -214,10 +214,12 @@ export default {
       );
     });
 
+    const wwCount = slot24.machines.filter((m) => engine.isWwMachine(m)).length;
     const nonWwCount = slot24.machines.filter((m) => !engine.isWwMachine(m)).length;
+    const maxPouchFor24 = wwCount >= 2 ? 5 : 6;
     const maxApkToTake = Math.min(
-      4 - nonWwCount,
-      (slot24.maxAllowedMachines || 8) - slot24.machines.length,
+      maxPouchFor24 - nonWwCount,
+      (slot24.maxAllowedMachines || 7) - slot24.machines.length,
     );
     if (maxApkToTake <= 0) return;
 

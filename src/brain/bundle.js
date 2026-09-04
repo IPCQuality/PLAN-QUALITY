@@ -572,14 +572,13 @@ var BrainAI_Raw = (() => {
           max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -651,16 +650,15 @@ var BrainAI_Raw = (() => {
           name: "hanya Pouch",
           maxCoreOnly: 4,
           max1Nc: 6,
-          max2Nc: 8,
-          absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          max2Nc: 10,
+          absoluteMax: 10,
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 10;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -672,16 +670,15 @@ var BrainAI_Raw = (() => {
           name: "hanya Botol",
           maxCoreOnly: 4,
           max1Nc: 6,
-          max2Nc: 8,
-          absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          max2Nc: 10,
+          absoluteMax: 10,
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 10;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -693,16 +690,15 @@ var BrainAI_Raw = (() => {
           name: "Pouch + Botol",
           maxCoreOnly: 5,
           max1Nc: 6,
-          max2Nc: 8,
-          absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 5 ? 1 : 0;
+          max2Nc: 10,
+          absoluteMax: 10,
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 5) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 10;
             if (ncCount >= 1) return 6;
             return 5;
           }
@@ -716,14 +712,13 @@ var BrainAI_Raw = (() => {
           max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -737,14 +732,13 @@ var BrainAI_Raw = (() => {
           max1Nc: 5,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          getNeededNc: (count) => {
             if (count > 5) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
             if (ncCount >= 1) return 5;
             return 4;
           }
@@ -758,14 +752,13 @@ var BrainAI_Raw = (() => {
           max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -779,14 +772,13 @@ var BrainAI_Raw = (() => {
           max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -800,14 +792,13 @@ var BrainAI_Raw = (() => {
           max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -821,14 +812,13 @@ var BrainAI_Raw = (() => {
           max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -840,16 +830,15 @@ var BrainAI_Raw = (() => {
           name: "12Ljumbo + Pouch",
           maxCoreOnly: 5,
           max1Nc: 6,
-          max2Nc: 8,
-          absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 5 ? 1 : 0;
+          max2Nc: 9,
+          absoluteMax: 9,
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 5) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 9;
             if (ncCount >= 1) return 6;
             return 5;
           }
@@ -863,14 +852,13 @@ var BrainAI_Raw = (() => {
           max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -884,14 +872,13 @@ var BrainAI_Raw = (() => {
           max1Nc: 6,
           max2Nc: 8,
           absoluteMax: 8,
-          getNeededNc: (count, mode = 1) => {
-            if (mode === 2) return count > 4 ? 1 : 0;
+          getNeededNc: (count) => {
             if (count > 6) return 2;
             if (count > 4) return 1;
             return 0;
           },
-          getMaxAllowed: (ncCount, mode = 1) => {
-            if (ncCount >= 2 && mode === 1) return 8;
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
             if (ncCount >= 1) return 6;
             return 4;
           }
@@ -904,14 +891,13 @@ var BrainAI_Raw = (() => {
         max1Nc: 6,
         max2Nc: 8,
         absoluteMax: 8,
-        getNeededNc: (count, mode = 1) => {
-          if (mode === 2) return count > 4 ? 1 : 0;
+        getNeededNc: (count) => {
           if (count > 6) return 2;
           if (count > 4) return 1;
           return 0;
         },
-        getMaxAllowed: (ncCount, mode = 1) => {
-          if (ncCount >= 2 && mode === 1) return 8;
+        getMaxAllowed: (ncCount) => {
+          if (ncCount >= 2) return 8;
           if (ncCount >= 1) return 6;
           return 4;
         }
@@ -955,40 +941,52 @@ var BrainAI_Raw = (() => {
     },
     /**
      * Menghitung batas maksimal mesin yang BISA ditambahkan ke CQI secara aman,
-     * mempertimbangkan ketersediaan sisa manpower Non-Core / Longshift (maksimal 8 mesin).
+     * mempertimbangkan ketersediaan sisa manpower Non-Core / Longshift.
      * @param {Object} slot - Slot CQI
-     * @param {number} mode - Mode Beban (1 atau 2)
      * @param {number} totalNcPool - Total ketersediaan Non-Core + Longshift (angka)
      * @param {Array} allSlots - Seluruh slot aktif
-     * @returns {number} Limit dinamis mesin (misal: 4, 6, atau 8)
+     * @returns {number} Limit dinamis mesin
      */
-    getDynamicSlotLimit(slot, mode, totalNcPool, allSlots) {
+    getDynamicSlotLimit(slot, totalNcPool, allSlots) {
       const rule = this.getClusterCapacityRule(slot);
       if (slot.cqiNum === "19") return 2;
-      if (slot.cqiNum === "24") return 8;
+      if (slot.cqiNum === "24") {
+        const wwCount = slot.machines.filter((m) => this.isWwMachine(m)).length;
+        const baseCap = wwCount >= 2 ? 2 : 4;
+        const currentCount2 = slot.machines.length;
+        return 7;
+      }
       const currentCount = slot.machines.length;
-      let limit = Math.min(8, rule.maxCoreOnly);
+      let limit = Math.min(rule.absoluteMax, rule.maxCoreOnly);
       let globalNeeded = 0;
       allSlots.forEach((s) => {
         if (s.cqiNum === "19") return;
         if (s.cqiNum === "24") {
-          globalNeeded += s.machines.length > 4 ? 1 : 0;
+          const wwIn24 = s.machines.filter((m) => this.isWwMachine(m)).length;
+          const pouchIn24 = s.machines.filter((m) => !this.isWwMachine(m)).length;
+          if (wwIn24 >= 2) {
+            globalNeeded += pouchIn24 > 0 ? 1 : 0;
+          } else if (wwIn24 === 1) {
+            globalNeeded += pouchIn24 > 3 ? 1 : 0;
+          } else {
+            globalNeeded += s.machines.length > this.getBaseCoreCapacity(s) ? 1 : 0;
+          }
           return;
         }
-        globalNeeded += this.getClusterCapacityRule(s).getNeededNc(s.machines.length, mode);
+        globalNeeded += this.getClusterCapacityRule(s).getNeededNc(s.machines.length);
       });
       const availableNc = totalNcPool - globalNeeded;
-      if (availableNc <= 0) return Math.min(8, Math.max(currentCount, limit));
-      const currentSlotNeeded = rule.getNeededNc(currentCount, mode);
-      const neededForMax1 = rule.getNeededNc(rule.max1Nc, mode) - currentSlotNeeded;
+      if (availableNc <= 0) return Math.min(rule.absoluteMax, Math.max(currentCount, limit));
+      const currentSlotNeeded = rule.getNeededNc(currentCount);
+      const neededForMax1 = rule.getNeededNc(rule.max1Nc) - currentSlotNeeded;
       if (neededForMax1 > 0 && availableNc >= neededForMax1) {
-        limit = Math.min(8, rule.max1Nc);
-        const neededForMax2 = rule.getNeededNc(rule.max2Nc, mode) - currentSlotNeeded - neededForMax1;
+        limit = Math.min(rule.absoluteMax, rule.max1Nc);
+        const neededForMax2 = rule.getNeededNc(rule.max2Nc) - currentSlotNeeded - neededForMax1;
         if (neededForMax2 > 0 && availableNc - neededForMax1 >= neededForMax2) {
-          limit = Math.min(8, rule.max2Nc);
+          limit = Math.min(rule.absoluteMax, rule.max2Nc);
         }
       }
-      return Math.min(8, Math.max(currentCount, limit));
+      return Math.min(rule.absoluteMax, Math.max(currentCount, limit));
     },
     /**
      * Cek apakah sebuah mesin merupakan kategori Wet Wipes (WW)
@@ -1001,7 +999,7 @@ var BrainAI_Raw = (() => {
       const ws = String(m.workstation || m.ws || "").toUpperCase();
       const name = String(m.name || m.id || "").toUpperCase();
       const cluster = String(m.cluster || "").toUpperCase();
-      return line === "WW" || ws === "WW" || cluster.includes("WW") || /^C\d+/.test(name);
+      return line === "WW" || line.includes("WW") || ws === "WW" || ws.includes("WW") || cluster.includes("WW") || name.includes("WW") || /^C\d+/.test(name);
     },
     /**
      * Cek apakah sebuah mesin merupakan kategori Oral & Tube / Other (OT - yaitu mesin M2 dan M3)
@@ -1293,7 +1291,6 @@ var BrainAI_Raw = (() => {
      */
     selectActiveCQIs(runningMachines, availableCqis, maxCoreSlots, config, mapData, engine) {
       const labels = mapData.labels || [];
-      const mode = parseInt(config.mode || 1, 10) === 2 ? 2 : 1;
       const wwMachines = runningMachines.filter((m) => engine.isWwMachine(m));
       const otMachines = runningMachines.filter((m) => engine.isOtMachine(m));
       const generalMachines = runningMachines.filter(
@@ -1323,7 +1320,7 @@ var BrainAI_Raw = (() => {
         if (num === "19" || num === "24") return false;
         return true;
       });
-      const targetSlotCap = mode === 1 ? 6 : 4.5;
+      const targetSlotCap = 6;
       const getClusterSlotDemand = (machinesInLine) => {
         if (!machinesInLine || machinesInLine.length === 0) return 0;
         const clusterCounts = {};
@@ -1332,7 +1329,7 @@ var BrainAI_Raw = (() => {
           clusterCounts[grp] = (clusterCounts[grp] || 0) + 1;
         });
         let totalClusterSlots = 0;
-        const divisor = mode === 1 ? 5.5 : 3.8;
+        const divisor = 5.5;
         Object.values(clusterCounts).forEach((cnt) => {
           totalClusterSlots += Math.ceil(cnt / divisor);
         });
@@ -1359,7 +1356,7 @@ var BrainAI_Raw = (() => {
           );
         }
       }
-      const maxSlotCapacity = mode === 1 ? 10 : 8;
+      const maxSlotCapacity = 8;
       const coreList = Array.isArray(config.coreData) ? config.coreData : [];
       const pickBestCqisForLine = (machinesInLine, candidatePool, maxToPick) => {
         if (machinesInLine.length === 0 || maxToPick <= 0) return [];
@@ -1886,7 +1883,8 @@ var BrainAI_Raw = (() => {
           const candidates = [];
           slots.forEach((s) => {
             if (s.cqiNum === "19") return;
-            if (s.machines.length >= 8) return;
+            const sRule = engine.getClusterCapacityRule(s);
+            if (s.machines.length >= (sRule.absoluteMax || 8)) return;
             if (engine.canAddMachineToSlot(
               m,
               s,
@@ -2064,7 +2062,7 @@ var BrainAI_Raw = (() => {
      * 3. Tambahkan NC terlebih dahulu sesuai urutan, jika masih kurang tambahkan LS.
      *    (LS: Noncore Longshift kedudukannya sama dengan Noncore).
      */
-    assignNonCoreAndLongshift(activeSlots, config, mode, engine) {
+    assignNonCoreAndLongshift(activeSlots, config, engine) {
       if (!Array.isArray(activeSlots) || activeSlots.length === 0) {
         return { remainingNonCore: [], remainingLs: parseInt(config.longshift || 0, 10) };
       }
@@ -2073,7 +2071,7 @@ var BrainAI_Raw = (() => {
         const numB = parseInt(b.cqiNum || engine.getCqiNumber(b.cqi), 10) || 999;
         return numA - numB;
       });
-      const maxNcPerCqi = mode === 1 ? 2 : 1;
+      const maxNcPerCqi = 2;
       const lsCount = parseInt(config.longshift || 0, 10);
       let nonCoreNames = [];
       if (Array.isArray(config.nonCoreData) && config.nonCoreData.length > 0) {
@@ -2100,7 +2098,7 @@ var BrainAI_Raw = (() => {
         const count = slot.machines.length;
         const baseCap = engine.getBaseCoreCapacity(slot);
         const rule = engine.getClusterCapacityRule(slot);
-        let needed = rule.getNeededNc(count, mode);
+        let needed = rule.getNeededNc(count);
         if (slot.cqiNum === "24") {
           const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
           const pouchIn24 = slot.machines.filter((m) => !engine.isWwMachine(m)).length;
@@ -2113,7 +2111,7 @@ var BrainAI_Raw = (() => {
           }
         }
         if (count > baseCap) {
-          if (mode === 1 && count > rule.max1Nc) {
+          if (count > rule.max1Nc) {
             needed = Math.max(needed, 2);
           } else {
             needed = Math.max(needed, 1);
@@ -2140,7 +2138,7 @@ var BrainAI_Raw = (() => {
           slot.longshift.push(lsPool.shift());
         }
       });
-      const getDynamicMaxNc = (slot, curMode) => {
+      const getDynamicMaxNc = (slot) => {
         if (slot.cqiNum === "19") return 0;
         if (slot.cqiNum === "24") {
           const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
@@ -2154,18 +2152,13 @@ var BrainAI_Raw = (() => {
         }
         const rule = engine.getClusterCapacityRule(slot);
         const count = slot.machines.length;
-        if (curMode === 1) {
-          if (count > rule.max1Nc) return 2;
-          if (count >= rule.maxCoreOnly) return 1;
-          return 0;
-        } else {
-          if (count >= rule.maxCoreOnly) return 1;
-          return 0;
-        }
+        if (count > rule.max1Nc) return 2;
+        if (count >= rule.maxCoreOnly) return 1;
+        return 0;
       };
       while (nonCorePool.length > 0) {
         const eligibleSlots = activeSlots.filter(
-          (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s, mode) && s.nonCore.length + s.longshift.length < maxNcPerCqi
+          (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s) && s.nonCore.length + s.longshift.length < maxNcPerCqi
         );
         if (eligibleSlots.length === 0) break;
         eligibleSlots.sort((a, b) => {
@@ -2177,7 +2170,7 @@ var BrainAI_Raw = (() => {
       }
       while (lsPool.length > 0) {
         const eligibleSlots = activeSlots.filter(
-          (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s, mode) && s.nonCore.length + s.longshift.length < maxNcPerCqi
+          (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s) && s.nonCore.length + s.longshift.length < maxNcPerCqi
         );
         if (eligibleSlots.length === 0) break;
         eligibleSlots.sort((a, b) => {
@@ -2270,7 +2263,6 @@ var BrainAI_Raw = (() => {
         return slots;
       }
       const labels = mapData.labels || [];
-      const mode = parseInt(config.mode || 1, 10) === 2 ? 2 : 1;
       let ncCount = 0;
       if (Array.isArray(config.nonCoreData) && config.nonCoreData.length > 0) {
         ncCount = config.nonCoreData.length;
@@ -2286,8 +2278,10 @@ var BrainAI_Raw = (() => {
         if (slot.cqiNum === "24") {
           if (engine.isWwMachine(m)) return true;
           if (engine.isMachineLineC(m, labels)) {
+            const wwCount = slot.machines.filter((sm) => engine.isWwMachine(sm)).length;
             const nonWw = slot.machines.filter((sm) => !engine.isWwMachine(sm));
-            if (nonWw.length >= 4) return false;
+            const maxPouch = wwCount >= 2 ? 5 : 6;
+            if (nonWw.length >= maxPouch) return false;
             if (!engine.isPouchMachine(m) && !String(m.name || m.id || "").toUpperCase().startsWith("APK")) {
               return false;
             }
@@ -2315,7 +2309,6 @@ var BrainAI_Raw = (() => {
           const eligibleSlots = slots.filter((slot) => {
             const slotLimit = engine.getDynamicSlotLimit(
               slot,
-              mode,
               totalNcPool,
               slots
             );
@@ -2356,7 +2349,6 @@ var BrainAI_Raw = (() => {
               if (!isSlotEligibleForMachine(targetSlot, unassignedM)) continue;
               const targetLimit = engine.getDynamicSlotLimit(
                 targetSlot,
-                mode,
                 totalNcPool,
                 slots
               );
@@ -2381,7 +2373,6 @@ var BrainAI_Raw = (() => {
                 if (placed) break;
                 const donorLimit = engine.getDynamicSlotLimit(
                   donorSlot,
-                  mode,
                   totalNcPool,
                   slots
                 );
@@ -2450,7 +2441,7 @@ var BrainAI_Raw = (() => {
         }
       }
       const activeSlots = slots.filter((s) => s.machines.length > 0);
-      const { remainingNonCore, remainingLs } = manpowerAssigner_default.assignNonCoreAndLongshift(activeSlots, config, mode, engine);
+      const { remainingNonCore, remainingLs } = manpowerAssigner_default.assignNonCoreAndLongshift(activeSlots, config, engine);
       slots.unassignedMachines = remaining;
       slots.uncoveredMachines = remaining;
       slots.remainingLs = remainingLs;
@@ -2485,8 +2476,7 @@ var BrainAI_Raw = (() => {
       if (!Array.isArray(machines) || machines.length === 0 || !Array.isArray(cqis) || cqis.length === 0) {
         return [];
       }
-      const mode = parseInt(config.mode || 1, 10) === 2 ? 2 : 1;
-      const maxSlotCapacity = mode === 1 ? 10 : 8;
+      const maxSlotCapacity = 10;
       const runningMachines = [...machines];
       const readyCQIs = cqis.filter((c) => c.status === "READY");
       const availableCqis = readyCQIs.length > 0 ? readyCQIs : [...cqis];
@@ -2513,17 +2503,24 @@ var BrainAI_Raw = (() => {
         mapData,
         this
       );
-      const slots = selectedCQIs.map((c) => ({
-        cqi: c,
-        cqiNum: this.getCqiNumber(c),
-        machines: [],
-        core: 0,
-        coreNames: [],
-        nonCore: [],
-        longshift: [],
-        pouchAddedToWw: false,
-        maxAllowedMachines: 8
-      }));
+      const slots = selectedCQIs.map((c) => {
+        const cqiNum = this.getCqiNumber(c);
+        let initialMax = 8;
+        if (cqiNum === "19") initialMax = 2;
+        else if (cqiNum === "24") initialMax = 7;
+        else initialMax = 10;
+        return {
+          cqi: c,
+          cqiNum,
+          machines: [],
+          core: 0,
+          coreNames: [],
+          nonCore: [],
+          longshift: [],
+          pouchAddedToWw: false,
+          maxAllowedMachines: initialMax
+        };
+      });
       slots.sort((a, b) => {
         const numA = parseInt(a.cqiNum, 10) || 999;
         const numB = parseInt(b.cqiNum, 10) || 999;
@@ -2562,7 +2559,7 @@ var BrainAI_Raw = (() => {
         const numB = parseInt(b.cqiNum, 10) || 999;
         return numA - numB;
       });
-      const { remainingNonCore, remainingLs } = manpowerAssigner_default.assignNonCoreAndLongshift(activeSlots, config, mode, this);
+      const { remainingNonCore, remainingLs } = manpowerAssigner_default.assignNonCoreAndLongshift(activeSlots, config, this);
       assignedIds = /* @__PURE__ */ new Set();
       activeSlots.forEach(
         (s) => s.machines.forEach((m) => assignedIds.add(m.id || m.name))
@@ -2635,23 +2632,18 @@ var BrainAI_Raw = (() => {
     // 3. MODUL VALIDATOR SISTEM & ATURAN
     // ==========================================================================
     /**
-     * Validasi hasil perencanaan terhadap batasan operasional pabrik, mode alokasi, dan mixing cluster
+     * Validasi hasil perencanaan terhadap batasan operasional pabrik dan mixing cluster
      * @param {Array} slots - Slot hasil generatePlan
      * @param {Array} machines - Daftar mesin running input
-     * @param {number} mode - Mode perencanaan (1 atau 2)
      * @returns {Object} { valid: boolean, violations: string[], info: string[] }
      */
-    validate(slots, machines = [], mode = 1) {
+    validate(slots, machines = []) {
       const violations = [];
       const info = [];
       if (!Array.isArray(slots) || slots.length === 0) {
         violations.push("Tidak ada slot perencanaan yang tergenerasi.");
         return { valid: false, violations, info };
       }
-      const maxNcPerCqi = mode === 2 ? 1 : 2;
-      info.push(
-        `INFO: Beroperasi pada MODE ${mode} (Maks ${maxNcPerCqi} Non-Core/LS per CQI).`
-      );
       const assignedMachineIds = /* @__PURE__ */ new Set();
       slots.forEach(
         (s) => s.machines.forEach((m) => assignedMachineIds.add(m.id || m.name))
@@ -2694,40 +2686,23 @@ var BrainAI_Raw = (() => {
         const mCount = s.machines.length;
         const totalNc = s.nonCore.length + s.longshift.length;
         const rule = this.getClusterCapacityRule(s);
-        if (mode === 1) {
-          if (totalNc === 0 && mCount > rule.maxCoreOnly) {
-            violations.push(
-              `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 0 Non-Core (Maksimal ${rule.maxCoreOnly} mesin untuk 1 Core).`
-            );
-          } else if (totalNc === 1 && mCount > rule.max1Nc) {
-            violations.push(
-              `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 1 Non-Core (Maksimal ${rule.max1Nc} mesin untuk 1 Core + 1 Non-Core).`
-            );
-          } else if (totalNc >= 2 && mCount > rule.max2Nc) {
-            violations.push(
-              `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin (Maksimal ${rule.max2Nc} mesin untuk 1 Core + 2 Non-Core).`
-            );
-          }
-          if (totalNc > 2) {
-            violations.push(
-              `CQI ${cqiNum} melebihi batas maksimal 2 Non-Core/LS di Mode 1.`
-            );
-          }
-        } else {
-          if (totalNc === 0 && mCount > rule.maxCoreOnly) {
-            violations.push(
-              `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 0 Non-Core (Maksimal ${rule.maxCoreOnly} mesin untuk 1 Core di Mode 2).`
-            );
-          } else if (totalNc === 1 && mCount > rule.max1Nc) {
-            violations.push(
-              `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 1 Non-Core (Maksimal ${rule.max1Nc} mesin untuk 1 Core + 1 Non-Core di Mode 2).`
-            );
-          }
-          if (totalNc > 1) {
-            violations.push(
-              `CQI ${cqiNum} melebihi batas maksimal 1 Non-Core/LS di Mode 2.`
-            );
-          }
+        if (totalNc === 0 && mCount > rule.maxCoreOnly) {
+          violations.push(
+            `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 0 Non-Core (Maksimal ${rule.maxCoreOnly} mesin untuk 1 Core).`
+          );
+        } else if (totalNc === 1 && mCount > rule.max1Nc) {
+          violations.push(
+            `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin dengan 1 Non-Core (Maksimal ${rule.max1Nc} mesin untuk 1 Core + 1 Non-Core).`
+          );
+        } else if (totalNc >= 2 && mCount > rule.max2Nc) {
+          violations.push(
+            `CQI ${cqiNum} (Cluster: ${rule.name}) memuat ${mCount} mesin (Maksimal ${rule.max2Nc} mesin untuk 1 Core + 2 Non-Core).`
+          );
+        }
+        if (totalNc > 2) {
+          violations.push(
+            `CQI ${cqiNum} melebihi batas maksimal 2 Non-Core/LS.`
+          );
         }
       });
       const slot24 = slots.find((s) => this.getCqiNumber(s.cqi) === "24");
@@ -2746,33 +2721,47 @@ var BrainAI_Raw = (() => {
             violations.push(
               `CQI 24 memuat mesin tidak diizinkan: ${this.formatMachineList(invalidIn24)} (Mesin Line A dan Line B dilarang masuk CQI 24, hanya mesin WW & APK Line C saja yang diperbolehkan).`
             );
-          } else if (nonWwIn24.length > 4) {
-            violations.push(
-              `CQI 24 memuat lebih dari 4 mesin APK Line C (${nonWwIn24.length} mesin).`
-            );
           } else {
-            const wsList = [
-              ...new Set(
-                nonWwIn24.map(
-                  (m) => this.getWorkstationKey(m).toUpperCase()
-                )
-              )
-            ];
-            if (wsList.length > 2) {
-              violations.push(
-                `CQI 24 memuat mesin Line C dari ${wsList.length} workstation berbeda (${wsList.join(", ")}). Dilarang keras lebih dari 2 workstation (utamakan 1 workstation atau maksimal 2 workstation).`
-              );
+            const wwIn24 = slot24.machines.filter((m) => this.isWwMachine(m)).length;
+            const totalNc24 = slot24.nonCore.length + slot24.longshift.length;
+            let maxPouchAllowed = 0;
+            let minNcRequired = 0;
+            if (wwIn24 >= 2) {
+              maxPouchAllowed = totalNc24 >= 1 ? 5 : 0;
+              if (nonWwIn24.length > 0) minNcRequired = 1;
+            } else if (wwIn24 === 1) {
+              maxPouchAllowed = totalNc24 >= 1 ? 6 : 3;
+              if (nonWwIn24.length > 3) minNcRequired = 1;
+            } else {
+              maxPouchAllowed = totalNc24 >= 1 ? 6 : 4;
             }
-            const totalManpower = slot24.core + slot24.nonCore.length + slot24.longshift.length;
-            if (totalManpower < 2) {
+            if (nonWwIn24.length > maxPouchAllowed) {
               violations.push(
-                `CQI 24 mendapat tambahan mesin APK Line C tetapi belum memiliki minimal 1 Non-Core / (LS).`
+                `CQI 24 memuat ${nonWwIn24.length} mesin Pouch/APK Line C (Maksimal ${maxPouchAllowed} mesin pouch untuk kondisi ${wwIn24} WW dengan ${totalNc24} Non-Core/LS).`
               );
             } else {
-              const wsDetail = wsList.length === 1 ? `1 workstation (${wsList[0]}) - Sesuai preferensi utama agar lebih mudah` : `${wsList.length} workstation (${wsList.join(" & ")})`;
-              info.push(
-                `INFO: CQI 24 mengcover ${slot24.machines.length} Mesin (WW + ${nonWwIn24.length} APK Line C dari ${wsDetail}) dengan dukungan Non-Core/(LS).`
-              );
+              const wsList = [
+                ...new Set(
+                  nonWwIn24.map(
+                    (m) => this.getWorkstationKey(m).toUpperCase()
+                  )
+                )
+              ];
+              if (wsList.length > 2) {
+                violations.push(
+                  `CQI 24 memuat mesin Line C dari ${wsList.length} workstation berbeda (${wsList.join(", ")}). Dilarang keras lebih dari 2 workstation (utamakan 1 workstation atau maksimal 2 workstation).`
+                );
+              }
+              if (minNcRequired > 0 && totalNc24 < minNcRequired) {
+                violations.push(
+                  `CQI 24 mendapat tambahan ${nonWwIn24.length} mesin Pouch Line C tetapi belum memiliki minimal 1 Non-Core / (LS).`
+                );
+              } else {
+                const wsDetail = wsList.length === 1 ? `1 workstation (${wsList[0]}) - Sesuai preferensi utama agar lebih mudah` : `${wsList.length} workstation (${wsList.join(" & ")})`;
+                info.push(
+                  `INFO: CQI 24 mengcover ${slot24.machines.length} Mesin (WW + ${nonWwIn24.length} APK Line C dari ${wsDetail}) dengan dukungan Non-Core/(LS).`
+                );
+              }
             }
           }
         }
@@ -2791,6 +2780,17 @@ var BrainAI_Raw = (() => {
         } else {
           info.push(
             `INFO: CQI 19 strictly mengcover ${slot19.machines.length} Mesin OT (Maksimal 2 Mesin).`
+          );
+        }
+        const totalNc19 = slot19.nonCore.length + slot19.longshift.length;
+        if (totalNc19 > 0) {
+          violations.push(
+            `CQI 19 tidak boleh diberi Non-Core / Longshift (strictly 1 Core saja tanpa Non-Core/LS).`
+          );
+        }
+        if (slot19.core > 1) {
+          violations.push(
+            `CQI 19 hanya boleh ditugaskan 1 Core personil.`
           );
         }
       }

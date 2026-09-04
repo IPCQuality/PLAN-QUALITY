@@ -17,7 +17,6 @@ export default {
    */
   selectActiveCQIs(runningMachines, availableCqis, maxCoreSlots, config, mapData, engine) {
     const labels = mapData.labels || [];
-    const mode = parseInt(config.mode || 1, 10) === 2 ? 2 : 1;
 
     // Filter kategori mesin
     const wwMachines = runningMachines.filter((m) => engine.isWwMachine(m));
@@ -60,7 +59,7 @@ export default {
       return true;
     });
 
-    const targetSlotCap = mode === 1 ? 6.0 : 4.5;
+    const targetSlotCap = 6.0;
 
     // Helper menghitung kebutuhan slot CQI
     const getClusterSlotDemand = (machinesInLine) => {
@@ -71,7 +70,7 @@ export default {
         clusterCounts[grp] = (clusterCounts[grp] || 0) + 1;
       });
       let totalClusterSlots = 0;
-      const divisor = mode === 1 ? 5.5 : 3.8;
+      const divisor = 5.5;
       Object.values(clusterCounts).forEach((cnt) => {
         totalClusterSlots += Math.ceil(cnt / divisor);
       });
@@ -112,7 +111,7 @@ export default {
     }
 
     // Helper seleksi CQI terbaik per line
-    const maxSlotCapacity = mode === 1 ? 10 : 8;
+    const maxSlotCapacity = 8;
     const coreList = Array.isArray(config.coreData) ? config.coreData : [];
 
     const pickBestCqisForLine = (machinesInLine, candidatePool, maxToPick) => {

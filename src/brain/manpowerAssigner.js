@@ -129,7 +129,7 @@ export default {
    * 3. Tambahkan NC terlebih dahulu sesuai urutan, jika masih kurang tambahkan LS.
    *    (LS: Noncore Longshift kedudukannya sama dengan Noncore).
    */
-  assignNonCoreAndLongshift(activeSlots, config, mode, engine) {
+  assignNonCoreAndLongshift(activeSlots, config, engine) {
     if (!Array.isArray(activeSlots) || activeSlots.length === 0) {
       return { remainingNonCore: [], remainingLs: parseInt(config.longshift || 0, 10) };
     }
@@ -141,7 +141,7 @@ export default {
       return numA - numB;
     });
 
-    const maxNcPerCqi = mode === 1 ? 2 : 1;
+    const maxNcPerCqi = 2;
     const lsCount = parseInt(config.longshift || 0, 10);
 
     let nonCoreNames = [];
@@ -188,7 +188,7 @@ export default {
       const count = slot.machines.length;
       const baseCap = engine.getBaseCoreCapacity(slot);
       const rule = engine.getClusterCapacityRule(slot);
-      let needed = rule.getNeededNc(count, mode);
+      let needed = rule.getNeededNc(count);
 
       if (slot.cqiNum === "24") {
         const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
@@ -203,7 +203,7 @@ export default {
       }
 
       if (count > baseCap) {
-        if (mode === 1 && count > rule.max1Nc) {
+        if (count > rule.max1Nc) {
           needed = Math.max(needed, 2);
         } else {
           needed = Math.max(needed, 1);
@@ -253,7 +253,7 @@ export default {
     // DISTRIBUSI SISA NC & LS (JIKA MASIH ADA SISA MANPOWER)
     // Ditambahkan ke CQI dengan beban tertinggi yang masih di bawah maxNcPerCqi
     // -------------------------------------------------------------------------
-    const getDynamicMaxNc = (slot, curMode) => {
+    const getDynamicMaxNc = (slot) => {
       if (slot.cqiNum === "19") return 0;
       if (slot.cqiNum === "24") {
         const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
@@ -267,54 +267,53 @@ export default {
       }
       const rule = engine.getClusterCapacityRule(slot);
       const count = slot.machines.length;
-      if (curMode === 1) {
-        if (count > rule.max1Nc) return 2;
-        if (count >= rule.maxCoreOnly) return 1;
-        return 0;
-      } else {
-        if (count >= rule.maxCoreOnly) return 1;
-        return 0;
-      }
+      const baseCap = engine.getBaseCoreCapacity(slot);
+      if (count > rule.max1Nc) return 2;
+      if (count > baseCap) return 1;
+      return 0;
     };
 
-    // Sisa Non-Core Pool terlebih dahulu
-    while (nonCorePool.length > 0) {
-      const eligibleSlots = activeSlots.filter(
-        (s) =>
-          s.nonCore.length + s.longshift.length < getDynamicMaxNc(s, mode) &&
-          s.nonCore.length + s.longshift.length < maxNcPerCqi,
-      );
-      if (eligibleSlots.length === 0) break;
+    // Distribusi sisa personil hanya jika diaktifkan atau jika masih ada slot yang over capacity
+    if (config.distributeAllManpower === true) {
+      // Sisa Non-Core Pool terlebih dahulu
+      while (nonCorePool.length > 0) {
+        const eligibleSlots = activeSlots.filter(
+          (s) =>
+            s.nonCore.length + s.longshift.length < getDynamicMaxNc(s) &&
+            s.nonCore.length + s.longshift.length < maxNcPerCqi,
+        );
+        if (eligibleSlots.length === 0) break;
 
-      eligibleSlots.sort((a, b) => {
-        const loadA =
-          a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
-        const loadB =
-          b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
-        return loadB - loadA;
-      });
+        eligibleSlots.sort((a, b) => {
+          const loadA =
+            a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
+          const loadB =
+            b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
+          return loadB - loadA;
+        });
 
-      eligibleSlots[0].nonCore.push(nonCorePool.shift());
-    }
+        eligibleSlots[0].nonCore.push(nonCorePool.shift());
+      }
 
-    // Sisa LS Pool jika NC sudah habis
-    while (lsPool.length > 0) {
-      const eligibleSlots = activeSlots.filter(
-        (s) =>
-          s.nonCore.length + s.longshift.length < getDynamicMaxNc(s, mode) &&
-          s.nonCore.length + s.longshift.length < maxNcPerCqi,
-      );
-      if (eligibleSlots.length === 0) break;
+      // Sisa LS Pool jika NC sudah habis
+      while (lsPool.length > 0) {
+        const eligibleSlots = activeSlots.filter(
+          (s) =>
+            s.nonCore.length + s.longshift.length < getDynamicMaxNc(s) &&
+            s.nonCore.length + s.longshift.length < maxNcPerCqi,
+        );
+        if (eligibleSlots.length === 0) break;
 
-      eligibleSlots.sort((a, b) => {
-        const loadA =
-          a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
-        const loadB =
-          b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
-        return loadB - loadA;
-      });
+        eligibleSlots.sort((a, b) => {
+          const loadA =
+            a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
+          const loadB =
+            b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
+          return loadB - loadA;
+        });
 
-      eligibleSlots[0].longshift.push(lsPool.shift());
+        eligibleSlots[0].longshift.push(lsPool.shift());
+      }
     }
 
     return { remainingNonCore: nonCorePool, remainingLs: lsPool.length };

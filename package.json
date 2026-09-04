@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "build": "echo 'No build required for static assets'",
+    "build": "esbuild src/brain/index.js --bundle --format=iife --global-name=BrainAI_Raw --footer:js=\"var BrainAI = (typeof window !== 'undefined' && window.BrainAI) ? window.BrainAI : (typeof BrainAI_Raw !== 'undefined' && BrainAI_Raw && BrainAI_Raw.default ? BrainAI_Raw.default : BrainAI_Raw); if (typeof window !== 'undefined') window.BrainAI = BrainAI; if (typeof globalThis !== 'undefined') globalThis.BrainAI = BrainAI;\" --outfile=src/brain/bundle.js",
     "lint": "node --check server.js && node --check src/brain/index.js && node --check src/brain/core.js && node --check src/brain/utils.js && node --check src/brain/blockAllocator.js && node --check src/brain/manpowerAssigner.js && node --check src/brain/validator.js && node --check src/brain/formatter.js && node --check src/brain/unassignedFitter.js"
   },
   "dependencies": {
     "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }
