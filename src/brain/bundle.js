@@ -44,34 +44,34 @@ var BrainAI_Raw = (() => {
      * - Line B: Disesuaikan 2 atau 3 workstation terdekat per CQI
      */
     CQI_PRIORITY_MAP: {
-      // Line A (Tepat 2 workstation terdekat)
-      "cqi 1": ["1A", "0A"],
-      "cqi 2": ["2A", "1A"],
-      "cqi 3": ["3A", "2A"],
-      "cqi 4": ["4A", "3A"],
-      "cqi 5": ["5A", "4A"],
-      "cqi 6": ["6A", "5A"],
-      "cqi 7": ["7A", "6A"],
-      "cqi 8": ["8A", "7A"],
-      "cqi 9": ["9A", "8A"],
-      "cqi 10": ["10A", "9A"],
-      // Line B (2 atau 3 workstation terdekat)
-      "cqi 11": ["1B", "2B", "0B"],
-      "cqi 13": ["2B", "3B", "1B"],
-      "cqi 14": ["5B", "6B", "4B"],
-      "cqi 15": ["7B", "8B", "6B"],
-      "cqi 16": ["8B", "9B", "7B"],
-      "cqi 17": ["10B", "11B", "9B"],
+      // Line A (Workstation utama dan tetangga terdekat kiri/kanan)
+      "cqi 1": ["1A", "0A", "2A"],
+      "cqi 2": ["2A", "1A", "3A", "0A"],
+      "cqi 3": ["3A", "2A", "4A", "1A", "5A"],
+      "cqi 4": ["4A", "3A", "5A", "2A", "6A"],
+      "cqi 5": ["5A", "4A", "6A", "3A", "7A"],
+      "cqi 6": ["6A", "5A", "7A", "4A", "8A"],
+      "cqi 7": ["7A", "6A", "8A", "5A", "9A"],
+      "cqi 8": ["8A", "7A", "9A", "6A", "10A"],
+      "cqi 9": ["9A", "8A", "10A", "7A"],
+      "cqi 10": ["10A", "9A", "8A", "7A"],
+      // Line B (Workstation utama dan tetangga terdekat)
+      "cqi 11": ["1B", "0B", "2B", "3B"],
+      "cqi 13": ["2B", "3B", "1B", "4B", "0B"],
+      "cqi 21": ["4B", "3B", "5B", "0B", "2B", "1B"],
+      "cqi 14": ["5B", "6B", "4B", "7B", "3B"],
+      "cqi 22": ["5B", "6B", "4B", "7B", "3B"],
+      "cqi 23": ["6B", "5B", "7B", "4B", "8B"],
+      "cqi 15": ["7B", "8B", "6B", "9B", "5B"],
+      "cqi 25": ["7B", "8B", "6B", "9B", "5B"],
+      "cqi 16": ["8B", "9B", "7B", "10B", "6B"],
+      "cqi 17": ["10B", "11B", "9B", "8B"],
+      "cqi 12": ["10B", "11B", "9B", "8B"],
       "cqi 19": ["OT"],
-      "cqi 21": ["0B", "4B"],
-      "cqi 22": ["6B", "5B", "4B"],
-      "cqi 23": ["6B", "7B", "5B"],
       "cqi 24": ["WW", "1C", "2C"],
-      "cqi 25": ["7B", "8B", "9B"],
-      // Line C (2 atau 3 workstation terdekat)
-      "cqi 12": ["10B", "11B", "9B"],
-      "cqi 18": ["3C", "2C", "1C", "4C"],
-      "cqi 20": ["10C", "9C", "8C", "7C", "6C", "5C"]
+      // Line C (Workstation terdekat)
+      "cqi 18": ["3C", "2C", "1C", "4C", "5C"],
+      "cqi 20": ["10C", "9C", "8C", "7C", "6C", "5C", "4C"]
     },
     /**
      * Peta Prioritas Cluster Per CQI (CQI Cluster Priority Map)
@@ -125,13 +125,37 @@ var BrainAI_Raw = (() => {
       if ((ws === "0A" || ws === "1A" || ws === "2A" || ws === "3A") && (num === "8" || num === "9" || num === "10")) {
         return true;
       }
-      if ((ws === "0A" || ws === "1A") && (num === "6" || num === "7")) {
+      if ((ws === "0A" || ws === "1A" || ws === "2A") && (num === "6" || num === "7")) {
         return true;
       }
-      if ((ws === "9A" || ws === "10A") && (num === "4" || num === "5")) {
+      if (ws === "10A" && (num === "6" || num === "7")) {
+        return true;
+      }
+      if ((ws === "0A" || ws === "8A" || ws === "9A" || ws === "10A") && (num === "4" || num === "5")) {
         return true;
       }
       return false;
+    },
+    /**
+     * Menghitung jarak logis/lorong antara dua workstation
+     * Contoh: 7A dan 8A -> 1 lorong (tetangga langsung)
+     * Contoh: 7A dan 9A -> 2 lorong (melompati 8A)
+     * @param {string} wsA - Workstation A (misal "7A")
+     * @param {string} wsB - Workstation B (misal "8A" atau "9A")
+     * @returns {number} Selisih nomor workstation jika line sama, atau 999 jika line beda
+     */
+    getWorkstationDistance(wsA, wsB) {
+      if (!wsA || !wsB) return 999;
+      const a = String(wsA).trim().toUpperCase();
+      const b = String(wsB).trim().toUpperCase();
+      if (a === b) return 0;
+      const lineA = a.replace(/\d+/g, "");
+      const lineB = b.replace(/\d+/g, "");
+      if (lineA !== lineB) return 999;
+      const numA = parseInt(a.replace(/\D/g, ""), 10);
+      const numB = parseInt(b.replace(/\D/g, ""), 10);
+      if (isNaN(numA) || isNaN(numB)) return 999;
+      return Math.abs(numA - numB);
     },
     /**
      * Mengambil nama line utama (LINE A, LINE B, LINE C, OT, WW) dari sebuah CQI berdasarkan CQI_PRIORITY_MAP
@@ -198,11 +222,13 @@ var BrainAI_Raw = (() => {
       if (wsList.length > 0) {
         const idx = wsList.findIndex((ws) => ws.toUpperCase() === mWs);
         if (idx === 0) {
-          bonus += 120;
-        } else if (idx === 1) {
-          bonus += 75;
-        } else if (idx > 1) {
-          bonus += 35;
+          bonus += 160;
+        } else if (idx === 1 || idx === 2) {
+          bonus += 100;
+        } else if (idx === 3 || idx === 4) {
+          bonus += 40;
+        } else if (idx > 4) {
+          bonus += 15;
         }
       }
       const clusterPrioMapList = this.CQI_CLUSTER_PRIORITY_MAP["cqi " + cqiNum] || [];
@@ -312,14 +338,23 @@ var BrainAI_Raw = (() => {
           return true;
         }
       }
+      const isBotolAndLineBMix = normA === "BOTOL" && (normB === "12LJUMBO" || normB === "SKLSCT") || normB === "BOTOL" && (normA === "12LJUMBO" || normA === "SKLSCT");
+      if (isBotolAndLineBMix) {
+        const botolM = normA === "BOTOL" ? machineA : machineB;
+        const otherM = normA === "BOTOL" ? machineB : machineA;
+        const isBotolLineB = botolM ? this.getMachineLine(botolM) === "LINE B" : true;
+        const isCqiLineB = cqiNumStr ? this.getCqiPrimaryLine(cqiNumStr) === "LINE B" : false;
+        if (isBotolLineB || isCqiLineB) {
+          return true;
+        }
+      }
       if (cqiNumStr === "10") {
         const isSklAndPouch = normA === "SKLSCT" && normB === "POUCH" || normA === "POUCH" && normB === "SKLSCT";
+        if (isSklAndPouch) {
+          return true;
+        }
         const is12LAndPouch = normA === "12LJUMBO" && normB === "POUCH" || normA === "POUCH" && normB === "12LJUMBO";
-        if (isSklAndPouch || is12LAndPouch) {
-          if (machineA && machineB) {
-            const pouchM = normA === "POUCH" ? machineA : machineB;
-            return this.isPouchLineCAnd8B(pouchM);
-          }
+        if (is12LAndPouch) {
           return true;
         }
       }
@@ -385,8 +420,24 @@ var BrainAI_Raw = (() => {
           return false;
         }
       }
-      if (!slot.machines || slot.machines.length === 0) return true;
+      if (cqiNum === "15" && this.isMachineLineC(m)) {
+        const ws = this.getWorkstationKey(m).toUpperCase();
+        if (ws !== "1C" && ws !== "2C") {
+          return false;
+        }
+      }
       const mCluster = this.getMachineClusterGroup(m);
+      const mLine = this.getMachineLine(m);
+      const cqiLine = this.getCqiPrimaryLine(slot.cqi);
+      if (mCluster === "BOTOL") {
+        if (mLine === "LINE B" && cqiLine !== "LINE B") {
+          return false;
+        }
+        if (mLine === "LINE C" && cqiLine !== "LINE C") {
+          return false;
+        }
+      }
+      if (!slot.machines || slot.machines.length === 0) return true;
       for (const existingMachine of slot.machines) {
         const existCluster = this.getMachineClusterGroup(existingMachine);
         if (!this.isClusterMixingAllowed(
@@ -764,7 +815,7 @@ var BrainAI_Raw = (() => {
           }
         };
       }
-      if (hasSosoft && hasSklsct || !hasSosoft && hasSklsct && !hasPouch && !hasBotol) {
+      if (hasSosoft && hasSklsct && !has12L && !hasPouch && !hasBotol) {
         return {
           type: "sosoft_sklsct",
           name: "Sosoft + SKLsct",
@@ -784,7 +835,7 @@ var BrainAI_Raw = (() => {
           }
         };
       }
-      if (hasSosoft && has12L || !hasSosoft && has12L && !hasPouch && !hasBotol) {
+      if (hasSosoft && has12L && !hasSklsct && !hasPouch && !hasBotol) {
         return {
           type: "sosoft_12ljumbo",
           name: "Sosoft + 12Ljumbo",
@@ -824,7 +875,7 @@ var BrainAI_Raw = (() => {
           }
         };
       }
-      if (has12L && hasPouch && !hasSosoft) {
+      if (has12L && hasPouch && !hasSosoft && !hasSklsct && !hasBotol) {
         return {
           type: "12ljumbo_pouch",
           name: "12Ljumbo + Pouch",
@@ -844,10 +895,10 @@ var BrainAI_Raw = (() => {
           }
         };
       }
-      if (has12L && hasSklsct && !hasSosoft) {
+      if (hasSklsct && hasPouch && !hasSosoft && !has12L && !hasBotol) {
         return {
-          type: "12ljumbo_sklsct",
-          name: "12Ljumbo + SKLsct",
+          type: "sklsct_pouch",
+          name: "SKLsct + Pouch",
           maxCoreOnly: 4,
           max1Nc: 6,
           max2Nc: 8,
@@ -864,10 +915,30 @@ var BrainAI_Raw = (() => {
           }
         };
       }
-      if (hasSklsct && hasPouch && !hasSosoft) {
+      if (hasBotol && has12L && !hasSosoft && !hasSklsct && !hasPouch) {
         return {
-          type: "sklsct_pouch",
-          name: "SKLsct + Pouch",
+          type: "botol_12ljumbo",
+          name: "Botol + 12Ljumbo",
+          maxCoreOnly: 4,
+          max1Nc: 6,
+          max2Nc: 8,
+          absoluteMax: 8,
+          getNeededNc: (count) => {
+            if (count > 6) return 2;
+            if (count > 4) return 1;
+            return 0;
+          },
+          getMaxAllowed: (ncCount) => {
+            if (ncCount >= 2) return 8;
+            if (ncCount >= 1) return 6;
+            return 4;
+          }
+        };
+      }
+      if (hasBotol && hasSklsct && !hasSosoft && !has12L && !hasPouch) {
+        return {
+          type: "botol_sklsct",
+          name: "Botol + SKLsct",
           maxCoreOnly: 4,
           max1Nc: 6,
           max2Nc: 8,
@@ -1120,11 +1191,29 @@ var BrainAI_Raw = (() => {
       const labelCol = labelObj ? labelObj.col ?? (labelObj.position ? labelObj.position.col : void 0) : void 0;
       let lRow = labelRow !== void 0 ? labelRow : mRow <= 9 ? 9 : mCol >= 32 ? 13 : 11;
       let lCol = labelCol !== void 0 ? labelCol : mCol;
+      const isMachineLineA = mRow <= 9 && mCol <= 30;
+      const isCqiLineA = cRow <= 4 && cCol <= 30;
+      if (isMachineLineA && isCqiLineA) {
+        const distTop = Math.abs(mRow - cRow) + Math.abs(mCol - cCol);
+        const distBottom = Math.abs(mRow - lRow) + Math.abs(mCol - cCol) + Math.abs(lRow - cRow);
+        if (distTop <= distBottom) {
+          const pts = [];
+          const add = (r, c) => {
+            if (pts.length === 0 || pts[pts.length - 1].row !== r || pts[pts.length - 1].col !== c) {
+              pts.push({ row: r, col: c });
+            }
+          };
+          add(mRow, mCol);
+          add(cRow, mCol);
+          add(cRow, cCol);
+          return pts;
+        }
+      }
       const cqiLine = this.getCqiPrimaryLine(cqi);
       let cLRow = 9;
-      if (cqiLine === "LINE B") cLRow = 11;
-      else if (cqiLine === "LINE C" || cCol >= 32) cLRow = 13;
-      else if (cqiLine === "LINE A") cLRow = 9;
+      if (cqiLine === "LINE B" || cRow >= 11 && cRow <= 16 && cCol <= 30) cLRow = 11;
+      else if (cqiLine === "LINE C" || cCol >= 32 || cRow >= 13) cLRow = 13;
+      else if (cqiLine === "LINE A" || cRow <= 4) cLRow = 9;
       else {
         cLRow = cRow <= 10 ? 9 : cRow >= 13 ? 13 : 11;
       }
@@ -1768,6 +1857,11 @@ var BrainAI_Raw = (() => {
                 labels
               )
             );
+            validMachines.sort((a, b) => {
+              const dA = engine.calculateDistance(a, slot.cqi, labels);
+              const dB = engine.calculateDistance(b, slot.cqi, labels);
+              return dA - dB;
+            });
             const availableSpace = baseCap - slot.machines.length;
             if (availableSpace > 0 && validMachines.length > 0) {
               const toAdd = validMachines.slice(0, availableSpace);
@@ -1806,6 +1900,11 @@ var BrainAI_Raw = (() => {
                 labels
               )
             );
+            validMachines.sort((a, b) => {
+              const dA = engine.calculateDistance(a, slot.cqi, labels);
+              const dB = engine.calculateDistance(b, slot.cqi, labels);
+              return dA - dB;
+            });
             const availableSpace = baseCap - slot.machines.length;
             if (availableSpace > 0 && validMachines.length > 0) {
               const toAdd = validMachines.slice(0, availableSpace);
@@ -1875,16 +1974,19 @@ var BrainAI_Raw = (() => {
       let progressMade = true;
       while (remaining.length > 0 && progressMade) {
         progressMade = false;
+        let bestMatch = null;
+        let highestScore = -Infinity;
+        let bestRemainingIdx = -1;
         for (let i = 0; i < remaining.length; i++) {
           const m = remaining[i];
           const mWs = engine.getWorkstationKey(m, labels).toUpperCase();
           const mCluster = engine.getMachineClusterGroup(m);
           const mLine = engine.getMachineLine(m, labels);
-          const candidates = [];
           slots.forEach((s) => {
             if (s.cqiNum === "19") return;
             const sRule = engine.getClusterCapacityRule(s);
-            if (s.machines.length >= (sRule.absoluteMax || 8)) return;
+            const maxLimit = Math.min(8, sRule.absoluteMax || 8);
+            if (s.machines.length >= maxLimit) return;
             if (engine.canAddMachineToSlot(
               m,
               s,
@@ -1898,11 +2000,36 @@ var BrainAI_Raw = (() => {
               );
               const clusterPrioList = (engine.CQI_CLUSTER_PRIORITY_MAP[prioKey] || []).map((c) => String(c).toUpperCase());
               let score = 0;
+              const baseCap = engine.getBaseCoreCapacity(s);
+              if (s.machines.length < baseCap) {
+                score += 15e3;
+              } else if (s.machines.length < sRule.max1Nc) {
+                score += 1500;
+              } else {
+                score -= 12e3;
+              }
               const wsIdx = wsPrioList.indexOf(mWs);
-              if (wsIdx === 0) score += 3e3;
-              else if (wsIdx === 1) score += 2e3;
-              else if (wsIdx === 2) score += 1200;
-              else if (wsIdx > 2) score += Math.max(300, 1e3 - wsIdx * 200);
+              if (wsIdx === 0) score += 4e3;
+              else if (wsIdx === 1 || wsIdx === 2) score += 2600;
+              else if (wsIdx === 3 || wsIdx === 4) score += 1200;
+              else if (wsIdx > 4) score += Math.max(200, 800 - wsIdx * 150);
+              if (s.machines.length > 0) {
+                const existingWsKeys = s.machines.map(
+                  (sm) => engine.getWorkstationKey(sm, labels).toUpperCase()
+                );
+                const minWsDiff = Math.min(
+                  ...existingWsKeys.map((w) => engine.getWorkstationDistance(w, mWs))
+                );
+                if (minWsDiff === 0) {
+                  score += 3500;
+                } else if (minWsDiff === 1) {
+                  score += 2500;
+                } else if (minWsDiff === 2) {
+                  score -= 3e3;
+                } else if (minWsDiff > 2 && minWsDiff < 999) {
+                  score -= minWsDiff * 4e3 + 5e3;
+                }
+              }
               const clusterIdx = clusterPrioList.indexOf(mCluster);
               if (clusterIdx === 0) score += 1500;
               else if (clusterIdx === 1) score += 800;
@@ -1920,19 +2047,20 @@ var BrainAI_Raw = (() => {
                 score -= 400;
               }
               const dist = engine.calculateDistance(m, s.cqi, labels);
-              score -= dist * 15;
+              score -= dist * 100;
               score -= s.machines.length * 50;
-              candidates.push({ slot: s, score });
+              if (score > highestScore) {
+                highestScore = score;
+                bestMatch = { slot: s, machine: m };
+                bestRemainingIdx = i;
+              }
             }
           });
-          if (candidates.length > 0) {
-            candidates.sort((a, b) => b.score - a.score);
-            const bestSlot = candidates[0].slot;
-            bestSlot.machines.push(m);
-            remaining.splice(i, 1);
-            progressMade = true;
-            break;
-          }
+        }
+        if (bestMatch) {
+          bestMatch.slot.machines.push(bestMatch.machine);
+          remaining.splice(bestRemainingIdx, 1);
+          progressMade = true;
         }
       }
       return remaining;
@@ -2098,7 +2226,7 @@ var BrainAI_Raw = (() => {
         const count = slot.machines.length;
         const baseCap = engine.getBaseCoreCapacity(slot);
         const rule = engine.getClusterCapacityRule(slot);
-        let needed = rule.getNeededNc(count);
+        let needed = 0;
         if (slot.cqiNum === "24") {
           const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
           const pouchIn24 = slot.machines.filter((m) => !engine.isWwMachine(m)).length;
@@ -2109,12 +2237,13 @@ var BrainAI_Raw = (() => {
           } else {
             needed = count > baseCap ? 1 : 0;
           }
-        }
-        if (count > baseCap) {
+        } else {
           if (count > rule.max1Nc) {
-            needed = Math.max(needed, 2);
+            needed = 2;
+          } else if (count > baseCap) {
+            needed = 1;
           } else {
-            needed = Math.max(needed, 1);
+            needed = 0;
           }
         }
         slot.neededNcLs = Math.min(maxNcPerCqi, needed);
@@ -2152,33 +2281,36 @@ var BrainAI_Raw = (() => {
         }
         const rule = engine.getClusterCapacityRule(slot);
         const count = slot.machines.length;
+        const baseCap = engine.getBaseCoreCapacity(slot);
         if (count > rule.max1Nc) return 2;
-        if (count >= rule.maxCoreOnly) return 1;
+        if (count > baseCap) return 1;
         return 0;
       };
-      while (nonCorePool.length > 0) {
-        const eligibleSlots = activeSlots.filter(
-          (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s) && s.nonCore.length + s.longshift.length < maxNcPerCqi
-        );
-        if (eligibleSlots.length === 0) break;
-        eligibleSlots.sort((a, b) => {
-          const loadA = a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
-          const loadB = b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
-          return loadB - loadA;
-        });
-        eligibleSlots[0].nonCore.push(nonCorePool.shift());
-      }
-      while (lsPool.length > 0) {
-        const eligibleSlots = activeSlots.filter(
-          (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s) && s.nonCore.length + s.longshift.length < maxNcPerCqi
-        );
-        if (eligibleSlots.length === 0) break;
-        eligibleSlots.sort((a, b) => {
-          const loadA = a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
-          const loadB = b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
-          return loadB - loadA;
-        });
-        eligibleSlots[0].longshift.push(lsPool.shift());
+      if (config.distributeAllManpower === true) {
+        while (nonCorePool.length > 0) {
+          const eligibleSlots = activeSlots.filter(
+            (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s) && s.nonCore.length + s.longshift.length < maxNcPerCqi
+          );
+          if (eligibleSlots.length === 0) break;
+          eligibleSlots.sort((a, b) => {
+            const loadA = a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
+            const loadB = b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
+            return loadB - loadA;
+          });
+          eligibleSlots[0].nonCore.push(nonCorePool.shift());
+        }
+        while (lsPool.length > 0) {
+          const eligibleSlots = activeSlots.filter(
+            (s) => s.nonCore.length + s.longshift.length < getDynamicMaxNc(s) && s.nonCore.length + s.longshift.length < maxNcPerCqi
+          );
+          if (eligibleSlots.length === 0) break;
+          eligibleSlots.sort((a, b) => {
+            const loadA = a.machines.length / (a.core + a.nonCore.length + a.longshift.length + 0.1);
+            const loadB = b.machines.length / (b.core + b.nonCore.length + b.longshift.length + 0.1);
+            return loadB - loadA;
+          });
+          eligibleSlots[0].longshift.push(lsPool.shift());
+        }
       }
       return { remainingNonCore: nonCorePool, remainingLs: lsPool.length };
     }
@@ -2201,10 +2333,27 @@ var BrainAI_Raw = (() => {
       let score = 0;
       const prioIdx = wsPrioList.indexOf(wsKey);
       if (prioIdx === 0) score -= 22e3;
-      else if (prioIdx === 1) score -= 15e3;
-      else if (prioIdx === 2) score -= 9e3;
-      else if (prioIdx > 2) score -= Math.max(2e3, 5e3 - prioIdx * 1e3);
-      else score += 3500;
+      else if (prioIdx === 1 || prioIdx === 2) score -= 16e3;
+      else if (prioIdx === 3 || prioIdx === 4) score -= 8e3;
+      else if (prioIdx > 4) score -= Math.max(1e3, 4e3 - prioIdx * 1e3);
+      else score += 4500;
+      if (slot.machines.length > 0) {
+        const existingWsKeys = slot.machines.map(
+          (sm) => engine.getWorkstationKey(sm, labels).toUpperCase()
+        );
+        const minWsDiff = Math.min(
+          ...existingWsKeys.map((w) => engine.getWorkstationDistance(w, wsKey))
+        );
+        if (minWsDiff === 0) {
+          score -= 12e3;
+        } else if (minWsDiff === 1) {
+          score -= 8e3;
+        } else if (minWsDiff === 2) {
+          score += 8e3;
+        } else if (minWsDiff > 2 && minWsDiff < 999) {
+          score += minWsDiff * 1e4 + 15e3;
+        }
+      }
       if (cqiNum === "15") {
         if (mLine === "LINE B") {
           score -= 3200;
@@ -2280,7 +2429,7 @@ var BrainAI_Raw = (() => {
           if (engine.isMachineLineC(m, labels)) {
             const wwCount = slot.machines.filter((sm) => engine.isWwMachine(sm)).length;
             const nonWw = slot.machines.filter((sm) => !engine.isWwMachine(sm));
-            const maxPouch = wwCount >= 2 ? 5 : 6;
+            const maxPouch = wwCount >= 2 ? totalNcPool > 0 ? 5 : 0 : totalNcPool > 0 ? 6 : 3;
             if (nonWw.length >= maxPouch) return false;
             if (!engine.isPouchMachine(m) && !String(m.name || m.id || "").toUpperCase().startsWith("APK")) {
               return false;
@@ -2298,6 +2447,13 @@ var BrainAI_Raw = (() => {
         if (slot.cqiNum === "15" && engine.isMachineLineC(m, labels)) {
           const ws = engine.getWorkstationKey(m, labels).toUpperCase();
           if (ws !== "1C" && ws !== "2C") return false;
+        }
+        const mCluster = engine.getMachineClusterGroup(m);
+        const mLine = engine.getMachineLine(m, labels);
+        const cqiLine = engine.getCqiPrimaryLine(slot.cqi);
+        if (mCluster === "BOTOL") {
+          if (mLine === "LINE B" && cqiLine !== "LINE B") return false;
+          if (mLine === "LINE C" && cqiLine !== "LINE C") return false;
         }
         return engine.canAddMachineToSlotCluster(m, slot);
       };
@@ -2360,38 +2516,55 @@ var BrainAI_Raw = (() => {
                 shiftProgress = true;
                 break;
               }
-              const candidateDonors = slots.filter((s) => s !== targetSlot);
-              candidateDonors.sort((a, b) => {
-                const aLine = engine.getCqiPrimaryLine(a.cqi);
-                const bLine = engine.getCqiPrimaryLine(b.cqi);
-                const aSame = aLine === mLine ? 0 : 1;
-                const bSame = bLine === mLine ? 0 : 1;
-                if (aSame !== bSame) return aSame - bSame;
-                return a.machines.length - b.machines.length;
-              });
-              for (const donorSlot of candidateDonors) {
+              for (let i = 0; i < targetSlot.machines.length; i++) {
                 if (placed) break;
-                const donorLimit = engine.getDynamicSlotLimit(
-                  donorSlot,
-                  totalNcPool,
-                  slots
-                );
-                if (donorSlot.machines.length >= donorLimit) continue;
-                for (let i = 0; i < targetSlot.machines.length; i++) {
-                  const mToMove = targetSlot.machines[i];
-                  if (isSlotEligibleForMachine(donorSlot, mToMove)) {
-                    targetSlot.machines.splice(i, 1);
-                    donorSlot.machines.push(mToMove);
-                    if (isSlotEligibleForMachine(targetSlot, unassignedM)) {
-                      targetSlot.machines.push(unassignedM);
-                      remaining.splice(rIdx, 1);
-                      placed = true;
-                      shiftProgress = true;
-                      break;
-                    } else {
-                      donorSlot.machines.pop();
-                      targetSlot.machines.splice(i, 0, mToMove);
-                    }
+                const mToMove = targetSlot.machines[i];
+                const wsToMove = engine.getWorkstationKey(mToMove, labels).toUpperCase();
+                const lineToMove = engine.getMachineLine(mToMove, labels);
+                const candidateDonors = slots.filter((s) => s !== targetSlot);
+                candidateDonors.sort((da, db) => {
+                  const prioListA = (engine.CQI_PRIORITY_MAP["cqi " + da.cqiNum] || []).map(
+                    (w) => String(w).toUpperCase()
+                  );
+                  const prioListB = (engine.CQI_PRIORITY_MAP["cqi " + db.cqiNum] || []).map(
+                    (w) => String(w).toUpperCase()
+                  );
+                  const idxA = prioListA.indexOf(wsToMove);
+                  const idxB = prioListB.indexOf(wsToMove);
+                  const pA = idxA >= 0 ? idxA : 999;
+                  const pB = idxB >= 0 ? idxB : 999;
+                  if (pA !== pB) return pA - pB;
+                  const lineA = engine.getCqiPrimaryLine(da.cqi);
+                  const lineB = engine.getCqiPrimaryLine(db.cqi);
+                  const sameA = lineA === lineToMove ? 0 : 1;
+                  const sameB = lineB === lineToMove ? 0 : 1;
+                  if (sameA !== sameB) return sameA - sameB;
+                  const distA = engine.calculateDistance(mToMove, da.cqi, labels);
+                  const distB = engine.calculateDistance(mToMove, db.cqi, labels);
+                  if (distA !== distB) return distA - distB;
+                  return da.machines.length - db.machines.length;
+                });
+                for (const donorSlot of candidateDonors) {
+                  const donorLimit = engine.getDynamicSlotLimit(
+                    donorSlot,
+                    totalNcPool,
+                    slots
+                  );
+                  if (donorSlot.machines.length >= donorLimit) continue;
+                  if (!isSlotEligibleForMachine(donorSlot, mToMove)) continue;
+                  targetSlot.machines.splice(i, 1);
+                  donorSlot.machines.push(mToMove);
+                  const canTargetAccept = isSlotEligibleForMachine(targetSlot, unassignedM) && targetSlot.machines.length + 1 <= targetLimit;
+                  const canDonorAccept = donorSlot.machines.length <= donorLimit;
+                  if (canTargetAccept && canDonorAccept) {
+                    targetSlot.machines.push(unassignedM);
+                    remaining.splice(rIdx, 1);
+                    placed = true;
+                    shiftProgress = true;
+                    break;
+                  } else {
+                    donorSlot.machines.pop();
+                    targetSlot.machines.splice(i, 0, mToMove);
                   }
                 }
               }
@@ -2527,9 +2700,140 @@ var BrainAI_Raw = (() => {
         return numA - numB;
       });
       manpowerAssigner_default.assignCorePersonnel(slots, coreList, this);
+      const plan1 = this.buildSingleCandidate(
+        runningMachines,
+        selectedCQIs,
+        coreList,
+        config,
+        mapData,
+        "standard_balanced"
+      );
+      const plan2 = this.buildSingleCandidate(
+        runningMachines,
+        selectedCQIs,
+        coreList,
+        config,
+        mapData,
+        "cluster_first"
+      );
+      const plan3 = this.buildSingleCandidate(
+        runningMachines,
+        selectedCQIs,
+        coreList,
+        config,
+        mapData,
+        "corridor_compact"
+      );
+      const plan4 = this.buildSingleCandidate(
+        runningMachines,
+        selectedCQIs,
+        coreList,
+        config,
+        mapData,
+        "base_capacity_maximizer"
+      );
+      const candidateList = [
+        { id: 1, name: "Planing 1 (Standard Balanced)", plan: plan1 },
+        { id: 2, name: "Planing 2 (Cluster Consolidation)", plan: plan2 },
+        { id: 3, name: "Planing 3 (Corridor Compact)", plan: plan3 },
+        { id: 4, name: "Planing 4 (Base Capacity Maximizer)", plan: plan4 }
+      ];
+      candidateList.sort((a, b) => {
+        const unassignedA = a.plan.unassignedMachines.length;
+        const unassignedB = b.plan.unassignedMachines.length;
+        if (unassignedA !== unassignedB) return unassignedA - unassignedB;
+        const ncLsA = a.plan.totalNcLsUsed;
+        const ncLsB = b.plan.totalNcLsUsed;
+        if (ncLsA !== ncLsB) return ncLsA - ncLsB;
+        const highNcSlotsA = a.plan.filter(
+          (s) => (s.nonCore ? s.nonCore.length : 0) + (s.longshift ? s.longshift.length : 0) >= 2
+        ).length;
+        const highNcSlotsB = b.plan.filter(
+          (s) => (s.nonCore ? s.nonCore.length : 0) + (s.longshift ? s.longshift.length : 0) >= 2
+        ).length;
+        if (highNcSlotsA !== highNcSlotsB) return highNcSlotsA - highNcSlotsB;
+        return a.plan.totalDistance - b.plan.totalDistance;
+      });
+      const chosenCandidate = candidateList[0];
+      const bestPlan = chosenCandidate.plan;
+      bestPlan.candidateSummaries = candidateList.map((c) => ({
+        id: c.id,
+        name: c.name,
+        totalNcLs: c.plan.totalNcLsUsed,
+        totalNc: c.plan.totalNcUsed,
+        totalLs: c.plan.totalLsUsed,
+        unassigned: c.plan.unassignedMachines.length,
+        totalDistance: c.plan.totalDistance,
+        activeSlots: c.plan.length,
+        isSelected: c.id === chosenCandidate.id
+      }));
+      bestPlan.chosenStrategy = chosenCandidate.name;
+      return bestPlan;
+    },
+    /**
+     * Membangun satu kandidat planning dengan strategi tertentu untuk meminimalkan NC/LS
+     */
+    buildSingleCandidate(runningMachines, selectedCQIs, coreList, config, mapData, strategy) {
+      const slots = selectedCQIs.map((c) => {
+        const cqiNum = this.getCqiNumber(c);
+        let initialMax = 8;
+        if (cqiNum === "19") initialMax = 2;
+        else if (cqiNum === "24") initialMax = 7;
+        else initialMax = 10;
+        return {
+          cqi: c,
+          cqiNum,
+          machines: [],
+          core: 0,
+          coreNames: [],
+          nonCore: [],
+          longshift: [],
+          pouchAddedToWw: false,
+          maxAllowedMachines: initialMax
+        };
+      });
+      slots.sort((a, b) => {
+        const numA = parseInt(a.cqiNum, 10) || 999;
+        const numB = parseInt(b.cqiNum, 10) || 999;
+        return numA - numB;
+      });
+      manpowerAssigner_default.assignCorePersonnel(slots, coreList, this);
+      let machinesToAllocate = [...runningMachines];
+      if (strategy === "cluster_first") {
+        machinesToAllocate.sort((a, b) => {
+          const cA = this.getMachineClusterGroup(a);
+          const cB = this.getMachineClusterGroup(b);
+          if (cA !== cB) return cA.localeCompare(cB);
+          return (a.name || a.id || "").localeCompare(b.name || b.id || "");
+        });
+      } else if (strategy === "corridor_compact") {
+        const labels = mapData.labels || [];
+        machinesToAllocate.sort((a, b) => {
+          const lA = this.getMachineLine(a, labels);
+          const lB = this.getMachineLine(b, labels);
+          if (lA !== lB) return lA.localeCompare(lB);
+          const wsA = this.getWorkstationKey(a, labels);
+          const wsB = this.getWorkstationKey(b, labels);
+          return wsA.localeCompare(wsB);
+        });
+      } else if (strategy === "base_capacity_maximizer") {
+        const labels = mapData.labels || [];
+        machinesToAllocate.sort((a, b) => {
+          const isWwA = this.isWwMachine(a) ? 1 : 0;
+          const isWwB = this.isWwMachine(b) ? 1 : 0;
+          if (isWwA !== isWwB) return isWwB - isWwA;
+          const isOtA = this.isOtMachine(a) ? 1 : 0;
+          const isOtB = this.isOtMachine(b) ? 1 : 0;
+          if (isOtA !== isOtB) return isOtB - isOtA;
+          const lA = this.getMachineLine(a, labels);
+          const lB = this.getMachineLine(b, labels);
+          if (lA !== lB) return lB.localeCompare(lA);
+          return (a.name || a.id || "").localeCompare(b.name || b.id || "");
+        });
+      }
       blockAllocator_default.allocateTemporaryPlan(
         slots,
-        runningMachines,
+        machinesToAllocate,
         config,
         mapData,
         this
@@ -2584,6 +2888,18 @@ var BrainAI_Raw = (() => {
       });
       activeSlots.totalDistance = grandTotalDist;
       activeSlots.avgDistance = activeSlots.length > 0 ? (grandTotalDist / activeSlots.length).toFixed(1) : 0;
+      const totalNcUsed = activeSlots.reduce(
+        (sum, s) => sum + (s.nonCore ? s.nonCore.length : 0),
+        0
+      );
+      const totalLsUsed = activeSlots.reduce(
+        (sum, s) => sum + (s.longshift ? s.longshift.length : 0),
+        0
+      );
+      activeSlots.totalNcLsUsed = totalNcUsed + totalLsUsed;
+      activeSlots.totalNcUsed = totalNcUsed;
+      activeSlots.totalLsUsed = totalLsUsed;
+      activeSlots.strategyName = strategy;
       return activeSlots;
     },
     /**

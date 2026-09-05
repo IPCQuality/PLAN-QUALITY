@@ -105,7 +105,7 @@ export default {
     // //tahap 2: pilih planing yang paling sedikit menggunakan noncore/ls
     // =========================================================================
 
-    // Tahap 1: Buat 3 kandidat planning
+    // Tahap 1: Buat 4 kandidat planning dengan fokus minimasi NC/LS
     const plan1 = this.buildSingleCandidate(
       runningMachines,
       selectedCQIs,
@@ -130,11 +130,20 @@ export default {
       mapData,
       "corridor_compact",
     );
+    const plan4 = this.buildSingleCandidate(
+      runningMachines,
+      selectedCQIs,
+      coreList,
+      config,
+      mapData,
+      "base_capacity_maximizer",
+    );
 
     const candidateList = [
       { id: 1, name: "Planing 1 (Standard Balanced)", plan: plan1 },
       { id: 2, name: "Planing 2 (Cluster Consolidation)", plan: plan2 },
       { id: 3, name: "Planing 3 (Corridor Compact)", plan: plan3 },
+      { id: 4, name: "Planing 4 (Base Capacity Maximizer)", plan: plan4 },
     ];
 
     // Tahap 2: Pilih planing yang paling sedikit menggunakan noncore/ls
@@ -144,12 +153,21 @@ export default {
       const unassignedB = b.plan.unassignedMachines.length;
       if (unassignedA !== unassignedB) return unassignedA - unassignedB;
 
-      // 2. Kriteria Utama: Paling sedikit menggunakan noncore/ls
+      // 2. Kriteria Utama: Paling sedikit menggunakan total noncore/ls
       const ncLsA = a.plan.totalNcLsUsed;
       const ncLsB = b.plan.totalNcLsUsed;
       if (ncLsA !== ncLsB) return ncLsA - ncLsB;
 
-      // 3. Jarak total terkecil (efisiensi pergerakan teknisi CQI)
+      // 3. Minimalkan slot yang membutuhkan 2 NC/LS
+      const highNcSlotsA = a.plan.filter(
+        (s) => (s.nonCore ? s.nonCore.length : 0) + (s.longshift ? s.longshift.length : 0) >= 2,
+      ).length;
+      const highNcSlotsB = b.plan.filter(
+        (s) => (s.nonCore ? s.nonCore.length : 0) + (s.longshift ? s.longshift.length : 0) >= 2,
+      ).length;
+      if (highNcSlotsA !== highNcSlotsB) return highNcSlotsA - highNcSlotsB;
+
+      // 4. Jarak total terkecil (efisiensi pergerakan teknisi CQI)
       return a.plan.totalDistance - b.plan.totalDistance;
     });
 
@@ -229,6 +247,21 @@ export default {
         const wsA = this.getWorkstationKey(a, labels);
         const wsB = this.getWorkstationKey(b, labels);
         return wsA.localeCompare(wsB);
+      });
+    } else if (strategy === "base_capacity_maximizer") {
+      // Prioritaskan mesin yang sesuai dengan CQI yang memiliki kapasitas 1 core murni lebih tinggi (seperti Pouch + Botol = 5)
+      const labels = mapData.labels || [];
+      machinesToAllocate.sort((a, b) => {
+        const isWwA = this.isWwMachine(a) ? 1 : 0;
+        const isWwB = this.isWwMachine(b) ? 1 : 0;
+        if (isWwA !== isWwB) return isWwB - isWwA;
+        const isOtA = this.isOtMachine(a) ? 1 : 0;
+        const isOtB = this.isOtMachine(b) ? 1 : 0;
+        if (isOtA !== isOtB) return isOtB - isOtA;
+        const lA = this.getMachineLine(a, labels);
+        const lB = this.getMachineLine(b, labels);
+        if (lA !== lB) return lB.localeCompare(lA); // Line C & B diutamakan
+        return (a.name || a.id || "").localeCompare(b.name || b.id || "");
       });
     }
 

@@ -68,20 +68,14 @@ export default {
           if (engine.isFarWorkstationForCqi(wsKey, minSlot.cqiNum)) continue;
 
           // Cek kontinuitas lorong: cegah CQI mengambil workstation yang melompati lorong orang lain (> 1 lorong)
-          const minWsNums = minSlot.machines
-            .map((m) =>
-              parseInt(
-                engine.getWorkstationKey(m, labels).replace(/\D/g, ""),
-                10,
-              ),
-            )
-            .filter((n) => !isNaN(n));
-          const candWsNum = parseInt(wsKey.replace(/\D/g, ""), 10);
-          if (minWsNums.length > 0 && !isNaN(candWsNum)) {
+          const minWsKeys = minSlot.machines.map((m) =>
+            engine.getWorkstationKey(m, labels).toUpperCase(),
+          );
+          if (minWsKeys.length > 0) {
             const minDiff = Math.min(
-              ...minWsNums.map((n) => Math.abs(n - candWsNum)),
+              ...minWsKeys.map((w) => engine.getWorkstationDistance(w, wsKey)),
             );
-            if (minDiff > 1) continue;
+            if (minDiff > 1 && minDiff < 999) continue;
           }
 
           const clusterValid = group.every((m) =>
@@ -110,9 +104,9 @@ export default {
           let transferScore =
             1000 - distToMin + (distToMax >= distToMin ? 500 : 0);
           if (prioIdxMin === 0) transferScore += 25000;
-          else if (prioIdxMin === 1) transferScore += 16000;
-          else if (prioIdxMin === 2) transferScore += 9000;
-          else if (prioIdxMin > 2)
+          else if (prioIdxMin === 1 || prioIdxMin === 2) transferScore += 18000;
+          else if (prioIdxMin === 3 || prioIdxMin === 4) transferScore += 9000;
+          else if (prioIdxMin > 4)
             transferScore += Math.max(1000, 5000 - prioIdxMin * 1000);
 
           if (transferScore > bestTransferScore) {
@@ -136,20 +130,14 @@ export default {
         for (const wsKey of wsKeysInMax) {
           if (engine.isFarWorkstationForCqi(wsKey, minSlot.cqiNum)) continue;
           const group = wsMapInMax[wsKey];
-          const candWsNum = parseInt(wsKey.replace(/\D/g, ""), 10);
-          const minWsNums = minSlot.machines
-            .map((m) =>
-              parseInt(
-                engine.getWorkstationKey(m, labels).replace(/\D/g, ""),
-                10,
-              ),
-            )
-            .filter((n) => !isNaN(n));
-          if (minWsNums.length > 0 && !isNaN(candWsNum)) {
+          const minWsKeys = minSlot.machines.map((m) =>
+            engine.getWorkstationKey(m, labels).toUpperCase(),
+          );
+          if (minWsKeys.length > 0) {
             const minDiff = Math.min(
-              ...minWsNums.map((n) => Math.abs(n - candWsNum)),
+              ...minWsKeys.map((w) => engine.getWorkstationDistance(w, wsKey)),
             );
-            if (minDiff > 1) continue;
+            if (minDiff > 1 && minDiff < 999) continue;
           }
 
           for (const m of group) {

@@ -372,6 +372,13 @@ export default {
             ),
           );
 
+          // Urutkan mesin berdasarkan jarak terdekat ke CQI
+          validMachines.sort((a, b) => {
+            const dA = engine.calculateDistance(a, slot.cqi, labels);
+            const dB = engine.calculateDistance(b, slot.cqi, labels);
+            return dA - dB;
+          });
+
           const availableSpace = baseCap - slot.machines.length;
           if (availableSpace > 0 && validMachines.length > 0) {
             const toAdd = validMachines.slice(0, availableSpace);
@@ -417,6 +424,13 @@ export default {
               labels,
             ),
           );
+
+          // Urutkan mesin berdasarkan jarak terdekat ke CQI (misal CQI 1 ambil mesin teratas 68-18L/16L)
+          validMachines.sort((a, b) => {
+            const dA = engine.calculateDistance(a, slot.cqi, labels);
+            const dB = engine.calculateDistance(b, slot.cqi, labels);
+            return dA - dB;
+          });
 
           const availableSpace = baseCap - slot.machines.length;
           if (availableSpace > 0 && validMachines.length > 0) {
@@ -512,6 +526,10 @@ export default {
     while (remaining.length > 0 && progressMade) {
       progressMade = false;
 
+      let bestMatch = null;
+      let highestScore = -Infinity;
+      let bestRemainingIdx = -1;
+
       for (let i = 0; i < remaining.length; i++) {
         const m = remaining[i];
         const mWs = engine.getWorkstationKey(m, labels).toUpperCase();
@@ -519,8 +537,6 @@ export default {
         const mLine = engine.getMachineLine(m, labels);
 
         // Cari kandidat slot yang eligible (belum mencapai maks 8 mesin dan lulus canAddMachineToSlot)
-        const candidates = [];
-
         slots.forEach((s) => {
           if (s.cqiNum === "19") return; // CQI 19 strictly 2 mesin OT
           const sRule = engine.getClusterCapacityRule(s);
@@ -546,25 +562,46 @@ export default {
 
             let score = 0;
 
-            // Kriteria 0: Meminimalkan Penggunaan Non-Core / Longshift
+            // Kriteria 0: MEMINIMALKAN PENGGUNAAN NON-CORE / LONGSHIFT SECARA AGRESIF
             const baseCap = engine.getBaseCoreCapacity(s);
             if (s.machines.length < baseCap) {
-              // Masih dalam kuota 1 core murni tanpa butuh NC/LS!
-              score += 2000;
+              // Masih dalam kuota 1 core murni tanpa butuh NC/LS sama sekali!
+              score += 15000;
             } else if (s.machines.length < sRule.max1Nc) {
               // Membutuhkan 1 NC/LS
-              score += 400;
+              score += 1500;
             } else {
-              // Membutuhkan 2 NC/LS
-              score -= 300;
+              // Membutuhkan 2 NC/LS (Sangat dihindari jika masih ada alternatif)
+              score -= 12000;
             }
 
             // Kriteria 1: CQI Priority Map
             const wsIdx = wsPrioList.indexOf(mWs);
-            if (wsIdx === 0) score += 3000;
-            else if (wsIdx === 1) score += 2000;
-            else if (wsIdx === 2) score += 1200;
-            else if (wsIdx > 2) score += Math.max(300, 1000 - wsIdx * 200);
+            if (wsIdx === 0) score += 4000;
+            else if (wsIdx === 1 || wsIdx === 2) score += 2600; // Tetangga langsung kiri/kanan
+            else if (wsIdx === 3 || wsIdx === 4) score += 1200;
+            else if (wsIdx > 4) score += Math.max(200, 800 - wsIdx * 150);
+
+            // Kriteria 1.1: Kedekatan Workstation Tetangga (Workstation Adjacency)
+            // Utamakan diambil oleh CQI tetangga / workstation tetangga (misal CQI 7 di 7A mengambil dari 8A atau 6A)!
+            // DILARANG melompati lorong/workstation jika ada workstation tetangga yang bisa diambil
+            if (s.machines.length > 0) {
+              const existingWsKeys = s.machines.map((sm) =>
+                engine.getWorkstationKey(sm, labels).toUpperCase(),
+              );
+              const minWsDiff = Math.min(
+                ...existingWsKeys.map((w) => engine.getWorkstationDistance(w, mWs)),
+              );
+              if (minWsDiff === 0) {
+                score += 3500; // Workstation yang sama persis
+              } else if (minWsDiff === 1) {
+                score += 2500; // Workstation tetangga langsung (adjacent)
+              } else if (minWsDiff === 2) {
+                score -= 3000; // Melompati 1 workstation
+              } else if (minWsDiff > 2 && minWsDiff < 999) {
+                score -= minWsDiff * 4000 + 5000; // Penalti sangat berat jika melompat jauh
+              }
+            }
 
             // Kriteria 2: CQI Cluster Priority
             const clusterIdx = clusterPrioList.indexOf(mCluster);
@@ -589,28 +626,26 @@ export default {
               score -= 400;
             }
 
-            // Kriteria 5: Jarak Fisik
+            // Kriteria 5: Jarak Fisik Aktual (Ambil mesin fisik terdekat ke CQI, misal CQI 1 ambil 68-18L dan CQI 11 ambil 70-16L)
             const dist = engine.calculateDistance(m, s.cqi, labels);
-            score -= dist * 15;
+            score -= dist * 100;
 
             // Kriteria 6: Distribusi Beban (Pilih yang beban mesinnya lebih rendah jika skor mendekati)
             score -= s.machines.length * 50;
 
-            candidates.push({ slot: s, score });
+            if (score > highestScore) {
+              highestScore = score;
+              bestMatch = { slot: s, machine: m };
+              bestRemainingIdx = i;
+            }
           }
         });
+      }
 
-        if (candidates.length > 0) {
-          // Pilih slot dengan skor kesesuaian tertinggi
-          candidates.sort((a, b) => b.score - a.score);
-          const bestSlot = candidates[0].slot;
-
-          // Tambahkan ke slot TANPA mengubah mesin yang sudah ada sebelumnya
-          bestSlot.machines.push(m);
-          remaining.splice(i, 1);
-          progressMade = true;
-          break; // restart loop untuk update status load
-        }
+      if (bestMatch) {
+        bestMatch.slot.machines.push(bestMatch.machine);
+        remaining.splice(bestRemainingIdx, 1);
+        progressMade = true;
       }
     }
 

@@ -188,7 +188,7 @@ export default {
       const count = slot.machines.length;
       const baseCap = engine.getBaseCoreCapacity(slot);
       const rule = engine.getClusterCapacityRule(slot);
-      let needed = rule.getNeededNc(count);
+      let needed = 0;
 
       if (slot.cqiNum === "24") {
         const wwIn24 = slot.machines.filter((m) => engine.isWwMachine(m)).length;
@@ -200,13 +200,13 @@ export default {
         } else {
           needed = count > baseCap ? 1 : 0;
         }
-      }
-
-      if (count > baseCap) {
+      } else {
         if (count > rule.max1Nc) {
-          needed = Math.max(needed, 2);
+          needed = 2;
+        } else if (count > baseCap) {
+          needed = 1;
         } else {
-          needed = Math.max(needed, 1);
+          needed = 0;
         }
       }
 

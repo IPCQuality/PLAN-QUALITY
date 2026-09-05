@@ -23,36 +23,36 @@ export default {
    * - Line B: Disesuaikan 2 atau 3 workstation terdekat per CQI
    */
   CQI_PRIORITY_MAP: {
-    // Line A (Tepat 2 workstation terdekat)
-    "cqi 1": ["1A", "0A"],
-    "cqi 2": ["2A", "1A"],
-    "cqi 3": ["3A", "2A"],
-    "cqi 4": ["4A", "3A"],
-    "cqi 5": ["5A", "4A"],
-    "cqi 6": ["6A", "5A"],
-    "cqi 7": ["7A", "6A"],
-    "cqi 8": ["8A", "7A"],
-    "cqi 9": ["9A", "8A"],
-    "cqi 10": ["10A", "9A"],
+    // Line A (Workstation utama dan tetangga terdekat kiri/kanan)
+    "cqi 1": ["1A", "0A", "2A"],
+    "cqi 2": ["2A", "1A", "3A", "0A"],
+    "cqi 3": ["3A", "2A", "4A", "1A", "5A"],
+    "cqi 4": ["4A", "3A", "5A", "2A", "6A"],
+    "cqi 5": ["5A", "4A", "6A", "3A", "7A"],
+    "cqi 6": ["6A", "5A", "7A", "4A", "8A"],
+    "cqi 7": ["7A", "6A", "8A", "5A", "9A"],
+    "cqi 8": ["8A", "7A", "9A", "6A", "10A"],
+    "cqi 9": ["9A", "8A", "10A", "7A"],
+    "cqi 10": ["10A", "9A", "8A", "7A"],
 
-    // Line B (2 atau 3 workstation terdekat)
-    "cqi 11": ["1B", "2B", "0B"],
-    "cqi 13": ["2B", "3B", "1B"],
-    "cqi 14": ["5B", "6B", "4B"],
-    "cqi 15": ["7B", "8B", "6B"],
-    "cqi 16": ["8B", "9B", "7B"],
-    "cqi 17": ["10B", "11B", "9B"],
+    // Line B (Workstation utama dan tetangga terdekat)
+    "cqi 11": ["1B", "0B", "2B", "3B"],
+    "cqi 13": ["2B", "3B", "1B", "4B", "0B"],
+    "cqi 21": ["4B", "3B", "5B", "0B", "2B", "1B"],
+    "cqi 14": ["5B", "6B", "4B", "7B", "3B"],
+    "cqi 22": ["5B", "6B", "4B", "7B", "3B"],
+    "cqi 23": ["6B", "5B", "7B", "4B", "8B"],
+    "cqi 15": ["7B", "8B", "6B", "9B", "5B"],
+    "cqi 25": ["7B", "8B", "6B", "9B", "5B"],
+    "cqi 16": ["8B", "9B", "7B", "10B", "6B"],
+    "cqi 17": ["10B", "11B", "9B", "8B"],
+    "cqi 12": ["10B", "11B", "9B", "8B"],
     "cqi 19": ["OT"],
-    "cqi 21": ["0B", "4B"],
-    "cqi 22": ["6B", "5B", "4B"],
-    "cqi 23": ["6B", "7B", "5B"],
     "cqi 24": ["WW", "1C", "2C"],
-    "cqi 25": ["7B", "8B", "9B"],
 
-     // Line C (2 atau 3 workstation terdekat)
-    "cqi 12": ["10B", "11B", "9B"],
-    "cqi 18": ["3C", "2C", "1C", "4C"],
-    "cqi 20": ["10C", "9C", "8C", "7C", "6C", "5C"],
+    // Line C (Workstation terdekat)
+    "cqi 18": ["3C", "2C", "1C", "4C", "5C"],
+    "cqi 20": ["10C", "9C", "8C", "7C", "6C", "5C", "4C"],
   },
 
   /**
@@ -130,17 +130,47 @@ export default {
       return true;
     }
 
-    // 0A, 1A ke CQI 6, 7 juga terlalu jauh
-    if ((ws === "0A" || ws === "1A") && (num === "6" || num === "7")) {
+    // 0A, 1A, 2A ke CQI 6, 7 juga terlalu jauh
+    if ((ws === "0A" || ws === "1A" || ws === "2A") && (num === "6" || num === "7")) {
       return true;
     }
 
-    // 9A, 10A ke CQI 4, 5 juga terlalu jauh
-    if ((ws === "9A" || ws === "10A") && (num === "4" || num === "5")) {
+    // 10A ke CQI 6, 7 juga terlalu jauh (melompati 8A dan 9A)
+    if (ws === "10A" && (num === "6" || num === "7")) {
+      return true;
+    }
+
+    // 0A, 8A, 9A, 10A ke CQI 4, 5 juga terlalu jauh
+    if ((ws === "0A" || ws === "8A" || ws === "9A" || ws === "10A") && (num === "4" || num === "5")) {
       return true;
     }
 
     return false;
+  },
+
+  /**
+   * Menghitung jarak logis/lorong antara dua workstation
+   * Contoh: 7A dan 8A -> 1 lorong (tetangga langsung)
+   * Contoh: 7A dan 9A -> 2 lorong (melompati 8A)
+   * @param {string} wsA - Workstation A (misal "7A")
+   * @param {string} wsB - Workstation B (misal "8A" atau "9A")
+   * @returns {number} Selisih nomor workstation jika line sama, atau 999 jika line beda
+   */
+  getWorkstationDistance(wsA, wsB) {
+    if (!wsA || !wsB) return 999;
+    const a = String(wsA).trim().toUpperCase();
+    const b = String(wsB).trim().toUpperCase();
+    if (a === b) return 0;
+
+    const lineA = a.replace(/\d+/g, "");
+    const lineB = b.replace(/\d+/g, "");
+    if (lineA !== lineB) return 999;
+
+    const numA = parseInt(a.replace(/\D/g, ""), 10);
+    const numB = parseInt(b.replace(/\D/g, ""), 10);
+    if (isNaN(numA) || isNaN(numB)) return 999;
+
+    return Math.abs(numA - numB);
   },
 
   /**
@@ -221,11 +251,13 @@ export default {
     if (wsList.length > 0) {
       const idx = wsList.findIndex((ws) => ws.toUpperCase() === mWs);
       if (idx === 0) {
-        bonus += 120;
-      } else if (idx === 1) {
-        bonus += 75;
-      } else if (idx > 1) {
-        bonus += 35;
+        bonus += 160; // Workstation utama/anchor
+      } else if (idx === 1 || idx === 2) {
+        bonus += 100; // Workstation tetangga langsung kiri/kanan
+      } else if (idx === 3 || idx === 4) {
+        bonus += 40; // Workstation lapis kedua
+      } else if (idx > 4) {
+        bonus += 15;
       }
     }
 
@@ -1034,11 +1066,8 @@ export default {
       };
     }
 
-    // 5. Cluster sosoft + SKLsct (2 cluster)
-    if (
-      (hasSosoft && hasSklsct) ||
-      (!hasSosoft && hasSklsct && !hasPouch && !hasBotol)
-    ) {
+    // 5. Cluster Sosoft + SKLsct (2 cluster)
+    if (hasSosoft && hasSklsct && !has12L && !hasPouch && !hasBotol) {
       return {
         type: "sosoft_sklsct",
         name: "Sosoft + SKLsct",
@@ -1059,11 +1088,8 @@ export default {
       };
     }
 
-    // 6. Cluster sosoft + 12Ljumbo (2 cluster)
-    if (
-      (hasSosoft && has12L) ||
-      (!hasSosoft && has12L && !hasPouch && !hasBotol)
-    ) {
+    // 6. Cluster Sosoft + 12Ljumbo (2 cluster)
+    if (hasSosoft && has12L && !hasSklsct && !hasPouch && !hasBotol) {
       return {
         type: "sosoft_12ljumbo",
         name: "Sosoft + 12Ljumbo",
@@ -1084,7 +1110,7 @@ export default {
       };
     }
 
-    // 7. Cluster SKLsct + 12Ljumbo (2 cluster)
+    // 7. Cluster SKLsct + 12Ljumbo (2 cluster, misal CQI 5 / CQI 25)
     if (hasSklsct && has12L && !hasSosoft && !hasPouch && !hasBotol) {
       return {
         type: "sklsct_12ljumbo",
@@ -1107,7 +1133,7 @@ export default {
     }
 
     // 8. Cluster 12Ljumbo + Pouch (2 cluster)
-    if (has12L && hasPouch && !hasSosoft) {
+    if (has12L && hasPouch && !hasSosoft && !hasSklsct && !hasBotol) {
       return {
         type: "12ljumbo_pouch",
         name: "12Ljumbo + Pouch",
@@ -1128,30 +1154,8 @@ export default {
       };
     }
 
-    // 6. Cluster 12Ljumbo + SKLsct (misal CQI 25)
-    if (has12L && hasSklsct && !hasSosoft) {
-      return {
-        type: "12ljumbo_sklsct",
-        name: "12Ljumbo + SKLsct",
-        maxCoreOnly: 4,
-        max1Nc: 6,
-        max2Nc: 8,
-        absoluteMax: 8,
-        getNeededNc: (count) => {
-          if (count > 6) return 2;
-          if (count > 4) return 1;
-          return 0;
-        },
-        getMaxAllowed: (ncCount) => {
-          if (ncCount >= 2) return 8;
-          if (ncCount >= 1) return 6;
-          return 4;
-        },
-      };
-    }
-
-    // 7. Cluster SKLsct + Pouch (misal CQI 10)
-    if (hasSklsct && hasPouch && !hasSosoft) {
+    // 9. Cluster SKLsct + Pouch (misal CQI 10)
+    if (hasSklsct && hasPouch && !hasSosoft && !has12L && !hasBotol) {
       return {
         type: "sklsct_pouch",
         name: "SKLsct + Pouch",
@@ -1172,8 +1176,8 @@ export default {
       };
     }
 
-    // 8. Cluster Botol + 12Ljumbo (Line B)
-    if (hasBotol && has12L && !hasSosoft) {
+    // 10. Cluster Botol + 12Ljumbo (Line B)
+    if (hasBotol && has12L && !hasSosoft && !hasSklsct && !hasPouch) {
       return {
         type: "botol_12ljumbo",
         name: "Botol + 12Ljumbo",
@@ -1194,8 +1198,8 @@ export default {
       };
     }
 
-    // 9. Cluster Botol + SKLsct (Line B)
-    if (hasBotol && hasSklsct && !hasSosoft) {
+    // 11. Cluster Botol + SKLsct (Line B)
+    if (hasBotol && hasSklsct && !hasSosoft && !has12L && !hasPouch) {
       return {
         type: "botol_sklsct",
         name: "Botol + SKLsct",
@@ -1542,12 +1546,35 @@ export default {
     let lRow = labelRow !== undefined ? labelRow : mRow <= 9 ? 9 : mCol >= 32 ? 13 : 11;
     let lCol = labelCol !== undefined ? labelCol : mCol;
 
+    const isMachineLineA = mRow <= 9 && mCol <= 30;
+    const isCqiLineA = cRow <= 4 && cCol <= 30;
+
+    // Jika CQI berada di Line A (posisi atas di header baris 3-4) dan mesin juga di Line A:
+    // Pergerakan bisa lewat lorong atas (baris header CQI) atau lorong tengah/bawah (baris 9), pilih jalur fisik terpendek!
+    if (isMachineLineA && isCqiLineA) {
+      const distTop = Math.abs(mRow - cRow) + Math.abs(mCol - cCol);
+      const distBottom = Math.abs(mRow - lRow) + Math.abs(mCol - cCol) + Math.abs(lRow - cRow);
+
+      if (distTop <= distBottom) {
+        const pts = [];
+        const add = (r, c) => {
+          if (pts.length === 0 || pts[pts.length - 1].row !== r || pts[pts.length - 1].col !== c) {
+            pts.push({ row: r, col: c });
+          }
+        };
+        add(mRow, mCol);
+        add(cRow, mCol);
+        add(cRow, cCol);
+        return pts;
+      }
+    }
+
     // Tentukan baris node label untuk target CQI (cLRow)
     const cqiLine = this.getCqiPrimaryLine(cqi);
     let cLRow = 9;
-    if (cqiLine === "LINE B") cLRow = 11;
-    else if (cqiLine === "LINE C" || cCol >= 32) cLRow = 13;
-    else if (cqiLine === "LINE A") cLRow = 9;
+    if (cqiLine === "LINE B" || (cRow >= 11 && cRow <= 16 && cCol <= 30)) cLRow = 11;
+    else if (cqiLine === "LINE C" || cCol >= 32 || cRow >= 13) cLRow = 13;
+    else if (cqiLine === "LINE A" || cRow <= 4) cLRow = 9;
     else {
       cLRow = cRow <= 10 ? 9 : cRow >= 13 ? 13 : 11;
     }

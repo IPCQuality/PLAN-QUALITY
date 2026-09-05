@@ -25,10 +25,31 @@ export default {
     // 1. Peta Prioritas CQI
     const prioIdx = wsPrioList.indexOf(wsKey);
     if (prioIdx === 0) score -= 22000;
-    else if (prioIdx === 1) score -= 15000;
-    else if (prioIdx === 2) score -= 9000;
-    else if (prioIdx > 2) score -= Math.max(2000, 5000 - prioIdx * 1000);
-    else score += 3500;
+    else if (prioIdx === 1 || prioIdx === 2) score -= 16000; // Tetangga langsung kiri/kanan
+    else if (prioIdx === 3 || prioIdx === 4) score -= 8000;
+    else if (prioIdx > 4) score -= Math.max(1000, 4000 - prioIdx * 1000);
+    else score += 4500;
+
+    // 1.1 Kedekatan Workstation Tetangga (Workstation Adjacency)
+    // Utamakan diambil oleh CQI tetangga / workstation tetangga!
+    // Dilarang keras melompati workstation jika ada workstation tetangga
+    if (slot.machines.length > 0) {
+      const existingWsKeys = slot.machines.map((sm) =>
+        engine.getWorkstationKey(sm, labels).toUpperCase(),
+      );
+      const minWsDiff = Math.min(
+        ...existingWsKeys.map((w) => engine.getWorkstationDistance(w, wsKey)),
+      );
+      if (minWsDiff === 0) {
+        score -= 12000; // Workstation sama
+      } else if (minWsDiff === 1) {
+        score -= 8000; // Workstation tetangga langsung
+      } else if (minWsDiff === 2) {
+        score += 8000; // Melompati 1 workstation
+      } else if (minWsDiff > 2 && minWsDiff < 999) {
+        score += minWsDiff * 10000 + 15000; // Penalti berat lompat jauh
+      }
+    }
 
     // 2. Keselarasan Line (Utamakan tetap di Line yang sama)
     if (cqiNum === "15") {
