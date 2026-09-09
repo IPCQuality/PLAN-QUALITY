@@ -4,1199 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Konfigurasi Manpower</title>
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="/pwa/manifest.json" />
     <meta name="theme-color" content="#0f172a" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="PlanMaker" />
+    <link rel="apple-touch-icon" href="/pwa/icons/apple-touch-icon.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <style>
-      :root {
-        --bg: #f1f5f9;
-        --surface: #ffffff;
-        --surface-hover: #f8fafc;
-        --border: #cbd5e1;
-        --border-subtle: #e2e8f0;
-        --text-main: #0f172a;
-        --text-muted: #475569;
-        --text-subtle: #94a3b8;
-        --accent: #2563eb;
-        --accent-hover: #1d4ed8;
-        --accent-bg: #eff6ff;
-        --success: #16a34a;
-        --success-hover: #15803d;
-        --success-bg: #dcfce7;
-        --warning: #d97706;
-        --warning-bg: #fef3c7;
-        --danger: #dc2626;
-        --danger-bg: #fee2e2;
-        --radius: 10px;
-        --radius-sm: 6px;
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow:
-          0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-        --shadow-lg:
-          0 10px 15px -3px rgba(0, 0, 0, 0.08),
-          0 4px 6px -4px rgba(0, 0, 0, 0.04);
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text-main);
-        font-family:
-          "Inter",
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          Roboto,
-          sans-serif;
-        -webkit-font-smoothing: antialiased;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-      }
-
-      /* Header */
-      .topbar {
-        height: 62px;
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 24px;
-        flex-shrink: 0;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-      }
-      .topbar-left {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-
-      .back-btn {
-        text-decoration: none;
-        color: #ffffff;
-        font-size: 12.5px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 16px;
-        border-radius: var(--radius-sm);
-        background: var(--accent);
-        border: 1px solid var(--accent);
-        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-      }
-      .back-btn:hover {
-        background: var(--accent-hover);
-        border-color: var(--accent-hover);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
-      }
-      .back-btn:active {
-        transform: translateY(0);
-      }
-
-      .topbar h1 {
-        font-size: 15px;
-        font-weight: 700;
-        margin: 0;
-        color: var(--text-main);
-        border-left: 2px solid var(--border);
-        padding-left: 16px;
-        letter-spacing: -0.01em;
-      }
-      .badge {
-        font-size: 10.5px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 3px 8px;
-        border-radius: 4px;
-        background: #e2e8f0;
-        color: var(--text-muted);
-        border: 1px solid var(--border-subtle);
-      }
-      .badge.ok {
-        background: var(--success-bg);
-        color: #15803d;
-        border-color: #bbf7d0;
-      }
-
-      /* Container */
-      .container {
-        max-width: 1400px;
-        width: 100%;
-        margin: 0 auto;
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-        flex: 1;
-      }
-
-      /* Realtime Dashboard */
-      .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 14px;
-      }
-      .stat-card {
-        background: var(--surface);
-        padding: 16px 18px;
-        border-radius: var(--radius);
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        transition:
-          transform 0.15s ease,
-          box-shadow 0.15s ease,
-          border-color 0.15s ease;
-      }
-      .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow);
-        border-color: #94a3b8;
-      }
-      .stat-card p {
-        margin: 0;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        letter-spacing: 0.5px;
-      }
-      .stat-card span {
-        margin-top: 8px;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--text-main);
-        line-height: 1.1;
-      }
-      .stat-card.highlight {
-        border-color: #93c5fd;
-        background: #eff6ff;
-      }
-      .stat-card.highlight span {
-        color: var(--accent);
-      }
-
-      /* Pengaturan Manpower 3 Kolom */
-      .settings-section-title {
-        font-size: 13px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .cols-3-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        align-items: start;
-      }
-      @media (max-width: 1024px) {
-        .cols-3-grid {
-          grid-template-columns: 1fr;
-        }
-        .topbar {
-          padding: 0 16px;
-          height: auto;
-          padding-top: 12px;
-          padding-bottom: 12px;
-          flex-wrap: wrap;
-          gap: 12px;
-        }
-      }
-
-      /* Kotak Kolom Manpower */
-      .config-box {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 18px;
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-      }
-      .box-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: 10px;
-        gap: 8px;
-      }
-      .box-header h3 {
-        margin: 0;
-        font-size: 12.5px;
-        font-weight: 700;
-        color: var(--text-main);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        flex: 1;
-      }
-      .count-badge {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 11px;
-        background: var(--bg);
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-weight: 700;
-        color: var(--text-main);
-        border: 1px solid var(--border);
-        flex-shrink: 0;
-      }
-
-      /* Styling Tombol Rolling */
-      .rolling-group {
-        display: flex;
-        align-items: center;
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        overflow: hidden;
-        flex-shrink: 0;
-      }
-      .rolling-group .icon-btn {
-        border: none;
-        border-radius: 0;
-        background: transparent;
-        height: 26px;
-        width: 26px;
-        display: grid;
-        place-items: center;
-        color: var(--text-muted);
-        font-size: 10px;
-        cursor: pointer;
-        transition:
-          background 0.15s ease,
-          color 0.15s ease;
-      }
-      .rolling-group .icon-btn:not(:last-child) {
-        border-right: 1px solid var(--border);
-      }
-      .rolling-group .icon-btn:hover {
-        background: #e2e8f0;
-        color: var(--text-main);
-      }
-
-      /* List container memanjang ke bawah */
-      .list-container {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .list-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        border: 1px solid var(--border-subtle);
-        background: var(--surface);
-        border-radius: var(--radius-sm);
-        transition:
-          border-color 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .list-item:hover {
-        border-color: #94a3b8;
-      }
-      .list-item:focus-within {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-      }
-      .list-item .num {
-        width: 22px;
-        text-align: right;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-subtle);
-        flex-shrink: 0;
-      }
-      .list-item input {
-        flex: 1;
-        min-width: 0;
-        background: transparent;
-        border: none;
-        outline: none;
-        color: var(--text-main);
-        font-size: 13px;
-        font-family: inherit;
-        font-weight: 500;
-      }
-      .list-item input::placeholder {
-        color: #cbd5e1;
-      }
-      .list-item select,
-      .qc-select {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        flex: 1;
-        min-width: 0;
-        padding: 6px 28px 6px 10px;
-        border-radius: var(--radius-sm);
-        border: 1px solid #cbd5e1;
-        background-color: #ffffff;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%25232563eb' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 8px center;
-        background-size: 13px 13px;
-        color: var(--text-main);
-        font-size: 13px;
-        font-family: inherit;
-        font-weight: 600;
-        outline: none;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .list-item select:hover,
-      .qc-select:hover {
-        border-color: #3b82f6;
-        background-color: #eff6ff;
-      }
-      .list-item select:focus,
-      .qc-select:focus {
-        border-color: var(--accent);
-        background-color: #ffffff;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-      }
-      .config-select,
-      .field-group select {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        width: 100%;
-        padding: 8px 32px 8px 12px;
-        border-radius: var(--radius-sm);
-        border: 1px solid #cbd5e1;
-        background-color: #ffffff;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%25232563eb' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 10px center;
-        background-size: 14px 14px;
-        color: var(--text-main);
-        font-size: 13px;
-        font-family: inherit;
-        font-weight: 600;
-        outline: none;
-        cursor: pointer;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-        transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-      }
-      .config-select:hover,
-      .field-group select:hover {
-        border-color: #3b82f6;
-        background-color: #eff6ff;
-      }
-      .config-select:focus,
-      .field-group select:focus {
-        border-color: var(--accent);
-        background-color: #ffffff;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-      }
-      select option,
-      .config-select option,
-      .qc-select option {
-        background-color: #ffffff;
-        color: #0f172a;
-        padding: 8px 12px;
-        font-size: 13px;
-        font-weight: 500;
-      }
-
-      .icon-btn {
-        width: 26px;
-        height: 26px;
-        display: grid;
-        place-items: center;
-        border: none;
-        background: transparent;
-        color: var(--text-muted);
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        transition: all 0.15s ease;
-        flex-shrink: 0;
-      }
-      .icon-btn:hover {
-        background: #e2e8f0;
-        color: var(--text-main);
-      }
-      .icon-btn.del:hover {
-        color: var(--danger);
-        background: #fee2e2;
-      }
-
-      .add-btn {
-        width: 100%;
-        padding: 8px;
-        border: 1px dashed var(--border);
-        background: #f8fafc;
-        color: var(--text-muted);
-        border-radius: var(--radius-sm);
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s ease;
-        text-align: center;
-        margin-top: 4px;
-      }
-      .add-btn:hover {
-        border-color: var(--accent);
-        color: var(--accent);
-        background: #eff6ff;
-      }
-
-      /* Sub-fields di kolom */
-      .sub-fields-group {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .field-group label {
-        display: block;
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--text-muted);
-        margin-bottom: 5px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .field-group input {
-        width: 100%;
-        padding: 8px 12px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--text-main);
-        font-size: 13px;
-        font-family: inherit;
-        outline: none;
-        transition:
-          border-color 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .field-group input:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-      }
-
-      /* Alert Box */
-      .alert-container {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .alert-card {
-        padding: 12px 16px;
-        border-radius: var(--radius-sm);
-        font-size: 13px;
-        font-weight: 500;
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        border: 1px solid transparent;
-        box-shadow: var(--shadow-sm);
-        line-height: 1.5;
-      }
-      .alert-card.info {
-        background: #eff6ff;
-        border-color: #bfdbfe;
-        color: #1e40af;
-      }
-      .alert-card.success {
-        background: var(--success-bg);
-        border-color: #bbf7d0;
-        color: #15803d;
-      }
-      .alert-card.warning {
-        background: #fef3c7;
-        border-color: #fde68a;
-        color: #92400e;
-      }
-      .alert-card.danger {
-        background: #fee2e2;
-        border-color: #fecaca;
-        color: #991b1b;
-      }
-
-      /* Output Planning Section */
-      .card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 24px;
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .card-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-      }
-      .card-head h2 {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--text-main);
-        letter-spacing: -0.01em;
-      }
-      .card-head p {
-        margin: 4px 0 0;
-        font-size: 13px;
-        color: var(--text-muted);
-      }
-      .card-head .meta {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 11.5px;
-        font-weight: 600;
-        color: var(--text-muted);
-        background: var(--bg);
-        padding: 4px 10px;
-        border-radius: 4px;
-        border: 1px solid var(--border);
-      }
-
-      #textOutput {
-        width: 100%;
-        height: 320px;
-        resize: vertical;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border);
-        background: #f8fafc;
-        padding: 16px;
-        color: #0f172a;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 13px;
-        line-height: 1.65;
-        outline: none;
-        transition:
-          border-color 0.15s ease,
-          background 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      #textOutput:focus {
-        border-color: var(--accent);
-        background: var(--surface);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-      }
-      .actions .btn {
-        flex: 1 1 auto;
-        min-width: 140px;
-      }
-
-      /* Drag & Drop Board Styles */
-      .plan-board-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-        gap: 16px;
-        margin-top: 12px;
-      }
-      .empty-board-notice {
-        grid-column: 1 / -1;
-        text-align: center;
-        padding: 32px;
-        color: var(--text-muted);
-        font-size: 13.5px;
-        background: #f8fafc;
-        border: 1px dashed var(--border);
-        border-radius: var(--radius-sm);
-      }
-      .slot-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 14px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        transition: all 0.2s ease;
-        box-shadow: var(--shadow-sm);
-      }
-      .slot-card.drag-over {
-        border-color: var(--accent);
-        background: #eff6ff;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-        transform: scale(1.01);
-      }
-      .slot-card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: 8px;
-      }
-      .slot-cqi-title {
-        font-weight: 700;
-        font-size: 14px;
-        color: var(--text-main);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .slot-badge-line {
-        font-size: 10px;
-        font-weight: 700;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background: #e2e8f0;
-        color: #334155;
-      }
-      .slot-capacity-badge {
-        font-size: 11px;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 12px;
-        background: var(--success-bg);
-        color: #15803d;
-      }
-      .slot-capacity-badge.warn {
-        background: var(--warning-bg);
-        color: #b45309;
-      }
-      .slot-capacity-badge.over {
-        background: var(--danger-bg);
-        color: #b91c1c;
-      }
-      .slot-manpower-box {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-      .person-pill {
-        font-size: 11.5px;
-        font-weight: 600;
-        padding: 3px 8px;
-        border-radius: 4px;
-        background: #f1f5f9;
-        border: 1px solid var(--border);
-        color: var(--text-main);
-        cursor: grab;
-        user-select: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-      }
-      .person-pill.core {
-        background: #eff6ff;
-        border-color: #bfdbfe;
-        color: #1d4ed8;
-      }
-      .person-pill.noncore {
-        background: #fef3c7;
-        border-color: #fde68a;
-        color: #b45309;
-      }
-      .person-pill.dragging {
-        opacity: 0.4;
-      }
-      .slot-machines-container {
-        min-height: 52px;
-        background: #f8fafc;
-        border: 1px dashed var(--border);
-        border-radius: var(--radius-sm);
-        padding: 8px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        align-content: flex-start;
-      }
-      .machine-pill {
-        font-size: 11.5px;
-        font-weight: 600;
-        font-family: "JetBrains Mono", monospace;
-        padding: 4px 8px;
-        border-radius: 6px;
-        background: var(--success-bg);
-        color: #166534;
-        border: 1px solid #bbf7d0;
-        cursor: grab;
-        user-select: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: transform 0.1s ease, box-shadow 0.1s ease;
-      }
-      .machine-pill:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-      }
-      .machine-pill:active {
-        cursor: grabbing;
-      }
-      .machine-pill.dragging {
-        opacity: 0.4;
-      }
-      .machine-remove-btn {
-        background: transparent;
-        border: none;
-        color: #991b1b;
-        font-size: 11px;
-        cursor: pointer;
-        padding: 0 2px;
-        line-height: 1;
-        border-radius: 2px;
-      }
-      .machine-remove-btn:hover {
-        background: #fee2e2;
-      }
-      .unassigned-pool-card {
-        border-color: #fde68a;
-        background: #fffbeb;
-        grid-column: 1 / -1;
-      }
-      .unassigned-pool-card .slot-machines-container {
-        background: #fef3c7;
-        border-color: #fcd34d;
-      }
-      .unassigned-pill {
-        background: #fef2f2;
-        color: #991b1b;
-        border-color: #fecaca;
-      }
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 9px 18px;
-        border-radius: var(--radius-sm);
-        font-size: 12.5px;
-        font-weight: 600;
-        cursor: pointer;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--text-main);
-        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        font-family: inherit;
-        box-shadow: var(--shadow-sm);
-      }
-      .btn:hover {
-        background: var(--surface-hover);
-        border-color: #94a3b8;
-        transform: translateY(-1px);
-      }
-      .btn:active {
-        transform: translateY(0);
-      }
-      .btn-primary {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: #ffffff;
-        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-      }
-      .btn-primary:hover {
-        background: var(--accent-hover);
-        border-color: var(--accent-hover);
-        color: #ffffff;
-        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
-      }
-      .btn-ok {
-        border-color: #86efac;
-        background: var(--success-bg);
-        color: #15803d;
-      }
-      .btn-ok:hover {
-        background: #bbf7d0;
-        border-color: #4ade80;
-        color: #166534;
-      }
-
-      /* Lock background scrolling when any modal is open */
-      html:has(.modal-overlay.active),
-      body:has(.modal-overlay.active),
-      html.modal-open,
-      body.modal-open {
-        overflow: hidden !important;
-        height: 100% !important;
-        touch-action: none;
-      }
-
-      /* Modal Resolusi Kapasitas Overflow */
-      .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.6);
-        backdrop-filter: blur(4px);
-        display: none;
-        place-items: center;
-        z-index: 1000;
-        padding: 20px;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-      }
-      .modal-overlay.active {
-        display: grid;
-      }
-      .modal-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        width: 100%;
-        max-width: 680px;
-        box-shadow: var(--shadow-lg);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        animation: modalIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      @keyframes modalIn {
-        from {
-          opacity: 0;
-          transform: scale(0.96) translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1) translateY(0);
-        }
-      }
-      .modal-header {
-        padding: 18px 24px;
-        border-bottom: 1px solid var(--border-subtle);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #fffbeb;
-      }
-      .modal-title-box {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .warning-badge-icon {
-        font-size: 24px;
-      }
-      .modal-title {
-        margin: 0;
-        font-size: 15.5px;
-        font-weight: 700;
-        color: #92400e;
-        letter-spacing: -0.01em;
-      }
-      .modal-subtitle {
-        margin: 2px 0 0;
-        font-size: 12px;
-        color: #b45309;
-      }
-      .modal-close-btn {
-        background: transparent;
-        border: none;
-        font-size: 18px;
-        color: var(--text-muted);
-        cursor: pointer;
-        border-radius: 4px;
-        width: 30px;
-        height: 30px;
-        display: grid;
-        place-items: center;
-        transition:
-          background 0.15s ease,
-          color 0.15s ease;
-      }
-      .modal-close-btn:hover {
-        background: rgba(0, 0, 0, 0.06);
-        color: var(--text-main);
-      }
-      .modal-body {
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        max-height: 65vh;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-      }
-      .overflow-info-banner {
-        background: #fef2f2;
-        border: 1px solid #fecaca;
-        border-radius: var(--radius-sm);
-        padding: 12px 16px;
-        font-size: 12.5px;
-        color: #991b1b;
-        line-height: 1.5;
-      }
-      .overflow-section-title {
-        font-size: 11.5px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        letter-spacing: 0.5px;
-        margin-top: 4px;
-      }
-      .overflow-machines-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 10px;
-      }
-      .uncovered-machine-pill {
-        background: #f8fafc;
-        border: 1px solid #cbd5e1;
-        border-radius: var(--radius-sm);
-        padding: 8px 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-      .uncovered-machine-pill .m-name {
-        font-weight: 700;
-        font-size: 13px;
-        color: #0f172a;
-      }
-      .uncovered-machine-pill .m-detail {
-        font-size: 11px;
-        color: #64748b;
-        font-family: "JetBrains Mono", monospace;
-      }
-      .overflow-slots-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-        gap: 10px;
-      }
-      .slot-capacity-pill {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        border-radius: var(--radius-sm);
-        padding: 8px 12px;
-        font-size: 12px;
-        color: #1e40af;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .modal-footer {
-        padding: 16px 24px;
-        border-top: 1px solid var(--border-subtle);
-        background: var(--bg);
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-
-      /* Modal Tambah Manpower & Master Selector */
-      .add-mp-grid {
-        display: grid;
-        grid-template-columns: 1.15fr 1fr;
-        gap: 22px;
-        align-items: stretch;
-      }
-      @media (max-width: 768px) {
-        .add-mp-grid {
-          grid-template-columns: 1fr;
-          gap: 18px;
-        }
-      }
-      .add-mp-form-col {
-        display: flex;
-        flex-direction: column;
-      }
-      .add-mp-master-col {
-        background: #f8fafc;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-      }
-      .unused-master-container {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        max-height: 290px;
-        overflow-y: auto;
-        padding-right: 4px;
-      }
-      .unused-master-card {
-        background: #ffffff;
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-sm);
-        padding: 8px 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        transition: all 0.15s ease;
-        cursor: pointer;
-      }
-      .unused-master-card:hover {
-        border-color: var(--accent);
-        background: #eff6ff;
-        box-shadow: var(--shadow-sm);
-      }
-      .unused-master-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 0;
-      }
-      .unused-master-name {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-main);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .unused-master-meta {
-        font-size: 11px;
-        color: var(--text-muted);
-        font-family: "JetBrains Mono", monospace;
-      }
-      .mp-id-badge {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 2px 6px;
-        border-radius: 4px;
-        flex-shrink: 0;
-      }
-      .mp-id-badge.core {
-        background: #eff6ff;
-        color: #1d4ed8;
-        border: 1px solid #bfdbfe;
-      }
-      .mp-id-badge.noncore {
-        background: #f0fdf4;
-        color: #15803d;
-        border: 1px solid #bbf7d0;
-      }
-      .mode-tab-btn {
-        flex: 1;
-        font-size: 12px;
-        font-weight: 600;
-        padding: 8px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        border: 1px solid var(--border);
-        background: #ffffff;
-        color: var(--text-muted);
-        transition: all 0.15s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-      }
-      .mode-tab-btn.active {
-        background: #eff6ff;
-        border-color: var(--accent);
-        color: var(--accent);
-        font-weight: 700;
-        box-shadow: 0 1px 3px rgba(37, 99, 235, 0.15);
-      }
-
-      /* Mobile Responsiveness */
-      @media (max-width: 768px) {
-        .topbar {
-          flex-direction: column;
-          align-items: stretch;
-          padding: 16px;
-          gap: 16px;
-        }
-        .topbar-left {
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-        .topbar > div:last-child {
-          flex-direction: column;
-          align-items: stretch !important;
-          gap: 12px !important;
-        }
-
-        .topbar > div:last-child .btn {
-          width: 100%;
-        }
-        .container {
-          padding: 16px;
-          gap: 16px;
-        }
-        .dashboard-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .card-head {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 12px;
-        }
-        .actions {
-          flex-direction: column;
-          width: 100%;
-        }
-        .actions .btn {
-          width: 100%;
-        }
-        .modal-card {
-          margin: 16px;
-          width: calc(100% - 32px);
-          max-height: 85vh;
-        }
-        .modal-header,
-        .modal-body,
-        .modal-footer {
-          padding: 16px;
-        }
-        .modal-footer {
-          flex-direction: column;
-        }
-        .modal-footer .btn {
-          width: 100%;
-          justify-content: center;
-        }
-        .box-header {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-        .rolling-group {
-          width: 100%;
-        }
-        .rolling-group .icon-btn {
-          flex: 1;
-        }
-        .stat-card {
-          padding: 12px;
-        }
-        .stat-card span {
-          font-size: 20px;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="css/config.css" />
   </head>
   <body>
     <header class="topbar">
@@ -1205,11 +27,17 @@
         <h1>Konfigurasi Planning</h1>
         <span class="badge" id="statusBadge">Siap Generate</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 16px">
-        <span id="offlineIndicator" style="display:none; font-size:11px; padding:4px 8px; background:#d97706; color:#fff; border-radius:4px; font-weight:700;">⚡ Offline</span>
-        <button id="pwaInstallBtn" class="btn btn-sm" style="display:none; background:#2563eb; color:#fff; border-color:#2563eb;" onclick="installPWA()">
-          📱 Install App
-        </button>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <!-- Switcher Antar Mode BrainAI -->
+        <div class="mode-switch-wrapper" id="modeSwitchWrapper" title="Pilih Mode BrainAI">
+          <button type="button" class="mode-toggle-btn active" id="btnMode1" onclick="switchBrainMode(1)" title="Gunakan BrainAI Mode 1 (Heuristik Terstandarisasi)">
+            <span class="mode-dot dot-mode1"></span>Mode 1 (Heuristik)
+          </button>
+          <button type="button" class="mode-toggle-btn" id="btnMode2" onclick="switchBrainMode(2)" title="Gunakan BrainAI Mode 2 (0 Kode Belum Terpikirkan)">
+            <span class="mode-dot dot-mode2"></span>Mode 2 (0 Kode)
+          </button>
+        </div>
+
         <button class="btn btn-primary" onclick="executePlan()">
           Generate Planning
         </button>
@@ -1707,13 +535,12 @@
       </div>
     </div>
 
-    <!-- Standalone synchronous bundle so BrainAI is immediately available -->
-    <script src="./src/brain/bundle.js"></script>
-
+    <!-- Native ES Module: Direct brain.js execution without bundle.js -->
     <script type="module">
-      import BrainAIModule from './src/brain/index.js';
-      if (!window.BrainAI) window.BrainAI = BrainAIModule;
-      var activeBrain = window.BrainAI || BrainAIModule;
+      import BrainAIModule from './src/brain.js';
+      window.BrainAI = BrainAIModule;
+      window.brain = BrainAIModule;
+      var activeBrain = BrainAIModule;
       if (activeBrain && typeof activeBrain.loadAllHistory === "function") {
         activeBrain.loadAllHistory()
           .then((data) => {
@@ -1736,17 +563,66 @@
             BrainAI = globalThis.BrainAI;
           }
         }
-        return BrainAI;
+        return BrainAI || window.BrainAI;
+      }
+
+      function updateModeUI(mode) {
+        const btn1 = document.getElementById("btnMode1");
+        const btn2 = document.getElementById("btnMode2");
+        const statusBadge = document.getElementById("statusBadge");
+
+        if (mode === 2 || mode === "2") {
+          if (btn1) btn1.classList.remove("active");
+          if (btn2) btn2.classList.add("active");
+          if (statusBadge) {
+            statusBadge.textContent = "Mode 2 (0 Kode)";
+            statusBadge.style.backgroundColor = "#eff6ff";
+            statusBadge.style.color = "#1d4ed8";
+            statusBadge.style.borderColor = "#93c5fd";
+          }
+        } else {
+          if (btn1) btn1.classList.add("active");
+          if (btn2) btn2.classList.remove("active");
+          if (statusBadge) {
+            statusBadge.textContent = "Mode 1 (Heuristik)";
+            statusBadge.style.backgroundColor = "#f0fdf4";
+            statusBadge.style.color = "#15803d";
+            statusBadge.style.borderColor = "#86efac";
+          }
+        }
+      }
+
+      function switchBrainMode(mode) {
+        const brain = getBrain();
+        if (brain && typeof brain.setMode === "function") {
+          brain.setMode(mode);
+        }
+        try {
+          localStorage.setItem("factory_brain_mode", String(mode));
+        } catch (e) {}
+        updateModeUI(mode);
       }
 
       let state = null;
       let currentPlan = [];
       let manpowerData = { core: [], nonCore: [], qcPassed: [] };
       let masterManpowerData = { core: [], nonCore: [] };
+      var planningMode = "standard";
+      window.planningMode = planningMode;
       let lastFinalConfig = null;
       let currentAddType = "core";
 
       window.onload = async () => {
+        // Inisialisasi Mode Switcher
+        try {
+          const savedMode = localStorage.getItem("factory_brain_mode");
+          const initMode = savedMode === "2" || savedMode === 2 ? 2 : 1;
+          const brain = getBrain();
+          if (brain && typeof brain.setMode === "function") {
+            brain.setMode(initMode);
+          }
+          updateModeUI(initMode);
+        } catch (e) {}
         try {
           const rawState = sessionStorage.getItem("planning_state");
           if (rawState) state = JSON.parse(rawState);
@@ -2983,13 +1859,13 @@
         let validationReport = BrainAI.validate(
           currentPlan,
           state.machines,
-          lastFinalConfig,
         );
         renderAlerts(validationReport.info, validationReport.violations);
 
         const planPayload = {
           version: 1,
           updatedAt: new Date().toISOString(),
+          mode: "standard",
           slots: JSON.parse(JSON.stringify(currentPlan)),
         };
         sessionStorage.setItem("active_planning", JSON.stringify(planPayload));
@@ -3000,7 +1876,7 @@
 
         generateTextOutput(lastFinalConfig);
         document.getElementById("statusBadge").innerText =
-          "Paksa Masuk CQI Sukses";
+          `Paksa Masuk CQI Sukses (Standar)`;
         document.getElementById("statusBadge").classList.add("ok");
 
         closeOverflowModal();
@@ -3013,7 +1889,7 @@
         }
       }
 
-      function applyOverflowResolution() {
+      function applyOverflowResolution(mode) {
         handlePaksaMasukCqi();
       }
 
@@ -3080,7 +1956,18 @@
               .join("\n");
           }
 
+          const brainEngine = getBrain() || window.BrainAI;
+          if (!brainEngine || typeof brainEngine.generatePlan !== "function") {
+            return alert("Engine AI (BrainAI) sedang dimuat. Silakan klik ulang '⚡ Buat Planning' dalam sesaat.");
+          }
+
+          const currentBrainMode = (brainEngine && typeof brainEngine.getMode === "function")
+            ? brainEngine.getMode()
+            : 1;
+
           let finalConfig = {
+            brainMode: currentBrainMode,
+            mode: planningMode,
             coreData: manpowerData.core,
             coreNames: coreNames,
             core: coreNames.length > 0 ? coreNames.length : 1,
@@ -3103,16 +1990,29 @@
           lastFinalConfig = finalConfig;
 
           const mapData = state ? state.mapData || {} : {};
-          const brainEngine = getBrain() || window.BrainAI;
-          if (!brainEngine || typeof brainEngine.generatePlan !== "function") {
-            return alert("Engine AI (BrainAI) sedang dimuat. Silakan klik ulang '⚡ Buat Planning' dalam sesaat.");
-          }
           currentPlan = brainEngine.generatePlan(
             machinesToUse,
             cqisToUse,
             finalConfig,
             mapData,
           );
+
+          if (
+            (!currentPlan || currentPlan.length === 0) &&
+            brainEngine.getMode &&
+            brainEngine.getMode() === 2
+          ) {
+            renderAlerts(
+              [
+                "INFO: BrainAI Mode 2 (0 Kode) sedang aktif. Mode ini berstatus kanvas bersih siap diisi logika/arsitektur baru dari 0.",
+              ],
+              [
+                "Mode 2 belum menghasilkan slot alokasi karena berstatus '0 kode belum terpikirkan'. Anda dapat beralih ke Mode 1 (Heuristik) di header untuk menjalankan alokasi operasional aktif.",
+              ],
+            );
+            return;
+          }
+
           let validationReport = brainEngine.validate(
             currentPlan,
             machinesToUse,
@@ -3128,6 +2028,7 @@
           const planPayload = {
             version: 1,
             updatedAt: new Date().toISOString(),
+            mode: "standard",
             slots: JSON.parse(JSON.stringify(currentPlan)),
             uncoveredMachines: uncovered,
           };
@@ -3147,7 +2048,7 @@
 
           const statusBadge = document.getElementById("statusBadge");
           if (statusBadge) {
-            statusBadge.innerText = "Generated Sukses";
+            statusBadge.innerText = `Generated Sukses`;
             statusBadge.classList.add("ok");
           }
 
@@ -3304,6 +2205,7 @@
         let report = BrainAI.validate(
           currentPlan,
           state.machines,
+          planningMode,
         );
         renderAlerts(report.info, report.violations);
         if (!report.valid)
@@ -3619,6 +2521,7 @@
         const report = BrainAI.validate(
           activeSlots,
           state.machines,
+          planningMode,
         );
         if (!report.valid) {
           renderAlerts(report.info, report.violations);
@@ -3682,6 +2585,7 @@
               timestamp: now.toISOString(),
               total_cqi: structuredPlanning.length,
               total_machines_running: allRunning.length,
+              mode: planningMode || 1,
             },
             planning: structuredPlanning,
             pairs: pairsList,
@@ -3748,7 +2652,7 @@
           const cqiName = slot.cqi.name || `CQI-${slotIdx + 1}`;
           const lineName = BrainAI.getCqiPrimaryLine ? BrainAI.getCqiPrimaryLine(slot.cqi) : "LINE";
           const macCount = slot.machines.length;
-          const maxCapacity = slot.maxAllowedMachines || (BrainAI.getClusterCapacityRule ? BrainAI.getClusterCapacityRule(slot).absoluteMax : 8);
+          const maxCapacity = slot.maxAllowedMachines || 10;
           
           let capClass = "slot-capacity-badge";
           if (macCount > maxCapacity) capClass += " over";
@@ -3993,6 +2897,7 @@
         const planPayload = {
           version: 1,
           updatedAt: new Date().toISOString(),
+          mode: "standard",
           slots: JSON.parse(JSON.stringify(currentPlan)),
           uncoveredMachines: uncovered,
         };
@@ -4009,54 +2914,19 @@
         executePlan();
       }
 
-      // ==========================================
-      // PWA SERVICE WORKER & OFFLINE MANAGER
-      // ==========================================
+      // Unregister any existing Service Worker and clean PWA caches
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('[PWA] Service Worker Registered:', reg.scope))
-            .catch(err => console.log('[PWA] Service Worker registration failed:', err));
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (let reg of registrations) {
+            reg.unregister();
+          }
         });
       }
-
-      let deferredPWAInstallPrompt = null;
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPWAInstallPrompt = e;
-        const btn = document.getElementById('pwaInstallBtn');
-        if (btn) btn.style.display = 'inline-flex';
-      });
-
-      function installPWA() {
-        if (deferredPWAInstallPrompt) {
-          deferredPWAInstallPrompt.prompt();
-          deferredPWAInstallPrompt.userChoice.then((choice) => {
-            if (choice.outcome === 'accepted') {
-              const btn = document.getElementById('pwaInstallBtn');
-              if (btn) btn.style.display = 'none';
-            }
-            deferredPWAInstallPrompt = null;
-          });
-        }
+      if ('caches' in window) {
+        caches.keys().then((keys) => {
+          keys.forEach((key) => caches.delete(key));
+        });
       }
-
-      function updateOnlineStatus() {
-        const badge = document.getElementById('offlineIndicator');
-        if (badge) {
-          badge.style.display = navigator.onLine ? 'none' : 'inline-block';
-        }
-      }
-
-      window.addEventListener('online', updateOnlineStatus);
-      window.addEventListener('offline', updateOnlineStatus);
-      document.addEventListener('DOMContentLoaded', updateOnlineStatus);
-
-      // Backward compatibility stub for setPlanningMode
-      function setPlanningMode(mode) {
-        return mode;
-      }
-      window.setPlanningMode = setPlanningMode;
 
       // Explicit global exports for inline event handlers
       window.executePlan = executePlan;
@@ -4089,7 +2959,6 @@
       window.handleBoardDrop = handleBoardDrop;
       window.removeMachineFromSlot = removeMachineFromSlot;
       window.resetBoardToAutoGenerated = resetBoardToAutoGenerated;
-      window.installPWA = installPWA;
     </script>
   </body>
 </html>
