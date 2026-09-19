@@ -643,13 +643,17 @@ export const rule = {
 
     if (qcList.length > 0) {
       qcList.forEach((qc, i) => {
-        const name = typeof qc === "object" ? (qc.name || qc.id) : qc;
-        out += `${i + 1}. ${name}\n`;
+        let name = typeof qc === "object" ? (qc.name || qc.id) : qc;
+        name = String(name || "").replace(/^\d+[\.\)\-:]\s*/, "").trim();
+        if (name) {
+          out += `${i + 1}. ${name}\n`;
+        }
       });
     } else {
       const defaultQc = ["M. Udin", "Alief", "Jalu", "Andi", "Yaya"];
       defaultQc.forEach((qc, i) => {
-        out += `${i + 1}. ${qc}\n`;
+        const name = String(qc || "").replace(/^\d+[\.\)\-:]\s*/, "").trim();
+        out += `${i + 1}. ${name}\n`;
       });
     }
 

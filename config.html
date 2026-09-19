@@ -21,33 +21,28 @@
     <link rel="stylesheet" href="css/config.css" />
   </head>
   <body>
+    <div class="toast-container" id="toastContainer"></div>
     <header class="topbar">
-      <div class="topbar-left">
-        <a class="back-btn" href="index.html">Kembali ke Map</a>
-        <h1>Konfigurasi Planning</h1>
-        <span class="badge" id="statusBadge" style="background-color: #f0fdf4; color: #15803d; border-color: #86efac;">BrainAI Siap</span>
-      </div>
+      <nav class="stepper-nav header-stepper" aria-label="Navigasi Tahapan Planning">
+        <div class="step-pill active" id="stepPill1" onclick="goToStep(1)" title="Langkah 1: Konfigurasi Manpower">
+          <span class="step-num">1</span>
+          <span class="step-title">Manpower</span>
+        </div>
+        <span class="step-arrow" aria-hidden="true">→</span>
+        <div class="step-pill" id="stepPill2" onclick="goToStep(2)" title="Langkah 2: Dashboard Alokasi Interaktif">
+          <span class="step-num">2</span>
+          <span class="step-title">Dashboard</span>
+        </div>
+        <span class="step-arrow" aria-hidden="true">→</span>
+        <div class="step-pill" id="stepPill3" onclick="goToStep(3)" title="Langkah 3: Output Planning Final">
+          <span class="step-num">3</span>
+          <span class="step-title">Output</span>
+        </div>
+      </nav>
+      <span id="statusBadge" style="display:none"></span>
     </header>
 
     <div class="container">
-      <!-- STEPPER NAVIGATION BAR -->
-      <nav class="stepper-nav">
-        <div class="step-pill active" id="stepPill1" onclick="goToStep(1)">
-          <span class="step-num">1</span>
-          <span class="step-title">Konfigurasi Manpower</span>
-        </div>
-        <div class="step-divider"></div>
-        <div class="step-pill" id="stepPill2" onclick="goToStep(2)">
-          <span class="step-num">2</span>
-          <span class="step-title">Papan Alokasi Interaktif</span>
-        </div>
-        <div class="step-divider"></div>
-        <div class="step-pill" id="stepPill3" onclick="goToStep(3)">
-          <span class="step-num">3</span>
-          <span class="step-title">Output Planning Final</span>
-        </div>
-      </nav>
-
       <!-- LANGKAH 1: KONFIGURASI MANPOWER -->
       <div id="stepSection1" class="step-content">
         <section class="dashboard-grid">
@@ -218,9 +213,11 @@
         <div id="alertContainer" class="alert-container"></div>
 
         <div class="step-footer-actions">
-          <div></div>
+          <a class="btn btn-map-danger btn-lg" href="index.html">
+            MAP
+          </a>
           <button class="btn btn-primary btn-lg" onclick="handleStep1Lanjut()">
-            Lanjut ke Papan Alokasi
+            NEXT
           </button>
         </div>
       </div>
@@ -241,6 +238,9 @@
             </div>
           </div>
           
+          <!-- STICKY UNASSIGNED POOL DOCK -->
+          <div id="unassignedStickyDock" class="unassigned-sticky-dock"></div>
+
           <div id="interactivePlanBoard" class="plan-board-grid">
             <div class="empty-board-notice">
               Klik "Generate Planning" atau "Lanjut" untuk menampilkan papan alokasi interaktif.
@@ -250,10 +250,10 @@
 
         <div class="step-footer-actions">
           <button class="btn btn-secondary btn-lg" onclick="goToStep(1)">
-            Kembali ke Konfigurasi
+            BACK
           </button>
           <button class="btn btn-primary btn-lg" onclick="handleStep2Lanjut()">
-            Lanjut ke Output Planning
+            NEXT
           </button>
         </div>
       </div>
@@ -276,7 +276,7 @@
             oninput="updateMeta()"
           ></textarea>
           <div class="actions">
-            <button class="btn btn-ok" onclick="validateAndExport()">
+            <button class="btn btn-ok" id="btnValidateCopy" onclick="validateAndExport()">
               Validasi dan Salin
             </button>
             <button
@@ -295,13 +295,11 @@
           </div>
         </section>
 
-        <div class="step-footer-actions" style="margin-top: 20px;">
+        <div class="step-footer-actions">
           <button class="btn btn-secondary btn-lg" onclick="goToStep(2)">
-            Kembali ke Papan Alokasi
+            BACK
           </button>
-          <button class="btn btn-secondary btn-lg" onclick="goToStep(1)">
-            Edit Konfigurasi Manpower
-          </button>
+          <div></div>
         </div>
       </div>
     </div>
@@ -1869,9 +1867,11 @@
         );
 
         generateTextOutput(lastFinalConfig);
-        document.getElementById("statusBadge").innerText =
-          `Paksa Masuk CQI Sukses (Standar)`;
-        document.getElementById("statusBadge").classList.add("ok");
+        const sb = document.getElementById("statusBadge");
+        if (sb) {
+          sb.innerText = `Paksa Masuk CQI Sukses (Standar)`;
+          sb.classList.add("ok");
+        }
 
         closeOverflowModal();
       }
@@ -1931,8 +1931,11 @@
             .map((i) => (typeof i === "object" ? i.name : i))
             .filter((n) => n && n.trim() !== "");
           let qcNames = manpowerData.qcPassed
-            .map((i) => (typeof i === "object" ? i.name : i))
-            .filter((n) => n && n.trim() !== "");
+            .map((i) => {
+              let n = typeof i === "object" ? i.name : i;
+              return String(n || "").replace(/^\d+[\.\)\-:]\s*/, "").trim();
+            })
+            .filter((n) => n && n !== "");
           let lsCount =
             parseInt(
               document.getElementById("ncLongshiftCount")
@@ -1940,15 +1943,6 @@
                 : 0,
             ) || 0;
           let longshiftNames = Array.from({ length: lsCount }, () => "(LS)");
-
-          let qcPassedFormatted = "";
-          if (qcNames.length === 1) {
-            qcPassedFormatted = qcNames[0];
-          } else if (qcNames.length > 1) {
-            qcPassedFormatted = qcNames
-              .map((n, i) => `${i + 1}. ${n}`)
-              .join("\n");
-          }
 
           const brainEngine = getBrain() || window.BrainAI;
           if (!brainEngine || typeof brainEngine.generatePlan !== "function") {
@@ -1966,7 +1960,8 @@
             longshiftData: longshiftNames,
             longshiftNames: longshiftNames,
             longshift: lsCount,
-            qcPassed: qcPassedFormatted,
+            qcPassed: qcNames,
+            qcPassedData: qcNames,
             milStd: (document.getElementById("milStdSelect")
               ? document.getElementById("milStdSelect").value
               : localStorage.getItem("milStd_val") || ""
@@ -2176,26 +2171,116 @@
         }
       }
 
-      function validateAndExport() {
-        if (!currentPlan || currentPlan.length === 0)
-          return alert("Perencanaan belum tersedia. Silakan buat perencanaan terlebih dahulu.");
-        let report = BrainAI.validate(
-          currentPlan,
-          state.machines,
-          lastFinalConfig || planningMode,
-        );
-        renderAlerts(report.info, report.violations);
-        if (!report.valid)
-          return alert("Perencanaan belum memenuhi beberapa aturan alokasi. Silakan periksa catatan saran di bagian bawah layar untuk penyesuaian.");
-        currentPlan.forEach((slot) =>
-          slot.machines.forEach((m) =>
-            BrainAI.recordHistory(m.id, slot.cqi.id, true),
-          ),
-        );
-        navigator.clipboard.writeText(
-          document.getElementById("textOutput").value,
-        );
-        alert("Perencanaan siap dan telah berhasil disalin ke papan klip (clipboard).");
+      function showToast(msg, type = "info") {
+        const container = document.getElementById("toastContainer");
+        if (!container) return;
+        const t = document.createElement("div");
+        t.className = `toast ${type}`;
+        t.innerHTML = `<span>${type === "success" ? "✓" : type === "warning" ? "⚠️" : "ℹ️"}</span> <span>${msg}</span>`;
+        container.appendChild(t);
+        setTimeout(() => {
+          if (t.parentNode) t.remove();
+        }, 3000);
+      }
+
+      async function copyTextToClipboard(text) {
+        if (!text) return false;
+        let success = false;
+        if (navigator.clipboard && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(text);
+            success = true;
+          } catch (e) {
+            success = false;
+          }
+        }
+        if (!success) {
+          try {
+            const ta = document.getElementById("textOutput");
+            if (ta) {
+              ta.focus();
+              ta.select();
+              ta.setSelectionRange(0, 99999);
+              success = document.execCommand("copy");
+            }
+          } catch (e) {
+            success = false;
+          }
+        }
+        return success;
+      }
+
+      async function validateAndExport() {
+        const textElem = document.getElementById("textOutput");
+        let textVal = textElem ? textElem.value.trim() : "";
+
+        if (!currentPlan || currentPlan.length === 0) {
+          if (textVal) {
+            const copied = await copyTextToClipboard(textVal);
+            if (copied) {
+              showToast("Teks perencanaan berhasil disalin ke clipboard!", "success");
+            } else {
+              showToast("Silakan salin teks perencanaan secara manual.", "warning");
+            }
+            return;
+          }
+          showToast("Perencanaan belum tersedia. Silakan buat perencanaan terlebih dahulu.", "warning");
+          return;
+        }
+
+        const brainEngine = getBrain() || window.BrainAI;
+        let report = { valid: true, info: [], violations: [] };
+        if (brainEngine && typeof brainEngine.validate === "function") {
+          report = brainEngine.validate(
+            currentPlan,
+            state ? state.machines : [],
+            lastFinalConfig || planningMode,
+          );
+          if (typeof renderAlerts === "function") {
+            renderAlerts(report.info, report.violations);
+          }
+          if (typeof renderInteractiveAlerts === "function") {
+            renderInteractiveAlerts();
+          }
+        }
+
+        if (brainEngine && typeof brainEngine.recordHistory === "function") {
+          currentPlan.forEach((slot) => {
+            (slot.machines || []).forEach((m) => {
+              brainEngine.recordHistory(m.id, slot.cqi ? slot.cqi.id : "", true);
+            });
+          });
+        }
+
+        if (!textVal && lastFinalConfig) {
+          generateTextOutput(lastFinalConfig);
+          textVal = (document.getElementById("textOutput")?.value || "").trim();
+        }
+
+        const copied = await copyTextToClipboard(textVal || document.getElementById("textOutput")?.value || "");
+
+        const btn = document.getElementById("btnValidateCopy");
+        if (btn) {
+          const originalText = btn.innerText;
+          btn.innerText = "✓ Berhasil Disalin!";
+          btn.style.background = "#15803d";
+          btn.style.color = "#ffffff";
+          setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.background = "";
+            btn.style.color = "";
+          }, 2200);
+        }
+
+        if (copied) {
+          if (!report.valid && report.violations && report.violations.length > 0) {
+            showToast("Tersalin ke clipboard! (Terdapat catatan validasi alokasi)", "warning");
+          } else {
+            showToast("Perencanaan tervalidasi dan berhasil disalin ke clipboard!", "success");
+          }
+        } else {
+          showToast("Perencanaan siap! Silakan salin teks dari kotak output.", "info");
+        }
       }
 
       function shareWA(customPhone) {
@@ -2738,8 +2823,148 @@
         return map;
       }
 
+      let isUnassignedDockCollapsed = false;
+      function toggleUnassignedDock() {
+        isUnassignedDockCollapsed = !isUnassignedDockCollapsed;
+        const dockEl = document.getElementById("unassignedStickyDock");
+        if (dockEl) {
+          dockEl.classList.toggle("is-collapsed", isUnassignedDockCollapsed);
+          const btn = dockEl.querySelector(".dock-toggle-btn");
+          if (btn) btn.innerHTML = isUnassignedDockCollapsed ? "Buka ▼" : "Ciutkan ▲";
+        }
+      }
+
+      function renderUnassignedDock(unassignedMacs, sisaMp) {
+        const dock = document.getElementById("unassignedStickyDock");
+        if (!dock) return;
+
+        const totalSisaMp = (sisaMp.core || []).length + (sisaMp.nonCore || []).length + (sisaMp.longshift || []).length;
+        const hasUnassigned = unassignedMacs.length > 0 || totalSisaMp > 0;
+
+        if (!hasUnassigned) {
+          dock.className = "unassigned-sticky-dock is-empty";
+          dock.innerHTML = `
+            <div class="dock-container empty-state"
+                 data-slot-idx="-1"
+                 ondragover="handleBoardDragOver(event)"
+                 ondragleave="handleBoardDragLeave(event)"
+                 ondrop="handleBoardDrop(event, -1)">
+              <div class="dock-header all-good">
+                <div class="dock-title-group">
+                  <span class="dock-check-badge">✓</span>
+                  <span class="dock-title" style="color: #166534;">Unassigned Pool: Semua Mesin &amp; Manpower Teralokasi Penuh!</span>
+                </div>
+                <div class="dock-actions">
+                  <span class="dock-drop-hint" style="color: #166534; border-color: #86efac;">Drop ke sini untuk unassign</span>
+                </div>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        dock.className = `unassigned-sticky-dock ${isUnassignedDockCollapsed ? "is-collapsed" : ""}`;
+
+        const unassignedWsGroups = groupMachinesByWs(unassignedMacs);
+        const unassignedWsKeys = Object.keys(unassignedWsGroups).sort();
+
+        dock.innerHTML = `
+          <div class="dock-container"
+               data-slot-idx="-1"
+               ondragover="handleBoardDragOver(event)"
+               ondragleave="handleBoardDragLeave(event)"
+               ondrop="handleBoardDrop(event, -1)">
+            
+            <div class="dock-header" onclick="toggleUnassignedDock()" title="Klik untuk ciutkan atau buka pool sisa">
+              <div class="dock-title-group">
+                <span class="dock-badge-pulse"></span>
+                <span class="dock-title">Unassigned Pool (Sisa Manpower &amp; Mesin Belum Tercover)</span>
+                <div class="dock-badges">
+                  ${unassignedMacs.length > 0 ? `<span class="dock-count-badge mac">${unassignedMacs.length} Mesin</span>` : ""}
+                  ${totalSisaMp > 0 ? `<span class="dock-count-badge mp">${totalSisaMp} Manpower</span>` : ""}
+                </div>
+              </div>
+              <div class="dock-actions" onclick="event.stopPropagation()">
+                <span class="dock-drop-hint">Drop ke sini untuk unassign</span>
+                <button class="dock-toggle-btn" type="button" onclick="toggleUnassignedDock()" aria-label="Toggle Dock">
+                  ${isUnassignedDockCollapsed ? "Buka ▼" : "Ciutkan ▲"}
+                </button>
+              </div>
+            </div>
+
+            <div class="dock-body">
+              ${totalSisaMp > 0 ? `
+                <div class="dock-mp-section">
+                  <div class="dock-section-label">Manpower Tersedia:</div>
+                  <div class="dock-mp-pills">
+                    ${(sisaMp.core || []).map((c, idx) => `
+                      <span class="person-pill core" 
+                            draggable="true" 
+                            ondragstart="handlePersonDragStart(event, -1, 'coreNames', '${c}', ${idx})"
+                            ondragend="handleDragEnd(event)">
+                        <span class="person-id-mono">${c}</span> <small class="person-role-tag">(Core)</small>
+                      </span>
+                    `).join("")}
+
+                    ${(sisaMp.nonCore || []).map((nc, idx) => `
+                      <span class="person-pill noncore" 
+                            draggable="true" 
+                            ondragstart="handlePersonDragStart(event, -1, 'nonCore', '${nc}', ${idx})"
+                            ondragend="handleDragEnd(event)">
+                        <span class="person-id-mono">${nc}</span> <small class="person-role-tag">(NC)</small>
+                      </span>
+                    `).join("")}
+
+                    ${(sisaMp.longshift || []).map((ls, idx) => `
+                      <span class="person-pill noncore ls-pill" 
+                            draggable="true" 
+                            ondragstart="handlePersonDragStart(event, -1, 'longshift', '${ls}', ${idx})"
+                            ondragend="handleDragEnd(event)">
+                        <span class="person-id-mono">${ls}</span> <small class="person-role-tag">(LS)</small>
+                      </span>
+                    `).join("")}
+                  </div>
+                </div>
+              ` : ""}
+
+              ${unassignedMacs.length > 0 ? `
+                <div class="dock-mac-section">
+                  <div class="dock-section-label">Mesin Belum Tercover:</div>
+                  <div class="dock-ws-grid">
+                    ${unassignedWsKeys.map((wsKey) => `
+                      <div class="dock-ws-box">
+                        <div class="dock-ws-header">
+                          <span class="dock-ws-title">LINE ${wsKey}</span>
+                          <span class="dock-ws-count">${unassignedWsGroups[wsKey].length}</span>
+                        </div>
+                        <div class="dock-ws-machines">
+                          ${unassignedWsGroups[wsKey].map((m) => {
+                            const label = m.name || m.id;
+                            return `
+                              <span class="machine-pill unassigned-pill" 
+                                    draggable="true"
+                                    data-machine-id="${m.id || label}"
+                                    ondragstart="handleMachineDragStart(event, -1, '${m.id || label}')"
+                                    ondragend="handleDragEnd(event)">
+                                <span class="machine-id-mono">${label}</span>
+                              </span>
+                            `;
+                          }).join("")}
+                        </div>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+              ` : ""}
+            </div>
+
+          </div>
+        `;
+      }
+
       function renderInteractiveBoard() {
         const board = document.getElementById("interactivePlanBoard");
+        const dock = document.getElementById("unassignedStickyDock");
         if (!board) return;
 
         if (!currentPlan || !Array.isArray(currentPlan) || currentPlan.length === 0) {
@@ -2748,6 +2973,7 @@
               Klik "Lanjut ke Papan Alokasi Interaktif" untuk menampilkan papan alokasi.
             </div>
           `;
+          if (dock) dock.innerHTML = "";
           const metaEl = document.getElementById("boardMeta");
           if (metaEl) metaEl.innerText = "Belum digenerate";
           return;
@@ -2760,17 +2986,40 @@
           const cqiName = slot.cqi.name || `CQI-${slotIdx + 1}`;
           const lineName = BrainAI.getCqiPrimaryLine ? BrainAI.getCqiPrimaryLine(slot.cqi) : "LINE";
           const macCount = slot.machines.length;
-          const maxCapacity = slot.maxAllowedMachines || 10;
+          const maxCapacity = 8; // Standar batas kapasitas normal adalah 8 mesin
           
-          let capClass = "slot-capacity-badge";
-          if (macCount > maxCapacity) capClass += " over";
-          else if (macCount === maxCapacity) capClass += " warn";
+          let capStatus = "under";
+          let capBadgeText = `${macCount}/${maxCapacity} Under`;
+          let capBadgeClass = "cap-under";
+
+          if (macCount === 0) {
+            capStatus = "empty";
+            capBadgeText = `0/${maxCapacity} Kosong`;
+            capBadgeClass = "cap-empty";
+          } else if (macCount >= 1 && macCount <= 5) {
+            capStatus = "under";
+            capBadgeText = `${macCount}/${maxCapacity} Under`;
+            capBadgeClass = "cap-under";
+          } else if (macCount >= 6 && macCount <= 7) {
+            capStatus = "optimal";
+            capBadgeText = `${macCount}/${maxCapacity} Optimal`;
+            capBadgeClass = "cap-optimal";
+          } else if (macCount === 8) {
+            capStatus = "max";
+            capBadgeText = `${macCount}/${maxCapacity} At Capacity`;
+            capBadgeClass = "cap-max";
+          } else {
+            // > 8
+            capStatus = "overload";
+            capBadgeText = `${macCount}/${maxCapacity} Overload!`;
+            capBadgeClass = "cap-overload";
+          }
 
           const wsGroups = groupMachinesByWs(slot.machines);
           const wsKeys = Object.keys(wsGroups).sort();
 
           html += `
-            <div class="slot-card" 
+            <div class="slot-card cap-status-${capStatus}" 
                  data-slot-idx="${slotIdx}"
                  ondragover="handleBoardDragOver(event)"
                  ondragleave="handleBoardDragLeave(event)"
@@ -2778,11 +3027,11 @@
               
               <div class="slot-card-header">
                 <div class="slot-cqi-title">
-                  <span>${cqiName}</span>
+                  <span class="cqi-id-mono">${cqiName}</span>
                   <span class="slot-badge-line">${lineName}</span>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                  <span class="${capClass}">${macCount}/${maxCapacity} Mesin</span>
+                  <span class="slot-capacity-badge ${capBadgeClass}">${capBadgeText}</span>
                 </div>
               </div>
 
@@ -2792,7 +3041,7 @@
                         draggable="true" 
                         ondragstart="handlePersonDragStart(event, ${slotIdx}, 'coreNames', '${c}', ${cIdx})"
                         ondragend="handleDragEnd(event)">
-                    ${c} <small>(Core)</small>
+                    <span class="person-id-mono">${c}</span> <small class="person-role-tag">(Core)</small>
                   </span>
                 `).join("")}
 
@@ -2801,16 +3050,16 @@
                         draggable="true" 
                         ondragstart="handlePersonDragStart(event, ${slotIdx}, 'nonCore', '${nc}', ${ncIdx})"
                         ondragend="handleDragEnd(event)">
-                    ${nc} <small>(Non-Core)</small>
+                    <span class="person-id-mono">${nc}</span> <small class="person-role-tag">(NC)</small>
                   </span>
                 `).join("")}
 
                 ${(slot.longshift || []).map((ls, lsIdx) => `
-                  <span class="person-pill noncore" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155" 
+                  <span class="person-pill noncore ls-pill" 
                         draggable="true" 
                         ondragstart="handlePersonDragStart(event, ${slotIdx}, 'longshift', '${ls}', ${lsIdx})"
                         ondragend="handleDragEnd(event)">
-                    ${ls} <small>(LS)</small>
+                    <span class="person-id-mono">${ls}</span> <small class="person-role-tag">(LS)</small>
                   </span>
                 `).join("")}
               </div>
@@ -2833,7 +3082,7 @@
                                     data-machine-id="${m.id || label}"
                                     ondragstart="handleMachineDragStart(event, ${slotIdx}, '${m.id || label}')"
                                     ondragend="handleDragEnd(event)">
-                                <span><strong>${label}</strong></span>
+                                <span class="machine-id-mono">${label}</span>
                                 <button class="machine-remove-btn" 
                                         onclick="removeMachineFromSlot(${slotIdx}, '${m.id || label}')" 
                                         title="Pindahkan ke Unassigned">&times;</button>
@@ -2850,94 +3099,12 @@
           `;
         });
 
-        // Unassigned machines pool & Sisa manpower pool
+        board.innerHTML = html;
+
+        // Render Sticky Unassigned Dock
         const unassignedMacs = currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [];
         const sisaMp = getUnassignedManpower();
-        const totalSisaMp = sisaMp.core.length + sisaMp.nonCore.length + sisaMp.longshift.length;
-
-        if (unassignedMacs.length > 0 || totalSisaMp > 0) {
-          const unassignedWsGroups = groupMachinesByWs(unassignedMacs);
-          const unassignedWsKeys = Object.keys(unassignedWsGroups).sort();
-
-          html += `
-            <div class="slot-card unassigned-pool-card"
-                 data-slot-idx="-1"
-                 ondragover="handleBoardDragOver(event)"
-                 ondragleave="handleBoardDragLeave(event)"
-                 ondrop="handleBoardDrop(event, -1)">
-              
-              <div class="slot-card-header">
-                <div class="slot-cqi-title" style="color: #991b1b;">
-                  <span>Unassigned Pool (Sisa Manpower &amp; Mesin Belum Tercover)</span>
-                </div>
-                <div style="display:flex; gap:6px;">
-                  ${unassignedMacs.length > 0 ? `<span class="slot-capacity-badge over">${unassignedMacs.length} Mesin</span>` : ""}
-                  ${totalSisaMp > 0 ? `<span class="slot-capacity-badge warn">${totalSisaMp} Manpower</span>` : ""}
-                </div>
-              </div>
-
-              <div class="slot-manpower-box" style="margin-bottom: 8px;">
-                ${sisaMp.core.map((c, idx) => `
-                  <span class="person-pill core" 
-                        draggable="true" 
-                        ondragstart="handlePersonDragStart(event, -1, 'coreNames', '${c}', ${idx})"
-                        ondragend="handleDragEnd(event)">
-                    ${c} <small>(Core)</small>
-                  </span>
-                `).join("")}
-
-                ${sisaMp.nonCore.map((nc, idx) => `
-                  <span class="person-pill noncore" 
-                        draggable="true" 
-                        ondragstart="handlePersonDragStart(event, -1, 'nonCore', '${nc}', ${idx})"
-                        ondragend="handleDragEnd(event)">
-                    ${nc} <small>(Non-Core)</small>
-                  </span>
-                `).join("")}
-
-                ${sisaMp.longshift.map((ls, idx) => `
-                  <span class="person-pill noncore" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155" 
-                        draggable="true" 
-                        ondragstart="handlePersonDragStart(event, -1, 'longshift', '${ls}', ${idx})"
-                        ondragend="handleDragEnd(event)">
-                    ${ls} <small>(LS)</small>
-                  </span>
-                `).join("")}
-              </div>
-
-              <div class="slot-machines-container">
-                ${unassignedWsKeys.length > 0 ? `
-                  <div class="slot-ws-grid">
-                    ${unassignedWsKeys.map((wsKey) => `
-                      <div class="ws-block" style="background: #fff8f8; border-color: #fecaca;">
-                        <div class="ws-block-header" style="border-color: #fca5a5;">
-                          <span class="ws-block-title" style="color: #991b1b;">LINE ${wsKey}</span>
-                          <span class="ws-block-count" style="background: #fee2e2; color: #991b1b; border-color: #fca5a5;">${unassignedWsGroups[wsKey].length}</span>
-                        </div>
-                        <div class="ws-machines-grid">
-                          ${unassignedWsGroups[wsKey].map((m) => {
-                            const label = m.name || m.id;
-                            return `
-                              <span class="machine-pill unassigned-pill" 
-                                    draggable="true"
-                                    data-machine-id="${m.id || label}"
-                                    ondragstart="handleMachineDragStart(event, -1, '${m.id || label}')"
-                                    ondragend="handleDragEnd(event)">
-                                <span><strong>${label}</strong></span>
-                              </span>
-                            `;
-                          }).join("")}
-                        </div>
-                      </div>
-                    `).join("")}
-                  </div>
-                ` : `<div style="font-size:11px; color:#166534; padding:8px; width:100%; text-align:center;">Semua mesin tercover sempurna!</div>`}
-              </div>
-            </div>
-          `;
-        }
-
-        board.innerHTML = html;
+        renderUnassignedDock(unassignedMacs, sisaMp);
 
         const totalMachinesCount = allRunning.length;
         const metaEl = document.getElementById("boardMeta");
@@ -3048,6 +3215,17 @@
         handleDragEnd(e);
         recalculatePlanDistance();
         syncUpdatedPlanState();
+
+        if (targetSlotIdx >= 0 && currentPlan && currentPlan[targetSlotIdx] && currentPlan[targetSlotIdx].machines && currentPlan[targetSlotIdx].machines.length > 8) {
+          setTimeout(() => {
+            const card = document.querySelector(`.slot-card[data-slot-idx="${targetSlotIdx}"]`);
+            if (card) {
+              card.classList.remove("overload-shake");
+              void card.offsetWidth; // trigger DOM reflow
+              card.classList.add("overload-shake");
+            }
+          }, 50);
+        }
       }
 
       function removeMachineFromSlot(slotIdx, machineId) {

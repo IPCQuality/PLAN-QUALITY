@@ -385,7 +385,23 @@
         'M-0B-2', 'M-WW-1'
       ];
 
+      function clearActivePlanning() {
+        if (activePlanning || sessionStorage.getItem("active_planning") || localStorage.getItem("last_active_planning")) {
+          activePlanning = null;
+          sessionStorage.removeItem("active_planning");
+          localStorage.removeItem("last_active_planning");
+          sessionStorage.removeItem("planning_state");
+          showHeatmap = false;
+          const btn = document.getElementById("menuHeatmapBtn");
+          if (btn) {
+            btn.innerText = "Heatmap";
+            btn.className = "btn";
+          }
+        }
+      }
+
       function applyShiftPlanning() {
+        clearActivePlanning();
         const idSet = new Set(PLANNING_72_MACHINE_IDS);
         mapData.machines.forEach((m) => {
           m.status = idSet.has(m.id) ? "RUNNING" : "OFF";
@@ -637,6 +653,7 @@
 
         let tgt = macs.every((m) => m.status === "RUNNING") ? "OFF" : "RUNNING";
         macs.forEach((m) => (m.status = tgt));
+        clearActivePlanning();
         renderGrid();
         saveInternalStorage();
       }
@@ -644,21 +661,25 @@
       // Fungsi Global Button yang Diperbaiki agar berfungsi & tersimpan
       function setAllMachinesRunning() {
         mapData.machines.forEach((m) => (m.status = "RUNNING"));
+        clearActivePlanning();
         renderGrid();
         saveInternalStorage();
       }
       function setAllMachinesOff() {
         mapData.machines.forEach((m) => (m.status = "OFF"));
+        clearActivePlanning();
         renderGrid();
         saveInternalStorage();
       }
       function setAllCqiReady() {
         mapData.cqis.forEach((c) => (c.status = "READY"));
+        clearActivePlanning();
         renderGrid();
         saveInternalStorage();
       }
       function setAllCqiOff() {
         mapData.cqis.forEach((c) => (c.status = "OFF"));
+        clearActivePlanning();
         renderGrid();
         saveInternalStorage();
       }
@@ -761,8 +782,10 @@
       function cycleStatus(node, type) {
         if (type === "machine") {
           node.status = node.status === "RUNNING" ? "OFF" : "RUNNING";
+          clearActivePlanning();
         } else if (type === "cqi") {
           node.status = node.status === "READY" ? "OFF" : "READY";
+          clearActivePlanning();
         }
         renderGrid();
         saveInternalStorage();
@@ -1364,7 +1387,9 @@
             targetObj.position.col = c;
           }
           calculateGridBounds();
+          clearActivePlanning();
           renderGrid();
+          saveInternalStorage();
           showToast(
             `Posisi ${targetObj.name || targetObj.id} berhasil dipindahkan ke Row ${r}, Col ${c}`,
             "success",
@@ -1442,8 +1467,10 @@
         if (Array.isArray(mapData[key])) {
           mapData[key] = mapData[key].filter((x) => x.id !== id);
         }
+        clearActivePlanning();
         calculateGridBounds();
         renderGrid();
+        saveInternalStorage();
         showToast(`${typeLabel} berhasil dihapus`, "info");
       }
 
@@ -1583,8 +1610,10 @@
         }
 
         closeNodeModal();
+        clearActivePlanning();
         calculateGridBounds();
         renderGrid();
+        saveInternalStorage();
       }
 
       function exportMapJson() {
