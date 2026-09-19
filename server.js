@@ -9,10 +9,55 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
+app.use(express.json({ limit: '10mb' }));
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
+
+// API Save History endpoint
+app.post('/api/history/save', (req, res) => {
+  try {
+    const { payload, fileName } = req.body;
+    if (!payload || !fileName) {
+      return res.status(400).json({ success: false, error: 'Payload dan fileName wajib diisi' });
+    }
+
+    const historyDir = path.join(__dirname, 'history');
+    if (!fs.existsSync(historyDir)) {
+      fs.mkdirSync(historyDir, { recursive: true });
+    }
+
+    const cleanFileName = path.basename(fileName);
+    const filePath = path.join(historyDir, cleanFileName);
+    fs.writeFileSync(filePath, JSON.stringify(payload, null, 2), 'utf8');
+
+    return res.json({ success: true, fileName: cleanFileName });
+  } catch (err) {
+    console.error('Error saving history:', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// API List History endpoint (reads directly from /history folder planning-*.json)
+app.get('/api/history/list', (req, res) => {
+  try {
+    const historyDir = path.join(__dirname, 'history');
+    if (!fs.existsSync(historyDir)) {
+      return res.json({ success: true, files: [] });
+    }
+    const files = fs.readdirSync(historyDir)
+      .filter(f => f.endsWith('.json') && f !== 'manifest.json' && f !== 'learning_data.json')
+      .sort((a, b) => b.localeCompare(a));
+    return res.json({ success: true, files });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Serve history static folder
+app.use('/history', express.static(path.join(__dirname, 'history')));
 
 // PWA static assets and Service Worker
 app.use('/pwa', express.static(path.join(__dirname, 'pwa'), {

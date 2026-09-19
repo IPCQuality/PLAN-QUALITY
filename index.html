@@ -315,10 +315,54 @@
           }
           return n;
         };
-        mapData.machines = (mapData.machines || [])
+        let rawMachines = mapData.machines || [];
+        const groupKeys = [
+          "machines line a", "machine line a",
+          "machines line b", "machine line b",
+          "machines line c", "machine line c",
+          "machines ww", "machine ww",
+          "machines ot", "machine ot"
+        ];
+        groupKeys.forEach((key) => {
+          if (Array.isArray(mapData[key])) {
+            rawMachines = rawMachines.concat(mapData[key]);
+          }
+        });
+
+        const seenIds = new Set();
+        mapData.machines = rawMachines
+          .filter((m) => {
+            if (!m || !m.id) return false;
+            if (seenIds.has(m.id)) return false;
+            seenIds.add(m.id);
+            return true;
+          })
           .map(normalizeNode)
           .filter(Boolean);
-        mapData.cqis = (mapData.cqis || []).map(normalizeNode).filter(Boolean);
+        let rawCqis = mapData.cqis || [];
+        const cqiGroupKeys = [
+          "cqi line a", "cqis line a",
+          "cqi line b", "cqis line b",
+          "cqi line c", "cqis line c",
+          "cqi line ot", "cqis line ot",
+          "cqi line ww", "cqis line ww"
+        ];
+        cqiGroupKeys.forEach((key) => {
+          if (Array.isArray(mapData[key])) {
+            rawCqis = rawCqis.concat(mapData[key]);
+          }
+        });
+
+        const seenCqiIds = new Set();
+        mapData.cqis = rawCqis
+          .filter((c) => {
+            if (!c || !c.id) return false;
+            if (seenCqiIds.has(c.id)) return false;
+            seenCqiIds.add(c.id);
+            return true;
+          })
+          .map(normalizeNode)
+          .filter(Boolean);
         mapData.labels = (mapData.labels || [])
           .map(normalizeNode)
           .filter(Boolean);
@@ -353,9 +397,47 @@
         totalCols = maxC + buffer;
       }
 
+      const PLANNING_72_MACHINE_IDS = [
+        'M-10A-4', 'M-2A-3', 'M-2A-4', 'M-2A-2', 'M-2A-1', 'M-3A-3', 'M-4A-1', 'M-4A-2', 'M-4A-3', 'M-4A-4',
+        'M-5A-1', 'M-5A-2', 'M-5A-3', 'M-5A-4', 'M-6A-1', 'M-6A-2', 'M-6A-3', 'M-6A-4', 'M-7A-1', 'M-7A-2',
+        'M-7A-3', 'M-7A-4', 'M-8A-1', 'M-8A-2', 'M-8A-3', 'M-8A-4', 'M-9A-1', 'M-9A-2', 'M-9A-3', 'M-9A-4',
+        'M-10A-1', 'M-10A-2', 'M-10A-3', 'M-1B-1', 'M-1B-4', 'M-1B-3', 'M-2B-1', 'M-2B-2', 'M-2B-4', 'M-2B-3',
+        'M-3B-1', 'M-3B-2', 'M-3B-3', 'M-3B-4', 'M-5B-3', 'M-5B-4', 'M-5B-2', 'M-7B-1', 'M-7B-2', 'M-7B-3',
+        'M-7B-4', 'M-9B-1', 'M-9B-2', 'M-9B-3', 'M-10B-3', 'M-10B-2', 'M-10B-1', 'M-2C-1', 'M-2C-2', 'M-3C-3',
+        'M-5C-1', 'M-5C-2', 'M-9C-1', 'M-8C-2', 'M-6C-1', 'M-6C-2', 'M-OT-1', 'M-OT-2', 'M-4B-1', 'M-0B-1',
+        'M-0B-2', 'M-WW-1'
+      ];
+
+      function applyShiftPlanning() {
+        const idSet = new Set(PLANNING_72_MACHINE_IDS);
+        mapData.machines.forEach((m) => {
+          m.status = idSet.has(m.id) ? "RUNNING" : "OFF";
+        });
+        const readyCqiNames = [
+          "CQI 1", "CQI 2", "CQI 3", "CQI 4", "CQI 5", "CQI 6", "CQI 7", "CQI 8", "CQI 9", "CQI 10",
+          "CQI 11", "CQI 12", "CQI 13", "CQI 14", "CQI 15", "CQI 16", "CQI 17", "CQI 18",
+          "CQI 19", "CQI 20", "CQI 24"
+        ];
+        mapData.cqis.forEach((c) => {
+          c.status = readyCqiNames.includes(c.name) ? "READY" : "OFF";
+        });
+        renderGrid();
+        saveInternalStorage();
+        showToast("72 Mesin diatur RUNNING sesuai Planning Shift 2!", "success");
+      }
+
+      function getActivePlanningSlots() {
+        if (!activePlanning) return [];
+        if (Array.isArray(activePlanning)) return activePlanning;
+        if (Array.isArray(activePlanning.slots)) return activePlanning.slots;
+        if (Array.isArray(activePlanning.currentPlan)) return activePlanning.currentPlan;
+        if (Array.isArray(activePlanning.planning)) return activePlanning.planning;
+        return [];
+      }
+
       function initializeStatuses() {
         try {
-          const raw = sessionStorage.getItem("active_planning");
+          const raw = sessionStorage.getItem("active_planning") || localStorage.getItem("last_active_planning");
           activePlanning = raw ? JSON.parse(raw) : null;
         } catch (e) {}
 
@@ -363,17 +445,30 @@
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            if (parsed.machines)
-              parsed.machines.forEach((sm) => {
-                let m = mapData.machines.find((x) => x.id === sm.id);
-                if (m) m.status = sm.status;
-              });
-            if (parsed.cqis)
-              parsed.cqis.forEach((sc) => {
-                let c = mapData.cqis.find((x) => x.id === sc.id);
-                if (c) c.status = sc.status;
-              });
-          } catch (e) {}
+            if (parsed && Array.isArray(parsed.machines) && parsed.machines.length > 0) {
+              if (parsed.machines)
+                parsed.machines.forEach((sm) => {
+                  let m = mapData.machines.find((x) => x.id === sm.id);
+                  if (m && sm.status) m.status = sm.status;
+                });
+              if (parsed.cqis)
+                parsed.cqis.forEach((sc) => {
+                  let c = mapData.cqis.find((x) => x.id === sc.id);
+                  if (c && sc.status) c.status = sc.status;
+                });
+            } else {
+              // Default ke status mapData (72 RUNNING sesuai planning)
+              mapData.machines.forEach(
+                (m) => (m.status = m.status === "RUNNING" ? "RUNNING" : "OFF"),
+              );
+              mapData.cqis.forEach(
+                (c) => (c.status = c.status === "READY" ? "READY" : "OFF"),
+              );
+              saveInternalStorage();
+            }
+          } catch (e) {
+            saveInternalStorage();
+          }
         } else {
           mapData.machines.forEach(
             (m) => (m.status = m.status === "RUNNING" ? "RUNNING" : "OFF"),
@@ -381,13 +476,17 @@
           mapData.cqis.forEach(
             (c) => (c.status = c.status === "READY" ? "READY" : "OFF"),
           );
+          saveInternalStorage();
         }
 
-        if (activePlanning && Array.isArray(activePlanning.slots)) {
+        const activeSlots = getActivePlanningSlots();
+        if (activeSlots.length > 0) {
           showHeatmap = true;
-          document.getElementById("menuHeatmapBtn").innerText = "🔥 Heatmap ON";
-          document.getElementById("menuHeatmapBtn").className =
-            "btn btn-success";
+          const btn = document.getElementById("menuHeatmapBtn");
+          if (btn) {
+            btn.innerText = "🔥 Heatmap ON";
+            btn.className = "btn btn-success";
+          }
         }
 
         renderGrid();
@@ -591,7 +690,11 @@
       function saveInternalStorage() {
         localStorage.setItem(
           "factory_internal_storage",
-          JSON.stringify({ machines: mapData.machines, cqis: mapData.cqis }),
+          JSON.stringify({
+            version: "2026-09-18-shift2",
+            machines: mapData.machines,
+            cqis: mapData.cqis,
+          }),
         );
       }
 
@@ -614,19 +717,22 @@
       }
 
       function toggleHeatmap() {
-        if (!activePlanning) {
+        const activeSlots = getActivePlanningSlots();
+        if (!activePlanning || activeSlots.length === 0) {
           showToast("Tidak ada plan aktif dari Config!", "error");
           return;
         }
         showHeatmap = !showHeatmap;
 
         const btn = document.getElementById("menuHeatmapBtn");
-        if (showHeatmap) {
-          btn.innerText = "🔥 Heatmap ON";
-          btn.className = "btn btn-success";
-        } else {
-          btn.innerText = "🔥 Heatmap OFF";
-          btn.className = "btn btn-danger";
+        if (btn) {
+          if (showHeatmap) {
+            btn.innerText = "🔥 Heatmap ON";
+            btn.className = "btn btn-success";
+          } else {
+            btn.innerText = "🔥 Heatmap OFF";
+            btn.className = "btn btn-danger";
+          }
         }
         renderGrid();
       }
@@ -746,14 +852,14 @@
         // 1. Hitung Heatmap State & Densitas Beban Line
         let heatmapState = null;
         const brainInstance = typeof window.BrainAI !== "undefined" ? window.BrainAI : (typeof BrainAI !== "undefined" ? BrainAI : null);
+        const activeSlots = getActivePlanningSlots();
         if (
-          activePlanning &&
-          Array.isArray(activePlanning.slots) &&
+          activeSlots.length > 0 &&
           brainInstance &&
           typeof brainInstance.calculateHeatmapState === "function"
         ) {
           heatmapState = brainInstance.calculateHeatmapState(
-            activePlanning.slots,
+            activeSlots,
             mapData,
           );
         }
@@ -833,7 +939,7 @@
           cqiColorMap = heatmapState.cqiColorMap;
         }
 
-        if (activePlanning && Array.isArray(activePlanning.slots)) {
+        if (activeSlots.length > 0) {
           const fallbackColors = [
             "#be123c",
             "#ea580c",
@@ -846,19 +952,35 @@
             "#0891b2",
             "#16a34a",
           ];
-          activePlanning.slots.forEach((s, idx) => {
-            if (s && s.cqi && s.machines) {
-              if (!cqiColorMap[s.cqi.id]) {
-                cqiColorMap[s.cqi.id] =
+          activeSlots.forEach((s, idx) => {
+            if (s && s.machines) {
+              let cqiObj = s.cqi;
+              if (!cqiObj && s.name) cqiObj = { id: s.name, name: s.name };
+              if (!cqiObj && s.cqiNum) cqiObj = { id: `CQI ${s.cqiNum}`, name: `CQI ${s.cqiNum}` };
+              if (!cqiObj) return;
+
+              const cqiKey = cqiObj.id || cqiObj.name;
+              if (!cqiColorMap[cqiKey]) {
+                cqiColorMap[cqiKey] =
                   fallbackColors[idx % fallbackColors.length];
               }
+              if (cqiObj.name && !cqiColorMap[cqiObj.name]) {
+                cqiColorMap[cqiObj.name] = cqiColorMap[cqiKey];
+              }
+              if (cqiObj.id && !cqiColorMap[cqiObj.id]) {
+                cqiColorMap[cqiObj.id] = cqiColorMap[cqiKey];
+              }
+
               s.machines.forEach((m) => {
                 const k1 = typeof m === "string" ? m.trim() : String(m.id || m.name || "").trim();
                 const k2 = typeof m === "object" ? String(m.name || m.id || "").trim() : k1;
-                if (k1) assignments.set(k1, s.cqi);
-                if (k2) assignments.set(k2, s.cqi);
+                if (k1) assignments.set(k1, cqiObj);
+                if (k2) assignments.set(k2, cqiObj);
               });
-              if (s.machines.length > 0) plannedCqiIds.add(s.cqi.id);
+              if (s.machines.length > 0) {
+                if (cqiObj.id) plannedCqiIds.add(cqiObj.id);
+                if (cqiObj.name) plannedCqiIds.add(cqiObj.name);
+              }
             }
           });
         }
@@ -877,24 +999,28 @@
               assignments.get(String(node.name || "").trim());
             if (planCqi) {
               div.classList.add("planned");
-              let nodeColor = cqiColorMap[planCqi.id] || "#16a34a";
+              let nodeColor = cqiColorMap[planCqi.id] || cqiColorMap[planCqi.name] || "#16a34a";
               if (showHeatmap && !editMode) {
                 div.style.backgroundColor = nodeColor;
                 div.style.borderColor = nodeColor;
                 div.style.color = "#ffffff";
+                div.style.fontWeight = "700";
                 div.style.boxShadow = `0 2px 8px ${nodeColor}80`;
-                div.innerHTML += `<span class="heatmap-badge" style="background:#ffffff; color:${nodeColor};">${planCqi.name}</span>`;
+                div.innerHTML = `<span style="color:#ffffff; font-weight:700;">${node.name}</span>`;
+                div.innerHTML += `<span class="heatmap-badge" style="background:#ffffff; color:${nodeColor}; font-weight:900;">${planCqi.name}</span>`;
               }
             }
           } else if (type === "cqi") {
             if (plannedCqiIds.has(node.id)) {
               div.classList.add("planned-target");
-              let nodeColor = cqiColorMap[node.id] || "#16a34a";
+              let nodeColor = cqiColorMap[node.id] || cqiColorMap[node.name] || "#16a34a";
               if (showHeatmap && !editMode) {
                 div.style.backgroundColor = nodeColor;
                 div.style.borderColor = nodeColor;
                 div.style.color = "#ffffff";
-                div.style.boxShadow = `0 0 0 3px white, 0 0 18px ${nodeColor}`;
+                div.style.fontWeight = "800";
+                div.style.boxShadow = `0 0 0 2px #ffffff, 0 4px 14px ${nodeColor}aa`;
+                div.innerHTML = `<span style="color:#ffffff; font-weight:800;">${node.name}</span>`;
               }
             }
           }
@@ -954,20 +1080,8 @@
             y: 28 + (n.row - 1) * 52 + 26,
           });
 
-          // Bangun daftar rintangan (seluruh mesin dan CQI di denah) agar garis heatmap tidak menabrak node
-          const obstacleSet = new Set();
-          (mapData.machines || []).forEach((m) => {
-            const r = m.row !== undefined ? m.row : (m.position ? m.position.row : 0);
-            const c = m.col !== undefined ? m.col : (m.position ? m.position.col : 0);
-            if (r > 0 && c > 0) obstacleSet.add(`${r},${c}`);
-          });
-          (mapData.cqis || []).forEach((cq) => {
-            const r = cq.row !== undefined ? cq.row : (cq.position ? cq.position.row : 0);
-            const c = cq.col !== undefined ? cq.col : (cq.position ? cq.position.col : 0);
-            if (r > 0 && c > 0) obstacleSet.add(`${r},${c}`);
-          });
-
-          // Hindari menggambar garis ganda untuk mesin yang sama
+          // Group machines by assigned CQI slot for sequential chaining
+          const cqiMachineGroups = new Map();
           const processedMachines = new Set();
 
           assignments.forEach((cqiTarget, mId) => {
@@ -988,62 +1102,271 @@
             );
             if (!tgt) return;
 
-            let pathColor = cqiColorMap[tgt.id] || "#16a34a";
+            const cqiKey = tgt.id || tgt.name;
+            if (!cqiMachineGroups.has(cqiKey)) {
+              cqiMachineGroups.set(cqiKey, { cqi: tgt, machines: [] });
+            }
+            cqiMachineGroups.get(cqiKey).machines.push(mac);
+          });
 
-            // Gunakan logika rute lorong cerdas: Line A lewat belakang (Row 2), Line B lewat depan (Row 10)
-            const currentBrain = typeof window.BrainAI !== "undefined" ? window.BrainAI : (typeof BrainAI !== "undefined" ? BrainAI : null);
-            let waypoints =
-              currentBrain && typeof currentBrain.getAisleWaypoints === "function"
-                ? currentBrain.getAisleWaypoints(mac, tgt, mapData.labels)
-                : [];
+          // Function to generate sequential Manhattan waypoints with mandatory label traversal when crossing workstations
+          function generateSequentialWaypoints(tgt, rawMachines) {
+            if (!rawMachines || rawMachines.length === 0) return [];
 
-            if (!waypoints || waypoints.length === 0) {
-              const mRow = mac.row || (mac.position ? mac.position.row : 0);
-              const mCol = mac.col || (mac.position ? mac.position.col : 0);
-              const cRow = tgt.row || (tgt.position ? tgt.position.row : 0);
-              const cCol = tgt.col || (tgt.position ? tgt.position.col : 0);
-              if (mRow > 0 && mCol > 0 && cRow > 0 && cCol > 0) {
-                const ws = String(mac.workstation || mac.ws || "").toUpperCase();
-                const line = String(mac.line || "").toUpperCase();
-                const isLineA = line.includes("LINE A") || ws.endsWith("A") || (mRow <= 9 && mCol <= 30 && !ws.endsWith("B"));
-                const isLineB = line.includes("LINE B") || ws.endsWith("B") || (mRow >= 10 && mRow <= 17 && mCol <= 30);
-                const isLineC = line.includes("LINE C") || ws.endsWith("C") || (mCol >= 31 && mRow >= 12);
+            const getNodeCoords = (node) => ({
+              row: Number(node.row !== undefined ? node.row : (node.position ? node.position.row : 0)),
+              col: Number(node.col !== undefined ? node.col : (node.position ? node.position.col : 0))
+            });
 
-                let safeAisleRow = 10;
-                if (isLineA) {
-                  safeAisleRow = 2; // WAJIB lewat belakang (Row 2)
-                } else if (isLineB) {
-                  safeAisleRow = 10; // WAJIB lewat depan (Row 10)
-                } else if (isLineC) {
-                  const cqiNum = String(tgt.name || tgt.id || "").replace(/\D/g, "");
-                  safeAisleRow = (cqiNum === "24" || cqiNum === "15" || cqiNum === "16") ? 10 : 12;
+            const getWs = (node) => {
+              if (!node) return "";
+              if (node.ws) return String(node.ws).trim().toUpperCase();
+              const name = String(node.name || "");
+              const id = String(node.id || "");
+              const match = id.match(/M-([0-9]+[A-C]|WW|OT)/i) || name.match(/([0-9]+[A-C]|WW|OT)/i);
+              if (match) return match[1].toUpperCase();
+              if (id.includes("CQI-19") || name.includes("CQI 19")) return "OT";
+              if (id.includes("CQI-24") || name.includes("CQI 24")) return "WW";
+              if (id.includes("CQI-") || name.includes("CQI")) {
+                const num = parseInt(id.replace(/\D/g, "") || name.replace(/\D/g, ""));
+                if (num >= 1 && num <= 10) return num + "A";
+              }
+              const coords = getNodeCoords(node);
+              if (mapData.labels && mapData.labels.length > 0) {
+                let closest = mapData.labels[0], minD = Infinity;
+                mapData.labels.forEach(l => {
+                  const lc = getNodeCoords(l);
+                  const d = Math.hypot(lc.row - coords.row, lc.col - coords.col);
+                  if (d < minD) { minD = d; closest = l; }
+                });
+                if (minD < 5) return String(closest.name || "").toUpperCase();
+              }
+              return "";
+            };
+
+            const getLabelNodeForWs = (ws, nodeCoords) => {
+              if (!ws) return null;
+              const l = mapData.labels.find(x => String(x.name || "").toUpperCase() === ws.toUpperCase() || String(x.id || "").toUpperCase() === ("L-" + ws).toUpperCase());
+              if (l) return getNodeCoords(l);
+              if (mapData.labels.length > 0 && nodeCoords) {
+                let best = null, minDist = Infinity;
+                mapData.labels.forEach(lbl => {
+                  const lc = getNodeCoords(lbl);
+                  const d = Math.hypot(lc.row - nodeCoords.row, lc.col - nodeCoords.col);
+                  if (d < minDist) { minDist = d; best = lc; }
+                });
+                return best;
+              }
+              return null;
+            };
+
+            const cqiCoords = getNodeCoords(tgt);
+            const remaining = [...rawMachines];
+            const ordered = [];
+            let current = cqiCoords;
+            let currentWs = getWs(tgt);
+
+            // Sequential traversal prioritizing same workstation machines before branching out
+            while (remaining.length > 0) {
+              let nearestIdx = 0;
+              let minDist = Infinity;
+              for (let i = 0; i < remaining.length; i++) {
+                const mc = remaining[i];
+                const mcCoords = getNodeCoords(mc);
+                const mcWs = getWs(mc);
+                const sameWsBonus = (mcWs && mcWs === currentWs) ? 0 : 1000;
+                const d = Math.hypot(mcCoords.row - current.row, mcCoords.col - current.col) + sameWsBonus;
+                if (d < minDist) {
+                  minDist = d;
+                  nearestIdx = i;
                 }
-                waypoints = [
-                  { row: mRow, col: mCol },
-                  { row: safeAisleRow, col: mCol },
-                  { row: safeAisleRow, col: cCol },
-                  { row: cRow, col: cCol },
-                ];
+              }
+              const [nextMc] = remaining.splice(nearestIdx, 1);
+              ordered.push(nextMc);
+              current = getNodeCoords(nextMc);
+              currentWs = getWs(nextMc);
+            }
+
+            // Construct orthogonal path: when transitioning between different workstations, route via node labels
+            const seqNodes = [tgt, ...ordered];
+            const waypoints = [getNodeCoords(tgt)];
+
+            for (let i = 0; i < seqNodes.length - 1; i++) {
+              const u = seqNodes[i];
+              const v = seqNodes[i + 1];
+              const p1 = getNodeCoords(u);
+              const p2 = getNodeCoords(v);
+              const ws1 = getWs(u);
+              const ws2 = getWs(v);
+
+              if (ws1 && ws2 && ws1 !== ws2) {
+                // Crossing to another workstation: MANDATORY routing through node labels
+                const label1 = getLabelNodeForWs(ws1, p1);
+                const label2 = getLabelNodeForWs(ws2, p2);
+
+                if (label1 && label2) {
+                  // Step to label1 (down/up workstation aisle)
+                  if (p1.row !== label1.row || p1.col !== label1.col) {
+                    if (p1.col === label1.col) {
+                      waypoints.push(label1);
+                    } else {
+                      waypoints.push({ row: label1.row, col: p1.col });
+                      waypoints.push(label1);
+                    }
+                  }
+                  // Step from label1 to label2 along the label aisle / corridor
+                  if (label1.row !== label2.row || label1.col !== label2.col) {
+                    if (label1.row === label2.row || label1.col === label2.col) {
+                      waypoints.push(label2);
+                    } else {
+                      waypoints.push({ row: label1.row, col: label2.col });
+                      waypoints.push(label2);
+                    }
+                  }
+                  // Step from label2 to p2 inside target workstation
+                  if (label2.row !== p2.row || label2.col !== p2.col) {
+                    if (label2.col === p2.col) {
+                      waypoints.push(p2);
+                    } else {
+                      waypoints.push({ row: label2.row, col: p2.col });
+                      waypoints.push(p2);
+                    }
+                  }
+                  continue;
+                }
+              }
+
+              // Same workstation or direct connection
+              if (p1.row === p2.row || p1.col === p2.col) {
+                waypoints.push(p2);
+              } else {
+                waypoints.push({ row: p1.row, col: p2.col });
+                waypoints.push(p2);
               }
             }
 
+            // Remove duplicate adjacent points
+            const unique = [];
+            waypoints.forEach(pt => {
+              if (unique.length === 0) {
+                unique.push(pt);
+              } else {
+                const last = unique[unique.length - 1];
+                if (Math.abs(last.row - pt.row) > 0.01 || Math.abs(last.col - pt.col) > 0.01) {
+                  unique.push(pt);
+                }
+              }
+            });
+
+            // Simplify collinear points so rounded corners apply cleanly at every bend
+            if (unique.length <= 2) return unique;
+            const simplified = [unique[0]];
+            for (let i = 1; i < unique.length - 1; i++) {
+              const prev = simplified[simplified.length - 1];
+              const curr = unique[i];
+              const next = unique[i + 1];
+
+              const d1R = Math.sign(curr.row - prev.row);
+              const d1C = Math.sign(curr.col - prev.col);
+              const d2R = Math.sign(next.row - curr.row);
+              const d2C = Math.sign(next.col - curr.col);
+
+              if (d1R !== d2R || d1C !== d2C) {
+                simplified.push(curr);
+              }
+            }
+            simplified.push(unique[unique.length - 1]);
+            return simplified;
+          }
+
+          function buildRoundedPath(pts, radius = 14) {
+            if (!pts || pts.length === 0) return "";
+            if (pts.length === 1) return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+            if (pts.length === 2) return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)} L ${pts[1].x.toFixed(1)} ${pts[1].y.toFixed(1)}`;
+
+            let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+            for (let i = 1; i < pts.length - 1; i++) {
+              const prev = pts[i - 1];
+              const curr = pts[i];
+              const next = pts[i + 1];
+
+              const v1 = { x: curr.x - prev.x, y: curr.y - prev.y };
+              const v2 = { x: next.x - curr.x, y: next.y - curr.y };
+
+              const len1 = Math.hypot(v1.x, v1.y);
+              const len2 = Math.hypot(v2.x, v2.y);
+
+              if (len1 < 0.001 || len2 < 0.001) continue;
+
+              const u1 = { x: v1.x / len1, y: v1.y / len1 };
+              const u2 = { x: v2.x / len2, y: v2.y / len2 };
+
+              const dot = u1.x * u2.x + u1.y * u2.y;
+              if (dot > 0.98) {
+                d += ` L ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
+                continue;
+              }
+
+              const r = Math.min(radius, len1 / 2, len2 / 2);
+
+              const startTurn = { x: curr.x - u1.x * r, y: curr.y - u1.y * r };
+              const endTurn = { x: curr.x + u2.x * r, y: curr.y + u2.y * r };
+
+              d += ` L ${startTurn.x.toFixed(1)} ${startTurn.y.toFixed(1)}`;
+              d += ` Q ${curr.x.toFixed(1)} ${curr.y.toFixed(1)} ${endTurn.x.toFixed(1)} ${endTurn.y.toFixed(1)}`;
+            }
+
+            const last = pts[pts.length - 1];
+            d += ` L ${last.x.toFixed(1)} ${last.y.toFixed(1)}`;
+            return d;
+          }
+
+          // Draw sequential chain for each CQI group: CQI -> mc1 -> mc2 -> ...
+          cqiMachineGroups.forEach((group) => {
+            const tgt = group.cqi;
+            const rawMachines = group.machines;
+            if (rawMachines.length === 0) return;
+
+            let pathColor = cqiColorMap[tgt.id] || cqiColorMap[tgt.name] || "#16a34a";
+
+            const waypoints = generateSequentialWaypoints(tgt, rawMachines);
             if (!waypoints || waypoints.length === 0) return;
 
             let pixelPoints = waypoints.map((pt) => getCenter(pt));
-            let dPath = `M ${pixelPoints[0].x} ${pixelPoints[0].y}`;
-            for (let i = 1; i < pixelPoints.length; i++) {
-              dPath += ` L ${pixelPoints[i].x} ${pixelPoints[i].y}`;
-            }
+            let dPath = buildRoundedPath(pixelPoints, 14);
 
             let path = document.createElementNS(svgNS, "path");
             path.setAttribute("d", dPath);
             path.setAttribute("fill", "none");
             path.setAttribute("stroke", pathColor);
-            path.setAttribute("stroke-width", "4");
-            path.setAttribute("stroke-dasharray", "8,5");
+            path.setAttribute("stroke-width", "3");
             path.setAttribute("stroke-linejoin", "round");
             path.setAttribute("stroke-linecap", "round");
+            path.setAttribute("class", "heatmap-flow-line");
             svg.appendChild(path);
+
+            // Node marker at start (CQI)
+            let startCircle = document.createElementNS(svgNS, "circle");
+            startCircle.setAttribute("cx", pixelPoints[0].x.toFixed(1));
+            startCircle.setAttribute("cy", pixelPoints[0].y.toFixed(1));
+            startCircle.setAttribute("r", "5");
+            startCircle.setAttribute("fill", pathColor);
+            startCircle.setAttribute("stroke", "#ffffff");
+            startCircle.setAttribute("stroke-width", "1.5");
+            svg.appendChild(startCircle);
+
+            // Node marker at end (last machine)
+            if (pixelPoints.length > 1) {
+              const lastPt = pixelPoints[pixelPoints.length - 1];
+              let endCircle = document.createElementNS(svgNS, "circle");
+              endCircle.setAttribute("cx", lastPt.x.toFixed(1));
+              endCircle.setAttribute("cy", lastPt.y.toFixed(1));
+              endCircle.setAttribute("r", "4");
+              endCircle.setAttribute("fill", "#ffffff");
+              endCircle.setAttribute("stroke", pathColor);
+              endCircle.setAttribute("stroke-width", "2");
+              svg.appendChild(endCircle);
+            }
           });
           fragment.appendChild(svg);
         }
@@ -1362,10 +1685,7 @@
           return;
         }
 
-        localStorage.setItem(
-          "factory_internal_storage",
-          JSON.stringify({ machines: mapData.machines, cqis: mapData.cqis }),
-        );
+        saveInternalStorage();
         sessionStorage.setItem(
           "planning_state",
           JSON.stringify({

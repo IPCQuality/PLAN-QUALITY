@@ -1,26 +1,12 @@
 {
-  "machines": [
-    {
-      "id": "M-0A-1",
-      "name": "AST 33-16L",
-      "line": "LINE A",
-      "status": "OFF",
-      "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "0A",
-      "position": {
-        "row": 8,
-        "col": 6
-      }
-    },
+  "machine line a": [
     {
       "id": "M-0A-3",
       "name": "AST 14-12L",
       "line": "LINE A",
       "status": "OFF",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "0A",
+      "ws": "0A",
       "position": {
         "row": 6,
         "col": 5
@@ -32,8 +18,7 @@
       "line": "LINE A",
       "status": "OFF",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "1A",
+      "ws": "1A",
       "position": {
         "row": 7,
         "col": 8
@@ -45,8 +30,7 @@
       "line": "LINE A",
       "status": "OFF",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "1A",
+      "ws": "1A",
       "position": {
         "row": 6,
         "col": 8
@@ -58,8 +42,7 @@
       "line": "LINE A",
       "status": "OFF",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "1A",
+      "ws": "1A",
       "position": {
         "row": 5,
         "col": 8
@@ -69,10 +52,9 @@
       "id": "M-2A-1",
       "name": "AST 70-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "2A",
+      "ws": "2A",
       "position": {
         "row": 8,
         "col": 10
@@ -82,10 +64,9 @@
       "id": "M-2A-2",
       "name": "AST 69-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "2A",
+      "ws": "2A",
       "position": {
         "row": 7,
         "col": 10
@@ -95,10 +76,9 @@
       "id": "M-2A-3",
       "name": "AST 67-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "2A",
+      "ws": "2A",
       "position": {
         "row": 6,
         "col": 10
@@ -108,10 +88,9 @@
       "id": "M-2A-4",
       "name": "AST 68-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "2A",
+      "ws": "2A",
       "position": {
         "row": 5,
         "col": 10
@@ -123,8 +102,7 @@
       "line": "LINE A",
       "status": "OFF",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "3A",
+      "ws": "3A",
       "position": {
         "row": 7,
         "col": 12
@@ -136,8 +114,7 @@
       "line": "LINE A",
       "status": "OFF",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "3A",
+      "ws": "3A",
       "position": {
         "row": 6,
         "col": 12
@@ -147,10 +124,9 @@
       "id": "M-3A-3",
       "name": "AST 22-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "3A",
+      "ws": "3A",
       "position": {
         "row": 5,
         "col": 12
@@ -160,10 +136,9 @@
       "id": "M-4A-1",
       "name": "AST 26-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "4A",
+      "ws": "4A",
       "position": {
         "row": 8,
         "col": 14
@@ -173,10 +148,9 @@
       "id": "M-4A-2",
       "name": "AST 27-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "4A",
+      "ws": "4A",
       "position": {
         "row": 7,
         "col": 14
@@ -186,10 +160,9 @@
       "id": "M-4A-3",
       "name": "AST 28-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "4A",
+      "ws": "4A",
       "position": {
         "row": 6,
         "col": 14
@@ -199,10 +172,9 @@
       "id": "M-4A-4",
       "name": "AST 65-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "4A",
+      "ws": "4A",
       "position": {
         "row": 5,
         "col": 14
@@ -212,10 +184,9 @@
       "id": "M-5A-1",
       "name": "AST 29-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "5A",
+      "ws": "5A",
       "position": {
         "row": 8,
         "col": 16
@@ -225,10 +196,9 @@
       "id": "M-5A-2",
       "name": "AST 8-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "5A",
+      "ws": "5A",
       "position": {
         "row": 7,
         "col": 16
@@ -238,10 +208,9 @@
       "id": "M-5A-3",
       "name": "AST 10-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "5A",
+      "ws": "5A",
       "position": {
         "row": 6,
         "col": 16
@@ -251,10 +220,9 @@
       "id": "M-5A-4",
       "name": "AST 12-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "5A",
+      "ws": "5A",
       "position": {
         "row": 5,
         "col": 16
@@ -264,10 +232,9 @@
       "id": "M-6A-1",
       "name": "AST 30-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "6A",
+      "ws": "6A",
       "position": {
         "row": 8,
         "col": 18
@@ -277,10 +244,9 @@
       "id": "M-6A-2",
       "name": "AST 7-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "6A",
+      "ws": "6A",
       "position": {
         "row": 7,
         "col": 18
@@ -290,10 +256,9 @@
       "id": "M-6A-3",
       "name": "AST 9-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "6A",
+      "ws": "6A",
       "position": {
         "row": 6,
         "col": 18
@@ -303,10 +268,9 @@
       "id": "M-6A-4",
       "name": "AST 11-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "6A",
+      "ws": "6A",
       "position": {
         "row": 5,
         "col": 18
@@ -316,10 +280,9 @@
       "id": "M-7A-1",
       "name": "AST 71-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "7A",
+      "ws": "7A",
       "position": {
         "row": 8,
         "col": 20
@@ -329,10 +292,9 @@
       "id": "M-7A-2",
       "name": "AST 3-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "7A",
+      "ws": "7A",
       "position": {
         "row": 7,
         "col": 20
@@ -342,10 +304,9 @@
       "id": "M-7A-3",
       "name": "AST 5-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "7A",
+      "ws": "7A",
       "position": {
         "row": 6,
         "col": 20
@@ -355,10 +316,9 @@
       "id": "M-7A-4",
       "name": "AST 4-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "7A",
+      "ws": "7A",
       "position": {
         "row": 5,
         "col": 20
@@ -368,10 +328,9 @@
       "id": "M-8A-1",
       "name": "AST 72-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "8A",
+      "ws": "8A",
       "position": {
         "row": 8,
         "col": 22
@@ -381,10 +340,9 @@
       "id": "M-8A-2",
       "name": "AST 18-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "8A",
+      "ws": "8A",
       "position": {
         "row": 7,
         "col": 22
@@ -394,10 +352,9 @@
       "id": "M-8A-3",
       "name": "AST 6-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "8A",
+      "ws": "8A",
       "position": {
         "row": 6,
         "col": 22
@@ -407,10 +364,9 @@
       "id": "M-8A-4",
       "name": "AST 2-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "8A",
+      "ws": "8A",
       "position": {
         "row": 5,
         "col": 22
@@ -420,10 +376,9 @@
       "id": "M-9A-1",
       "name": "AST 63-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "9A",
+      "ws": "9A",
       "position": {
         "row": 8,
         "col": 24
@@ -433,10 +388,9 @@
       "id": "M-9A-2",
       "name": "AST 15-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "9A",
+      "ws": "9A",
       "position": {
         "row": 7,
         "col": 24
@@ -446,10 +400,9 @@
       "id": "M-9A-3",
       "name": "AST 16-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "9A",
+      "ws": "9A",
       "position": {
         "row": 6,
         "col": 24
@@ -459,10 +412,9 @@
       "id": "M-9A-4",
       "name": "AST 17-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "9A",
+      "ws": "9A",
       "position": {
         "row": 5,
         "col": 24
@@ -472,10 +424,9 @@
       "id": "M-10A-1",
       "name": "AST 19-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "10A",
+      "ws": "10A",
       "position": {
         "row": 8,
         "col": 26
@@ -485,10 +436,9 @@
       "id": "M-10A-2",
       "name": "AST 20-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "10A",
+      "ws": "10A",
       "position": {
         "row": 7,
         "col": 26
@@ -498,10 +448,9 @@
       "id": "M-10A-3",
       "name": "AST 21-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "10A",
+      "ws": "10A",
       "position": {
         "row": 6,
         "col": 26
@@ -509,25 +458,25 @@
     },
     {
       "id": "M-10A-4",
-      "name": "AST 60-16L",
+      "name": "AST 33-16L",
       "line": "LINE A",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "16",
-      "workstation": "10A",
+      "ws": "10A",
       "position": {
         "row": 5,
         "col": 26
       }
-    },
+    }
+  ],
+  "machines line b": [
     {
       "id": "M-0B-1",
       "name": "K1",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Botol",
-      "qtytimbang": "4",
-      "workstation": "0B",
+      "ws": "0B",
       "position": {
         "row": 12,
         "col": 5
@@ -537,10 +486,9 @@
       "id": "M-0B-2",
       "name": "K2",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Botol",
-      "qtytimbang": "4",
-      "workstation": "0B",
+      "ws": "0B",
       "position": {
         "row": 12,
         "col": 6
@@ -550,10 +498,9 @@
       "id": "M-1B-1",
       "name": "AST 41-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "1B",
+      "ws": "1B",
       "position": {
         "row": 12,
         "col": 8
@@ -565,8 +512,7 @@
       "line": "LINE B",
       "status": "OFF",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "1B",
+      "ws": "1B",
       "position": {
         "row": 13,
         "col": 8
@@ -576,10 +522,9 @@
       "id": "M-1B-3",
       "name": "AST 51-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "1B",
+      "ws": "1B",
       "position": {
         "row": 14,
         "col": 8
@@ -589,10 +534,9 @@
       "id": "M-1B-4",
       "name": "AST 50-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "1B",
+      "ws": "1B",
       "position": {
         "row": 15,
         "col": 8
@@ -602,10 +546,9 @@
       "id": "M-2B-1",
       "name": "AST 46-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "2B",
+      "ws": "2B",
       "position": {
         "row": 12,
         "col": 10
@@ -615,10 +558,9 @@
       "id": "M-2B-2",
       "name": "AST 45-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "2B",
+      "ws": "2B",
       "position": {
         "row": 13,
         "col": 10
@@ -628,10 +570,9 @@
       "id": "M-2B-3",
       "name": "AST 42-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "2B",
+      "ws": "2B",
       "position": {
         "row": 14,
         "col": 10
@@ -641,10 +582,9 @@
       "id": "M-2B-4",
       "name": "AST 43-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "2B",
+      "ws": "2B",
       "position": {
         "row": 15,
         "col": 10
@@ -654,10 +594,9 @@
       "id": "M-3B-1",
       "name": "AST 53-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "3B",
+      "ws": "3B",
       "position": {
         "row": 12,
         "col": 12
@@ -667,10 +606,9 @@
       "id": "M-3B-2",
       "name": "AST 52-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "3B",
+      "ws": "3B",
       "position": {
         "row": 13,
         "col": 12
@@ -680,10 +618,9 @@
       "id": "M-3B-3",
       "name": "AST 48-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "3B",
+      "ws": "3B",
       "position": {
         "row": 14,
         "col": 12
@@ -693,10 +630,9 @@
       "id": "M-3B-4",
       "name": "AST 49-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Sosoft",
-      "qtytimbang": "8",
-      "workstation": "3B",
+      "ws": "3B",
       "position": {
         "row": 15,
         "col": 12
@@ -706,10 +642,9 @@
       "id": "M-4B-1",
       "name": "APK 45",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "4B",
+      "ws": "4B",
       "position": {
         "row": 12,
         "col": 14
@@ -721,8 +656,7 @@
       "line": "LINE B",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "4B",
+      "ws": "4B",
       "position": {
         "row": 13,
         "col": 14
@@ -734,8 +668,7 @@
       "line": "LINE B",
       "status": "OFF",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "5B",
+      "ws": "5B",
       "position": {
         "row": 12,
         "col": 16
@@ -745,10 +678,9 @@
       "id": "M-5B-2",
       "name": "AST 31-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "5B",
+      "ws": "5B",
       "position": {
         "row": 13,
         "col": 16
@@ -758,10 +690,9 @@
       "id": "M-5B-3",
       "name": "AST 23-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "5B",
+      "ws": "5B",
       "position": {
         "row": 14,
         "col": 16
@@ -771,10 +702,9 @@
       "id": "M-5B-4",
       "name": "AST 62-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "5B",
+      "ws": "5B",
       "position": {
         "row": 15,
         "col": 16
@@ -786,8 +716,7 @@
       "line": "LINE B",
       "status": "OFF",
       "cluster": "Botol",
-      "qtytimbang": "4",
-      "workstation": "6B",
+      "ws": "6B",
       "position": {
         "row": 12,
         "col": 17
@@ -799,8 +728,7 @@
       "line": "LINE B",
       "status": "OFF",
       "cluster": "Botol",
-      "qtytimbang": "4",
-      "workstation": "6B",
+      "ws": "6B",
       "position": {
         "row": 12,
         "col": 18
@@ -810,10 +738,9 @@
       "id": "M-7B-1",
       "name": "AST 39-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "7B",
+      "ws": "7B",
       "position": {
         "row": 12,
         "col": 20
@@ -823,10 +750,9 @@
       "id": "M-7B-2",
       "name": "AST 38-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "7B",
+      "ws": "7B",
       "position": {
         "row": 13,
         "col": 20
@@ -836,10 +762,9 @@
       "id": "M-7B-3",
       "name": "AST 37-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "7B",
+      "ws": "7B",
       "position": {
         "row": 14,
         "col": 20
@@ -849,10 +774,9 @@
       "id": "M-7B-4",
       "name": "AST 40-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "7B",
+      "ws": "7B",
       "position": {
         "row": 15,
         "col": 20
@@ -864,8 +788,7 @@
       "line": "LINE B",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "8B",
+      "ws": "8B",
       "position": {
         "row": 12,
         "col": 22
@@ -877,8 +800,7 @@
       "line": "LINE B",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "8B",
+      "ws": "8B",
       "position": {
         "row": 13,
         "col": 22
@@ -888,10 +810,9 @@
       "id": "M-9B-1",
       "name": "AST 66-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "8",
-      "workstation": "9B",
+      "ws": "9B",
       "position": {
         "row": 12,
         "col": 24
@@ -901,10 +822,9 @@
       "id": "M-9B-2",
       "name": "AST 35-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "8",
-      "workstation": "9B",
+      "ws": "9B",
       "position": {
         "row": 13,
         "col": 24
@@ -914,10 +834,9 @@
       "id": "M-9B-3",
       "name": "AST 34-16L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "SKLsct",
-      "qtytimbang": "8",
-      "workstation": "9B",
+      "ws": "9B",
       "position": {
         "row": 14,
         "col": 24
@@ -929,8 +848,7 @@
       "line": "LINE B",
       "status": "OFF",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "9B",
+      "ws": "9B",
       "position": {
         "row": 15,
         "col": 24
@@ -940,10 +858,9 @@
       "id": "M-10B-1",
       "name": "AST 25-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "10B",
+      "ws": "10B",
       "position": {
         "row": 12,
         "col": 26
@@ -953,10 +870,9 @@
       "id": "M-10B-2",
       "name": "AST 13-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "10B",
+      "ws": "10B",
       "position": {
         "row": 13,
         "col": 26
@@ -966,10 +882,9 @@
       "id": "M-10B-3",
       "name": "AST 32-12L",
       "line": "LINE B",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "12Ljumbo",
-      "qtytimbang": "12",
-      "workstation": "10B",
+      "ws": "10B",
       "position": {
         "row": 14,
         "col": 26
@@ -981,21 +896,21 @@
       "line": "LINE B",
       "status": "OFF",
       "cluster": "Botol",
-      "qtytimbang": "4",
-      "workstation": "11B",
+      "ws": "11B",
       "position": {
         "row": 12,
         "col": 28
       }
-    },
+    }
+  ],
+  "machines line c": [
     {
       "id": "M-1C-1",
       "name": "APK 40",
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "1C",
+      "ws": "1C",
       "position": {
         "row": 14,
         "col": 33
@@ -1007,8 +922,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "1C",
+      "ws": "1C",
       "position": {
         "row": 15,
         "col": 33
@@ -1020,8 +934,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "1C",
+      "ws": "1C",
       "position": {
         "row": 16,
         "col": 33
@@ -1031,10 +944,9 @@
       "id": "M-2C-1",
       "name": "APK 19",
       "line": "LINE C",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "2C",
+      "ws": "2C",
       "position": {
         "row": 14,
         "col": 35
@@ -1044,10 +956,9 @@
       "id": "M-2C-2",
       "name": "APK 26",
       "line": "LINE C",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "2C",
+      "ws": "2C",
       "position": {
         "row": 15,
         "col": 35
@@ -1059,8 +970,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "3C",
+      "ws": "3C",
       "position": {
         "row": 14,
         "col": 37
@@ -1072,8 +982,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "3C",
+      "ws": "3C",
       "position": {
         "row": 15,
         "col": 37
@@ -1083,10 +992,9 @@
       "id": "M-3C-3",
       "name": "APK 9",
       "line": "LINE C",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "3C",
+      "ws": "3C",
       "position": {
         "row": 16,
         "col": 37
@@ -1098,8 +1006,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "4C",
+      "ws": "4C",
       "position": {
         "row": 14,
         "col": 39
@@ -1111,8 +1018,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "4C",
+      "ws": "4C",
       "position": {
         "row": 15,
         "col": 39
@@ -1124,8 +1030,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "4C",
+      "ws": "4C",
       "position": {
         "row": 16,
         "col": 39
@@ -1135,10 +1040,9 @@
       "id": "M-5C-1",
       "name": "APK 32",
       "line": "LINE C",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "5C",
+      "ws": "5C",
       "position": {
         "row": 14,
         "col": 41
@@ -1148,10 +1052,9 @@
       "id": "M-5C-2",
       "name": "APK 54",
       "line": "LINE C",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "5C",
+      "ws": "5C",
       "position": {
         "row": 15,
         "col": 41
@@ -1161,10 +1064,9 @@
       "id": "M-6C-1",
       "name": "K5",
       "line": "LINE C",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Botol",
-      "qtytimbang": "4",
-      "workstation": "6C",
+      "ws": "6C",
       "position": {
         "row": 14,
         "col": 43
@@ -1174,10 +1076,9 @@
       "id": "M-6C-2",
       "name": "K6",
       "line": "LINE C",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Botol",
-      "qtytimbang": "4",
-      "workstation": "6C",
+      "ws": "6C",
       "position": {
         "row": 14,
         "col": 44
@@ -1189,8 +1090,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Botol",
-      "qtytimbang": "4",
-      "workstation": "7C",
+      "ws": "7C",
       "position": {
         "row": 14,
         "col": 45
@@ -1202,8 +1102,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Botol",
-      "qtytimbang": "4",
-      "workstation": "7C",
+      "ws": "7C",
       "position": {
         "row": 14,
         "col": 46
@@ -1215,8 +1114,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "8C",
+      "ws": "8C",
       "position": {
         "row": 14,
         "col": 48
@@ -1226,10 +1124,9 @@
       "id": "M-8C-2",
       "name": "APK 59",
       "line": "LINE C",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "8C",
+      "ws": "8C",
       "position": {
         "row": 15,
         "col": 48
@@ -1239,10 +1136,9 @@
       "id": "M-9C-1",
       "name": "APK 63",
       "line": "LINE C",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "9C",
+      "ws": "9C",
       "position": {
         "row": 14,
         "col": 50
@@ -1254,8 +1150,7 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "10C",
+      "ws": "10C",
       "position": {
         "row": 14,
         "col": 52
@@ -1267,21 +1162,21 @@
       "line": "LINE C",
       "status": "OFF",
       "cluster": "Pouch",
-      "qtytimbang": "4",
-      "workstation": "10C",
+      "ws": "10C",
       "position": {
         "row": 15,
         "col": 52
       }
-    },
+    }
+  ],
+  "machines ww": [
     {
       "id": "M-WW-1",
       "name": "C1",
       "line": "WW",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "",
-      "qtytimbang": "8",
-      "workstation": "WW",
+      "ws": "WW",
       "position": {
         "row": 8,
         "col": 33
@@ -1293,21 +1188,21 @@
       "line": "WW",
       "status": "OFF",
       "cluster": "",
-      "qtytimbang": "8",
-      "workstation": "WW",
+      "ws": "WW",
       "position": {
         "row": 9,
         "col": 33
       }
-    },
+    }
+  ],
+  "machines ot": [
     {
       "id": "M-OT-1",
       "name": "M2",
       "line": "OT",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "",
-      "qtytimbang": "8",
-      "workstation": "OT",
+      "ws": "OT",
       "position": {
         "row": 3,
         "col": 33
@@ -1317,23 +1212,23 @@
       "id": "M-OT-2",
       "name": "M3",
       "line": "OT",
-      "status": "OFF",
+      "status": "RUNNING",
       "cluster": "",
-      "qtytimbang": "8",
-      "workstation": "OT",
+      "ws": "OT",
       "position": {
         "row": 4,
         "col": 33
       }
     }
   ],
-  "cqis": [
+  "cqi line a": [
     {
       "id": "CQI-1",
       "name": "CQI 1",
       "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "1A",
       "position": {
         "row": 3,
         "col": 8
@@ -1342,9 +1237,10 @@
     {
       "id": "CQI-2",
       "name": "CQI 2",
-      "status": "OFF",
+      "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "2A",
       "position": {
         "row": 3,
         "col": 10
@@ -1356,6 +1252,7 @@
       "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "3A",
       "position": {
         "row": 3,
         "col": 12
@@ -1367,6 +1264,7 @@
       "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "4A",
       "position": {
         "row": 3,
         "col": 14
@@ -1378,6 +1276,7 @@
       "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "5A",
       "position": {
         "row": 3,
         "col": 16
@@ -1389,6 +1288,7 @@
       "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "6A",
       "position": {
         "row": 3,
         "col": 18
@@ -1400,6 +1300,7 @@
       "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "7A",
       "position": {
         "row": 3,
         "col": 20
@@ -1411,6 +1312,7 @@
       "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "8A",
       "position": {
         "row": 3,
         "col": 22
@@ -1422,6 +1324,7 @@
       "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "9A",
       "position": {
         "row": 3,
         "col": 24
@@ -1433,11 +1336,14 @@
       "status": "READY",
       "priority": [],
       "corePriority": [],
+      "ws": "10A",
       "position": {
         "row": 3,
         "col": 26
       }
-    },
+    }
+  ],
+  "cqi line b": [
     {
       "id": "CQI-11",
       "name": "CQI 11",
@@ -1450,17 +1356,6 @@
       }
     },
     {
-      "id": "CQI-12",
-      "name": "CQI 12",
-      "status": "OFF",
-      "priority": [],
-      "corePriority": [],
-      "position": {
-        "row": 15,
-        "col": 32
-      }
-    },
-    {
       "id": "CQI-13",
       "name": "CQI 13",
       "status": "READY",
@@ -1469,6 +1364,17 @@
       "position": {
         "row": 13,
         "col": 11
+      }
+    },
+    {
+      "id": "CQI-21",
+      "name": "CQI 21",
+      "status": "OFF",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 14,
+        "col": 13
       }
     },
     {
@@ -1494,9 +1400,20 @@
       }
     },
     {
+      "id": "CQI-25",
+      "name": "CQI 25",
+      "status": "OFF",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 13,
+        "col": 21
+      }
+    },
+    {
       "id": "CQI-16",
       "name": "CQI 16",
-      "status": "OFF",
+      "status": "READY",
       "priority": [],
       "corePriority": [],
       "position": {
@@ -1507,56 +1424,12 @@
     {
       "id": "CQI-17",
       "name": "CQI 17",
-      "status": "OFF",
+      "status": "READY",
       "priority": [],
       "corePriority": [],
       "position": {
         "row": 12,
         "col": 29
-      }
-    },
-    {
-      "id": "CQI-18",
-      "name": "CQI 18",
-      "status": "READY",
-      "priority": [],
-      "corePriority": [],
-      "position": {
-        "row": 15,
-        "col": 34
-      }
-    },
-    {
-      "id": "CQI-19",
-      "name": "CQI 19",
-      "status": "READY",
-      "priority": [],
-      "corePriority": [],
-      "position": {
-        "row": 3,
-        "col": 34
-      }
-    },
-    {
-      "id": "CQI-20",
-      "name": "CQI 20",
-      "status": "READY",
-      "priority": [],
-      "corePriority": [],
-      "position": {
-        "row": 15,
-        "col": 36
-      }
-    },
-    {
-      "id": "CQI-21",
-      "name": "CQI 21",
-      "status": "OFF",
-      "priority": [],
-      "corePriority": [],
-      "position": {
-        "row": 14,
-        "col": 13
       }
     },
     {
@@ -1580,7 +1453,57 @@
         "row": 14,
         "col": 19
       }
+    }
+  ],
+  "cqi line c": [
+    {
+      "id": "CQI-12",
+      "name": "CQI 12",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 15,
+        "col": 32
+      }
     },
+    {
+      "id": "CQI-18",
+      "name": "CQI 18",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 15,
+        "col": 34
+      }
+    },
+    {
+      "id": "CQI-20",
+      "name": "CQI 20",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 15,
+        "col": 36
+      }
+    }
+  ],
+  "cqi line ot": [
+    {
+      "id": "CQI-19",
+      "name": "CQI 19",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 34
+      }
+    }
+  ],
+  "cqi line ww": [
     {
       "id": "CQI-24",
       "name": "CQI 24",
@@ -1590,17 +1513,6 @@
       "position": {
         "row": 8,
         "col": 34
-      }
-    },
-    {
-      "id": "CQI-25",
-      "name": "CQI 25",
-      "status": "READY",
-      "priority": [],
-      "corePriority": [],
-      "position": {
-        "row": 13,
-        "col": 21
       }
     }
   ],

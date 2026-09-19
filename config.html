@@ -25,254 +25,293 @@
       <div class="topbar-left">
         <a class="back-btn" href="index.html">Kembali ke Map</a>
         <h1>Konfigurasi Planning</h1>
-        <span class="badge" id="statusBadge">Siap Generate</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 12px">
-        <!-- Switcher Antar Mode BrainAI -->
-        <div class="mode-switch-wrapper" id="modeSwitchWrapper" title="Pilih Mode BrainAI">
-          <button type="button" class="mode-toggle-btn active" id="btnMode1" onclick="switchBrainMode(1)" title="Gunakan BrainAI Mode 1 (Heuristik Terstandarisasi)">
-            <span class="mode-dot dot-mode1"></span>Mode 1 (Heuristik)
-          </button>
-          <button type="button" class="mode-toggle-btn" id="btnMode2" onclick="switchBrainMode(2)" title="Gunakan BrainAI Mode 2 (0 Kode Belum Terpikirkan)">
-            <span class="mode-dot dot-mode2"></span>Mode 2 (0 Kode)
-          </button>
-        </div>
-
-        <button class="btn btn-primary" onclick="executePlan()">
-          Generate Planning
-        </button>
+        <span class="badge" id="statusBadge" style="background-color: #f0fdf4; color: #15803d; border-color: #86efac;">BrainAI Siap</span>
       </div>
     </header>
 
     <div class="container">
-      <section class="dashboard-grid">
-        <div class="stat-card highlight">
-          <p>Mesin Running</p>
-          <span id="db-running">0</span>
+      <!-- STEPPER NAVIGATION BAR -->
+      <nav class="stepper-nav">
+        <div class="step-pill active" id="stepPill1" onclick="goToStep(1)">
+          <span class="step-num">1</span>
+          <span class="step-title">Konfigurasi Manpower</span>
         </div>
-        <div class="stat-card highlight">
-          <p>CQI Ready</p>
-          <span id="db-cqi-ready">0</span>
+        <div class="step-divider">➔</div>
+        <div class="step-pill" id="stepPill2" onclick="goToStep(2)">
+          <span class="step-num">2</span>
+          <span class="step-title">Papan Alokasi Interaktif</span>
         </div>
-        <div class="stat-card">
-          <p>Total Core</p>
-          <span id="db-core">0</span>
+        <div class="step-divider">➔</div>
+        <div class="step-pill" id="stepPill3" onclick="goToStep(3)">
+          <span class="step-num">3</span>
+          <span class="step-title">Output Planning Final</span>
         </div>
-        <div class="stat-card">
-          <p>Total Non-Core</p>
-          <span id="db-noncore">0</span>
-        </div>
-        <div class="stat-card">
-          <p>Total Longshift</p>
-          <span id="db-ls">0</span>
-        </div>
-        <div class="stat-card">
-          <p>Total Mesin Ter-cover</p>
-          <span id="db-covered">0</span>
-        </div>
-      </section>
+      </nav>
 
-      <div>
-        <div class="cols-3-grid">
-          <!-- Kolom 1: Core -->
-          <div class="config-box">
-            <div class="box-header">
-              <h3>Core Manpower</h3>
-              <div class="rolling-group">
-                <button
-                  class="icon-btn"
-                  onclick="sortListById('core')"
-                  title="Reset urutan sesuai nomor ID (C1, C2, C3...)"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-                </button>
-                <button class="icon-btn" onclick="shiftList('core', -1)" title="Geser ke atas">
-                  ▲
-                </button>
-                <button class="icon-btn" onclick="shiftList('core', 1)" title="Geser ke bawah">
-                  ▼
-                </button>
-              </div>
-              <span class="count-badge" id="cnt-core">0</span>
-            </div>
-            <div class="list-container" id="coreListContainer"></div>
-            <button class="add-btn" onclick="addManpowerItem('core')">
-              + Tambah Core
-            </button>
+      <!-- LANGKAH 1: KONFIGURASI MANPOWER -->
+      <div id="stepSection1" class="step-content">
+        <section class="dashboard-grid">
+          <div class="stat-card highlight">
+            <p>Mesin Running</p>
+            <span id="db-running">0</span>
           </div>
+          <div class="stat-card highlight">
+            <p>CQI Ready</p>
+            <span id="db-cqi-ready">0</span>
+          </div>
+          <div class="stat-card">
+            <p>Total Core</p>
+            <span id="db-core">0</span>
+          </div>
+          <div class="stat-card">
+            <p>Total Non-Core</p>
+            <span id="db-noncore">0</span>
+          </div>
+          <div class="stat-card">
+            <p>Total Longshift</p>
+            <span id="db-ls">0</span>
+          </div>
+          <div class="stat-card">
+            <p>Total Mesin Ter-cover</p>
+            <span id="db-covered">0</span>
+          </div>
+        </section>
 
-          <!-- Kolom 2: Non-Core & Longshift -->
-          <div style="display: flex; flex-direction: column; gap: 20px">
+        <div style="margin-top: 20px;">
+          <div class="cols-3-grid">
+            <!-- Kolom 1: Core -->
             <div class="config-box">
               <div class="box-header">
-                <h3>Non-Core Manpower</h3>
+                <h3>Core Manpower</h3>
                 <div class="rolling-group">
                   <button
                     class="icon-btn"
-                    onclick="sortListById('nonCore')"
-                    title="Reset urutan sesuai nomor ID (NC1, NC2, NC3...)"
+                    onclick="sortListById('core')"
+                    title="Reset urutan sesuai nomor ID (C1, C2, C3...)"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
                   </button>
-                  <button class="icon-btn" onclick="shiftList('nonCore', -1)" title="Geser ke atas">
+                  <button class="icon-btn" onclick="shiftList('core', -1)" title="Geser ke atas">
                     ▲
                   </button>
-                  <button class="icon-btn" onclick="shiftList('nonCore', 1)" title="Geser ke bawah">
+                  <button class="icon-btn" onclick="shiftList('core', 1)" title="Geser ke bawah">
                     ▼
                   </button>
                 </div>
-                <span class="count-badge" id="cnt-noncore">0</span>
+                <span class="count-badge" id="cnt-core">0</span>
               </div>
-              <div class="list-container" id="nonCoreListContainer"></div>
-              <button class="add-btn" onclick="addManpowerItem('nonCore')">
-                + Tambah Non-Core
+              <div class="list-container" id="coreListContainer"></div>
+              <button class="add-btn" onclick="addManpowerItem('core')">
+                + Tambah Core
               </button>
             </div>
 
+            <!-- Kolom 2: Non-Core & Longshift -->
+            <div style="display: flex; flex-direction: column; gap: 20px">
+              <div class="config-box">
+                <div class="box-header">
+                  <h3>Non-Core Manpower</h3>
+                  <div class="rolling-group">
+                    <button
+                      class="icon-btn"
+                      onclick="sortListById('nonCore')"
+                      title="Reset urutan sesuai nomor ID (NC1, NC2, NC3...)"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                    </button>
+                    <button class="icon-btn" onclick="shiftList('nonCore', -1)" title="Geser ke atas">
+                      ▲
+                    </button>
+                    <button class="icon-btn" onclick="shiftList('nonCore', 1)" title="Geser ke bawah">
+                      ▼
+                    </button>
+                  </div>
+                  <span class="count-badge" id="cnt-noncore">0</span>
+                </div>
+                <div class="list-container" id="nonCoreListContainer"></div>
+                <button class="add-btn" onclick="addManpowerItem('nonCore')">
+                  + Tambah Non-Core
+                </button>
+              </div>
+
+              <div class="config-box">
+                <div class="box-header">
+                  <h3>Longshift (LS)</h3>
+                  <span class="count-badge" id="cnt-ls">0</span>
+                </div>
+                <div class="sub-fields-group">
+                  <div class="field-group">
+                    <label>Jumlah Longshift</label>
+                    <input
+                      type="number"
+                      id="ncLongshiftCount"
+                      min="0"
+                      value="0"
+                      placeholder="0"
+                      oninput="
+                        localStorage.setItem('ncls_count', this.value);
+                        updateDashboardStats();
+                      "
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kolom 3: QC & Tugas Khusus -->
             <div class="config-box">
               <div class="box-header">
-                <h3>Longshift (LS)</h3>
-                <span class="count-badge" id="cnt-ls">0</span>
+                <h3>QC Passed & Lainnya</h3>
+                <div class="rolling-group">
+                  <button
+                    class="icon-btn"
+                    onclick="sortListById('qcPassed')"
+                    title="Reset urutan sesuai nomor ID"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                  </button>
+                  <button class="icon-btn" onclick="shiftList('qcPassed', -1)" title="Geser ke atas">
+                    ▲
+                  </button>
+                  <button class="icon-btn" onclick="shiftList('qcPassed', 1)" title="Geser ke bawah">
+                    ▼
+                  </button>
+                </div>
+                <span class="count-badge" id="cnt-qc">0/5</span>
               </div>
               <div class="sub-fields-group">
                 <div class="field-group">
-                  <label>Jumlah Longshift</label>
-                  <input
-                    type="number"
-                    id="ncLongshiftCount"
-                    min="0"
-                    value="0"
-                    placeholder="0"
-                    oninput="
-                      localStorage.setItem('ncls_count', this.value);
+                  <label>QC Passed</label>
+                  <div class="list-container" id="qcPassedContainer"></div>
+                  <button class="add-btn" id="addQcBtn" onclick="addQcItem()">
+                    + Tambah QC Passed
+                  </button>
+                </div>
+                <div class="field-group">
+                  <label>Mil-Std</label>
+                  <select
+                    id="milStdSelect"
+                    class="config-select"
+                    onchange="onMilStdSelectChange(this.value)"
+                  >
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Support FG</label>
+                  <select
+                    id="supportFgSelect"
+                    class="config-select"
+                    onchange="
+                      localStorage.setItem('supportFg_val', this.value);
+                      renderQcList();
                       updateDashboardStats();
                     "
-                  />
+                  >
+                    <option value="">Tidak Ada / Kosong</option>
+                  </select>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Kolom 3: QC & Tugas Khusus -->
-          <div class="config-box">
-            <div class="box-header">
-              <h3>QC Passed & Lainnya</h3>
-              <div class="rolling-group">
-                <button
-                  class="icon-btn"
-                  onclick="sortListById('qcPassed')"
-                  title="Reset urutan sesuai nomor ID"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-                </button>
-                <button class="icon-btn" onclick="shiftList('qcPassed', -1)" title="Geser ke atas">
-                  ▲
-                </button>
-                <button class="icon-btn" onclick="shiftList('qcPassed', 1)" title="Geser ke bawah">
-                  ▼
-                </button>
-              </div>
-              <span class="count-badge" id="cnt-qc">0/5</span>
-            </div>
-            <div class="sub-fields-group">
-              <div class="field-group">
-                <label>QC Passed</label>
-                <div class="list-container" id="qcPassedContainer"></div>
-                <button class="add-btn" id="addQcBtn" onclick="addQcItem()">
-                  + Tambah QC Passed
-                </button>
-              </div>
-              <div class="field-group">
-                <label>Mil-Std</label>
-                <select
-                  id="milStdSelect"
-                  class="config-select"
-                  onchange="onMilStdSelectChange(this.value)"
-                >
-                </select>
-              </div>
-              <div class="field-group">
-                <label>Support FG</label>
-                <select
-                  id="supportFgSelect"
-                  class="config-select"
-                  onchange="
-                    localStorage.setItem('supportFg_val', this.value);
-                    renderQcList();
-                    updateDashboardStats();
-                  "
-                >
-                  <option value="">Tidak Ada / Kosong</option>
-                </select>
-              </div>
-            </div>
-          </div>
+        <div id="alertContainer" class="alert-container"></div>
+
+        <div class="step-footer-actions">
+          <div></div>
+          <button class="btn btn-primary btn-lg" onclick="handleStep1Lanjut()">
+            Lanjut ke Papan Alokasi Interaktif ➔
+          </button>
         </div>
       </div>
 
-      <div id="alertContainer" class="alert-container"></div>
+      <!-- LANGKAH 2: PAPAN ALOKASI INTERAKTIF (DRAG & DROP) -->
+      <div id="stepSection2" class="step-content" style="display: none;">
+        <div id="interactiveAlertContainer" class="alert-container" style="margin-bottom: 16px;"></div>
 
-      <!-- PAPAN ALOKASI INTERAKTIF (DRAG & DROP RE-ASSIGNMENT) -->
-      <section class="card" id="planBoardSection" style="margin-bottom: 24px;">
-        <div class="card-head">
-          <div>
-            <h2>Papan Alokasi Interaktif (Drag &amp; Drop Re-assignment)</h2>
-            <p>Geser (drag &amp; drop) mesin atau manpower antar slot CQI untuk penyesuaian langsung secara visual.</p>
+        <section class="card" id="planBoardSection" style="margin-bottom: 24px;">
+          <div class="card-head">
+            <div>
+              <h2>Papan Alokasi Interaktif (Drag &amp; Drop Re-assignment)</h2>
+              <p>Geser (drag &amp; drop) mesin atau manpower antar slot CQI untuk penyesuaian langsung secara visual.</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <span class="meta" id="boardMeta">Belum digenerate</span>
+              <button class="btn btn-sm" onclick="resetBoardToAutoGenerated()" title="Kembalikan ke hasil generate otomatis">↺ Reset Alokasi</button>
+            </div>
           </div>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <span class="meta" id="boardMeta">Belum digenerate</span>
-            <button class="btn btn-sm" onclick="resetBoardToAutoGenerated()" title="Kembalikan ke hasil generate otomatis">↺ Reset Alokasi</button>
+          
+          <div id="interactivePlanBoard" class="plan-board-grid">
+            <div class="empty-board-notice">
+              Klik "Generate Planning" atau "Lanjut" untuk menampilkan papan alokasi interaktif.
+            </div>
           </div>
-        </div>
-        
-        <div id="interactivePlanBoard" class="plan-board-grid">
-          <div class="empty-board-notice">
-            Klik "Generate Planning" untuk menampilkan papan alokasi interaktif drag &amp; drop.
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="card">
-        <div class="card-head">
-          <div>
-            <h2>Output Planning Final</h2>
-            <p>Hasil alokasi otomatis siap divalidasi atau dibagikan.</p>
+        <div class="step-footer-actions">
+          <button class="btn btn-secondary btn-lg" onclick="goToStep(1)">
+            ⬅ Kembali ke Konfigurasi
+          </button>
+          <button class="btn btn-primary btn-lg" onclick="handleStep2Lanjut()">
+            Lanjut ke Output Planning Final ➔
+          </button>
+        </div>
+      </div>
+
+      <!-- LANGKAH 3: OUTPUT PLANNING FINAL FULL SCREEN -->
+      <div id="stepSection3" class="step-content" style="display: none;">
+        <section class="card full-screen-output-card">
+          <div class="card-head">
+            <div>
+              <h2>Output Planning Final (Full Screen View)</h2>
+              <p>Hasil alokasi resmi siap divalidasi, disalin, atau dikirimkan.</p>
+            </div>
+            <span class="meta" id="lineMeta">Belum digenerate</span>
           </div>
-          <span class="meta" id="lineMeta">Belum digenerate</span>
+          <textarea
+            id="textOutput"
+            class="text-output-fullscreen"
+            spellcheck="false"
+            placeholder="Planning output akan muncul di sini..."
+            oninput="updateMeta()"
+          ></textarea>
+          <div class="actions">
+            <button class="btn btn-ok" onclick="validateAndExport()">
+              ✓ Validasi &amp; Copy
+            </button>
+            <button
+              class="btn btn-wa"
+              style="background: #16a34a; color: #ffffff; border-color: #16a34a"
+              onclick="shareWA()"
+            >
+              Kirim ke WhatsApp
+            </button>
+            <button class="btn" onclick="exportExcel()">
+              📊 Export ke Excel
+            </button>
+            <button class="btn" onclick="downloadPlanningJson()">
+              📥 Download JSON
+            </button>
+            <button
+              class="btn"
+              id="btnPushHistory"
+              style="background: #0284c7; color: #ffffff; border-color: #0284c7;"
+              onclick="pushPlanningToHistory()"
+            >
+              💾 Push ke History
+            </button>
+          </div>
+        </section>
+
+        <div class="step-footer-actions" style="margin-top: 20px;">
+          <button class="btn btn-secondary btn-lg" onclick="goToStep(2)">
+            ⬅ Kembali ke Papan Alokasi
+          </button>
+          <button class="btn btn-secondary btn-lg" onclick="goToStep(1)">
+            ↺ Edit Konfigurasi Manpower
+          </button>
         </div>
-        <textarea
-          id="textOutput"
-          spellcheck="false"
-          placeholder="Klik tombol 'Generate Planning' di atas untuk memproses alokasi shift..."
-          oninput="updateMeta()"
-        ></textarea>
-        <div class="actions">
-          <button class="btn btn-ok" onclick="validateAndExport()">
-            ✓ Validasi &amp; Copy
-          </button>
-          <button
-            class="btn btn-wa"
-            style="background: #16a34a; color: #ffffff; border-color: #16a34a"
-            onclick="shareWA()"
-          >
-            Kirim ke WhatsApp
-          </button>
-          <button class="btn" onclick="exportExcel()">
-            📊 Export ke Excel
-          </button>
-          <button class="btn" onclick="downloadPlanningJson()">
-            📥 Download JSON
-          </button>
-          <button
-            class="btn"
-            id="btnPushHistory"
-            style="background: #0284c7; color: #ffffff; border-color: #0284c7;"
-            onclick="pushPlanningToHistory()"
-          >
-            💾 Push ke History
-          </button>
-        </div>
-      </section>
+      </div>
     </div>
 
     <!-- Modal Resolusi Kapasitas Overflow Mesin -->
@@ -566,43 +605,6 @@
         return BrainAI || window.BrainAI;
       }
 
-      function updateModeUI(mode) {
-        const btn1 = document.getElementById("btnMode1");
-        const btn2 = document.getElementById("btnMode2");
-        const statusBadge = document.getElementById("statusBadge");
-
-        if (mode === 2 || mode === "2") {
-          if (btn1) btn1.classList.remove("active");
-          if (btn2) btn2.classList.add("active");
-          if (statusBadge) {
-            statusBadge.textContent = "Mode 2 (0 Kode)";
-            statusBadge.style.backgroundColor = "#eff6ff";
-            statusBadge.style.color = "#1d4ed8";
-            statusBadge.style.borderColor = "#93c5fd";
-          }
-        } else {
-          if (btn1) btn1.classList.add("active");
-          if (btn2) btn2.classList.remove("active");
-          if (statusBadge) {
-            statusBadge.textContent = "Mode 1 (Heuristik)";
-            statusBadge.style.backgroundColor = "#f0fdf4";
-            statusBadge.style.color = "#15803d";
-            statusBadge.style.borderColor = "#86efac";
-          }
-        }
-      }
-
-      function switchBrainMode(mode) {
-        const brain = getBrain();
-        if (brain && typeof brain.setMode === "function") {
-          brain.setMode(mode);
-        }
-        try {
-          localStorage.setItem("factory_brain_mode", String(mode));
-        } catch (e) {}
-        updateModeUI(mode);
-      }
-
       let state = null;
       let currentPlan = [];
       let manpowerData = { core: [], nonCore: [], qcPassed: [] };
@@ -613,16 +615,6 @@
       let currentAddType = "core";
 
       window.onload = async () => {
-        // Inisialisasi Mode Switcher
-        try {
-          const savedMode = localStorage.getItem("factory_brain_mode");
-          const initMode = savedMode === "2" || savedMode === 2 ? 2 : 1;
-          const brain = getBrain();
-          if (brain && typeof brain.setMode === "function") {
-            brain.setMode(initMode);
-          }
-          updateModeUI(initMode);
-        } catch (e) {}
         try {
           const rawState = sessionStorage.getItem("planning_state");
           if (rawState) state = JSON.parse(rawState);
@@ -674,6 +666,17 @@
         await loadManpowerData();
         renderAllLists();
         updateDashboardStats();
+
+        // Restore cached planning state if available
+        const hasCache = loadPlanningCache();
+        updateStepperUI();
+        if (hasCache) {
+          renderInteractiveBoard();
+          renderInteractiveAlerts();
+          if (lastFinalConfig && typeof generateTextOutput === "function") {
+            generateTextOutput(lastFinalConfig);
+          }
+        }
       };
 
       async function loadManpowerData() {
@@ -1859,6 +1862,7 @@
         let validationReport = BrainAI.validate(
           currentPlan,
           state.machines,
+          lastFinalConfig,
         );
         renderAlerts(validationReport.info, validationReport.violations);
 
@@ -1961,12 +1965,7 @@
             return alert("Engine AI (BrainAI) sedang dimuat. Silakan klik ulang '⚡ Buat Planning' dalam sesaat.");
           }
 
-          const currentBrainMode = (brainEngine && typeof brainEngine.getMode === "function")
-            ? brainEngine.getMode()
-            : 1;
-
           let finalConfig = {
-            brainMode: currentBrainMode,
             mode: planningMode,
             coreData: manpowerData.core,
             coreNames: coreNames,
@@ -1997,25 +1996,10 @@
             mapData,
           );
 
-          if (
-            (!currentPlan || currentPlan.length === 0) &&
-            brainEngine.getMode &&
-            brainEngine.getMode() === 2
-          ) {
-            renderAlerts(
-              [
-                "INFO: BrainAI Mode 2 (0 Kode) sedang aktif. Mode ini berstatus kanvas bersih siap diisi logika/arsitektur baru dari 0.",
-              ],
-              [
-                "Mode 2 belum menghasilkan slot alokasi karena berstatus '0 kode belum terpikirkan'. Anda dapat beralih ke Mode 1 (Heuristik) di header untuk menjalankan alokasi operasional aktif.",
-              ],
-            );
-            return;
-          }
-
           let validationReport = brainEngine.validate(
             currentPlan,
             machinesToUse,
+            finalConfig,
           );
           renderAlerts(validationReport.info, validationReport.violations);
 
@@ -2045,6 +2029,10 @@
 
           generateTextOutput(finalConfig);
           renderInteractiveBoard();
+
+          if (currentStep === 1) {
+            goToStep(2);
+          }
 
           const statusBadge = document.getElementById("statusBadge");
           if (statusBadge) {
@@ -2205,7 +2193,7 @@
         let report = BrainAI.validate(
           currentPlan,
           state.machines,
-          planningMode,
+          lastFinalConfig || planningMode,
         );
         renderAlerts(report.info, report.violations);
         if (!report.valid)
@@ -2521,7 +2509,7 @@
         const report = BrainAI.validate(
           activeSlots,
           state.machines,
-          planningMode,
+          lastFinalConfig || planningMode,
         );
         if (!report.valid) {
           renderAlerts(report.info, report.violations);
@@ -2626,9 +2614,140 @@
       }
 
       // ==========================================
-      // FITUR INTERACTIVE DRAG-AND-DROP BOARD
+      // FITUR INTERACTIVE DRAG-AND-DROP BOARD & STEPPER LOCK
       // ==========================================
       let draggedItemData = null;
+      let canNavigateSteps = false;
+
+      function updateStepperUI() {
+        const p1 = document.getElementById("stepPill1");
+        const p2 = document.getElementById("stepPill2");
+        const p3 = document.getElementById("stepPill3");
+        if (p1) p1.className = "step-pill" + (currentStep === 1 ? " active" : "");
+        if (p2) p2.className = "step-pill" + (currentStep === 2 ? " active" : "") + (!canNavigateSteps ? " disabled" : "");
+        if (p3) p3.className = "step-pill" + (currentStep === 3 ? " active" : "") + (!canNavigateSteps ? " disabled" : "");
+      }
+
+      function savePlanningCache() {
+        if (!currentPlan) return;
+        const payload = {
+          currentPlan: currentPlan,
+          slots: JSON.parse(JSON.stringify(currentPlan)),
+          lastFinalConfig: lastFinalConfig,
+          canNavigateSteps: canNavigateSteps,
+          unassignedMachines: currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [],
+          timestamp: Date.now()
+        };
+        try {
+          localStorage.setItem("plan_maker_cache_full_v2", JSON.stringify(payload));
+          sessionStorage.setItem("active_planning", JSON.stringify(payload));
+          localStorage.setItem("last_active_planning", JSON.stringify(payload));
+        } catch (e) {}
+      }
+
+      function loadPlanningCache() {
+        try {
+          const raw = localStorage.getItem("plan_maker_cache_full_v2");
+          if (!raw) return false;
+          const data = JSON.parse(raw);
+          if (data && data.currentPlan && Array.isArray(data.currentPlan) && data.currentPlan.length > 0) {
+            currentPlan = data.currentPlan;
+            lastFinalConfig = data.lastFinalConfig;
+            canNavigateSteps = !!data.canNavigateSteps;
+            currentPlan.unassignedMachines = data.unassignedMachines || [];
+            currentPlan.uncoveredMachines = currentPlan.unassignedMachines;
+            return true;
+          }
+        } catch (e) {}
+        return false;
+      }
+
+      function getUnassignedManpower() {
+        if (!currentPlan) return { core: [], nonCore: [], longshift: [] };
+        const assignedCore = new Set();
+        const assignedNonCore = new Set();
+
+        currentPlan.forEach((s) => {
+          (s.coreNames || []).forEach((c) => assignedCore.add(c.trim().toLowerCase()));
+          (s.nonCore || []).forEach((nc) => assignedNonCore.add(nc.trim().toLowerCase()));
+        });
+
+        const unassignedCore = (manpowerData.core || [])
+          .map((i) => (typeof i === "object" ? i.name : i).trim())
+          .filter((n) => n && !assignedCore.has(n.toLowerCase()));
+
+        const unassignedNonCore = (manpowerData.nonCore || [])
+          .map((i) => (typeof i === "object" ? i.name : i).trim())
+          .filter((n) => n && !assignedNonCore.has(n.toLowerCase()));
+
+        let lsCount = parseInt(document.getElementById("ncLongshiftCount")?.value || 0) || 0;
+        let assignedLsCount = 0;
+        currentPlan.forEach((s) => { assignedLsCount += (s.longshift || []).length; });
+        let unassignedLsCount = Math.max(0, lsCount - assignedLsCount);
+        let unassignedLs = Array.from({ length: unassignedLsCount }, (_, i) => `LS-${i + 1}`);
+
+        return {
+          core: unassignedCore,
+          nonCore: unassignedNonCore,
+          longshift: unassignedLs
+        };
+      }
+
+      function renderInteractiveAlerts() {
+        const container = document.getElementById("interactiveAlertContainer");
+        if (!container) return;
+        if (!currentPlan) {
+          container.innerHTML = "";
+          return;
+        }
+        const machinesToValidate = state && state.machines ? state.machines : [];
+        const report = BrainAI.validate(currentPlan, machinesToValidate, lastFinalConfig || planningMode);
+
+        let html = "";
+
+        // Unassigned machines & manpower check
+        const unassignedMacs = currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [];
+        const sisaMp = getUnassignedManpower();
+        const totalSisaMp = sisaMp.core.length + sisaMp.nonCore.length + sisaMp.longshift.length;
+
+        if (unassignedMacs.length > 0) {
+          html += `<div class="alert-card warning"><span class="alert-icon">⚠️</span><div><strong>Sisa Mesin Belum Teralokasi (${unassignedMacs.length} Mesin):</strong> Terdapat mesin di Unassigned Pool yang belum masuk slot CQI. Silakan tarik mesin ke slot CQI yang masih tersedia kuota.</div></div>`;
+        }
+
+        if (totalSisaMp > 0) {
+          html += `<div class="alert-card info"><span class="alert-icon">👥</span><div><strong>Manpower Cadangan / Sisa (${totalSisaMp} Orang):</strong> ${sisaMp.core.length > 0 ? `Core: ${sisaMp.core.join(', ')} | ` : ''}${sisaMp.nonCore.length > 0 ? `Non-Core: ${sisaMp.nonCore.join(', ')} | ` : ''}${sisaMp.longshift.length > 0 ? `Longshift: ${sisaMp.longshift.length} orang` : ''}</div></div>`;
+        }
+
+        (report.violations || []).forEach((err) => {
+          let humanMsg = err;
+          if (err.includes("Jumlah CQI yang digunakan")) {
+            humanMsg = `<strong>Kesesuaian Core & Meja CQI:</strong> ${err}`;
+          } else if (err.includes("memuat mesin selain OT")) {
+            humanMsg = `<strong>Aturan CQI 19 (OT):</strong> Meja CQI 19 khusus untuk mesin OT (M2/M3) dan dilarang keras diisi jenis mesin lain.`;
+          } else if (err.includes("memuat mesin dilarang")) {
+            humanMsg = `<strong>Aturan CQI 24 (WW):</strong> Meja CQI 24 khusus untuk mesin WW dan APK Line C.`;
+          } else if (err.includes("memuat") && err.includes("mesin dengan")) {
+            humanMsg = `<strong>Kapasitas Berlebih:</strong> ${err}`;
+          }
+          html += `<div class="alert-card danger"><span class="alert-icon">🚨</span><div>${humanMsg}</div></div>`;
+        });
+
+        if (report.valid && unassignedMacs.length === 0) {
+          html += `<div class="alert-card success"><span class="alert-icon">✅</span><div><strong>Perencanaan Valid &amp; Optimal:</strong> Seluruh mesin teralokasi dengan rapi, rasio manpower seimbang, dan tidak ada pelanggaran aturan pabrik.</div></div>`;
+        }
+
+        container.innerHTML = html;
+      }
+
+      function groupMachinesByWs(machines) {
+        const map = {};
+        (machines || []).forEach((m) => {
+          const ws = (BrainAI.getWorkstationKey ? BrainAI.getWorkstationKey(m) : (m.workstation || "")) || "UMUM";
+          if (!map[ws]) map[ws] = [];
+          map[ws].push(m);
+        });
+        return map;
+      }
 
       function renderInteractiveBoard() {
         const board = document.getElementById("interactivePlanBoard");
@@ -2637,7 +2756,7 @@
         if (!currentPlan || !Array.isArray(currentPlan) || currentPlan.length === 0) {
           board.innerHTML = `
             <div class="empty-board-notice">
-              Klik "Generate Planning" untuk menampilkan papan alokasi interaktif drag & drop.
+              Klik "Lanjut ke Papan Alokasi Interaktif" untuk menampilkan papan alokasi.
             </div>
           `;
           const metaEl = document.getElementById("boardMeta");
@@ -2658,7 +2777,8 @@
           if (macCount > maxCapacity) capClass += " over";
           else if (macCount === maxCapacity) capClass += " warn";
 
-          const slotDist = slot.totalDistance !== undefined ? `${slot.totalDistance} langkah` : "";
+          const wsGroups = groupMachinesByWs(slot.machines);
+          const wsKeys = Object.keys(wsGroups).sort();
 
           html += `
             <div class="slot-card" 
@@ -2673,7 +2793,6 @@
                   <span class="slot-badge-line">${lineName}</span>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                  ${slotDist ? `<span style="font-size: 10.5px; color: var(--text-muted); font-weight: 600;">📍 ${slotDist}</span>` : ""}
                   <span class="${capClass}">${macCount}/${maxCapacity} Mesin</span>
                 </div>
               </div>
@@ -2682,7 +2801,8 @@
                 ${(slot.coreNames || []).map((c, cIdx) => `
                   <span class="person-pill core" 
                         draggable="true" 
-                        ondragstart="handlePersonDragStart(event, ${slotIdx}, 'coreNames', '${c}', ${cIdx})">
+                        ondragstart="handlePersonDragStart(event, ${slotIdx}, 'coreNames', '${c}', ${cIdx})"
+                        ondragend="handleDragEnd(event)">
                     👤 ${c} <small>(Core)</small>
                   </span>
                 `).join("")}
@@ -2690,7 +2810,8 @@
                 ${(slot.nonCore || []).map((nc, ncIdx) => `
                   <span class="person-pill noncore" 
                         draggable="true" 
-                        ondragstart="handlePersonDragStart(event, ${slotIdx}, 'nonCore', '${nc}', ${ncIdx})">
+                        ondragstart="handlePersonDragStart(event, ${slotIdx}, 'nonCore', '${nc}', ${ncIdx})"
+                        ondragend="handleDragEnd(event)">
                     👥 ${nc} <small>(Non-Core)</small>
                   </span>
                 `).join("")}
@@ -2698,37 +2819,57 @@
                 ${(slot.longshift || []).map((ls, lsIdx) => `
                   <span class="person-pill noncore" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155"
                         draggable="true" 
-                        ondragstart="handlePersonDragStart(event, ${slotIdx}, 'longshift', '${ls}', ${lsIdx})">
+                        ondragstart="handlePersonDragStart(event, ${slotIdx}, 'longshift', '${ls}', ${lsIdx})"
+                        ondragend="handleDragEnd(event)">
                     ⏰ ${ls} <small>(LS)</small>
                   </span>
                 `).join("")}
               </div>
 
               <div class="slot-machines-container">
-                ${slot.machines.map((m) => {
-                  const ws = BrainAI.getWorkstationKey ? BrainAI.getWorkstationKey(m) : (m.workstation || "");
-                  const label = m.name || m.id;
-                  return `
-                    <span class="machine-pill" 
-                          draggable="true"
-                          data-machine-id="${m.id || label}"
-                          ondragstart="handleMachineDragStart(event, ${slotIdx}, '${m.id || label}')">
-                      ⚙️ ${label} ${ws ? `<small style="opacity:0.8">(${ws})</small>` : ""}
-                      <button class="machine-remove-btn" 
-                              onclick="removeMachineFromSlot(${slotIdx}, '${m.id || label}')" 
-                              title="Pindahkan ke Unassigned">✕</button>
-                    </span>
-                  `;
-                }).join("")}
-                ${slot.machines.length === 0 ? `<div style="font-size:11px; color:#94a3b8; padding:8px; width:100%; text-align:center;">Tarik &amp; lepas mesin di sini</div>` : ""}
+                ${wsKeys.length > 0 ? `
+                  <div class="slot-ws-grid">
+                    ${wsKeys.map((wsKey) => `
+                      <div class="ws-block">
+                        <div class="ws-block-header">
+                          <span class="ws-block-title">🏭 WS ${wsKey}</span>
+                          <span class="ws-block-count">${wsGroups[wsKey].length}</span>
+                        </div>
+                        <div class="ws-machines-grid">
+                          ${wsGroups[wsKey].map((m) => {
+                            const label = m.name || m.id;
+                            return `
+                              <span class="machine-pill" 
+                                    draggable="true"
+                                    data-machine-id="${m.id || label}"
+                                    ondragstart="handleMachineDragStart(event, ${slotIdx}, '${m.id || label}')"
+                                    ondragend="handleDragEnd(event)">
+                                <span>⚙️ <strong>${label}</strong></span>
+                                <button class="machine-remove-btn" 
+                                        onclick="removeMachineFromSlot(${slotIdx}, '${m.id || label}')" 
+                                        title="Pindahkan ke Unassigned">✕</button>
+                              </span>
+                            `;
+                          }).join("")}
+                        </div>
+                      </div>
+                    `).join("")}
+                  </div>
+                ` : `<div style="font-size:11px; color:#94a3b8; padding:12px; width:100%; text-align:center; border: 1px dashed #cbd5e1; border-radius: 6px;">Tarik &amp; lepas mesin di sini</div>`}
               </div>
             </div>
           `;
         });
 
-        // Unassigned machines pool (jika ada)
-        const unassigned = currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [];
-        if (unassigned.length > 0) {
+        // Unassigned machines pool & Sisa manpower pool
+        const unassignedMacs = currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [];
+        const sisaMp = getUnassignedManpower();
+        const totalSisaMp = sisaMp.core.length + sisaMp.nonCore.length + sisaMp.longshift.length;
+
+        if (unassignedMacs.length > 0 || totalSisaMp > 0) {
+          const unassignedWsGroups = groupMachinesByWs(unassignedMacs);
+          const unassignedWsKeys = Object.keys(unassignedWsGroups).sort();
+
           html += `
             <div class="slot-card unassigned-pool-card"
                  data-slot-idx="-1"
@@ -2738,24 +2879,70 @@
               
               <div class="slot-card-header">
                 <div class="slot-cqi-title" style="color: #991b1b;">
-                  <span>⚠️ Mesin Belum Tercover / Unassigned</span>
+                  <span>⚠️ Unassigned Pool (Sisa Manpower &amp; Mesin Belum Tercover)</span>
                 </div>
-                <span class="slot-capacity-badge over">${unassigned.length} Mesin</span>
+                <div style="display:flex; gap:6px;">
+                  ${unassignedMacs.length > 0 ? `<span class="slot-capacity-badge over">${unassignedMacs.length} Mesin</span>` : ""}
+                  ${totalSisaMp > 0 ? `<span class="slot-capacity-badge warn">${totalSisaMp} Manpower</span>` : ""}
+                </div>
+              </div>
+
+              <div class="slot-manpower-box" style="margin-bottom: 8px;">
+                ${sisaMp.core.map((c, idx) => `
+                  <span class="person-pill core" 
+                        draggable="true" 
+                        ondragstart="handlePersonDragStart(event, -1, 'coreNames', '${c}', ${idx})"
+                        ondragend="handleDragEnd(event)">
+                    👤 ${c} <small>(Core)</small>
+                  </span>
+                `).join("")}
+
+                ${sisaMp.nonCore.map((nc, idx) => `
+                  <span class="person-pill noncore" 
+                        draggable="true" 
+                        ondragstart="handlePersonDragStart(event, -1, 'nonCore', '${nc}', ${idx})"
+                        ondragend="handleDragEnd(event)">
+                    👥 ${nc} <small>(Non-Core)</small>
+                  </span>
+                `).join("")}
+
+                ${sisaMp.longshift.map((ls, idx) => `
+                  <span class="person-pill noncore" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155"
+                        draggable="true" 
+                        ondragstart="handlePersonDragStart(event, -1, 'longshift', '${ls}', ${idx})"
+                        ondragend="handleDragEnd(event)">
+                    ⏰ ${ls} <small>(LS)</small>
+                  </span>
+                `).join("")}
               </div>
 
               <div class="slot-machines-container">
-                ${unassigned.map((m) => {
-                  const ws = BrainAI.getWorkstationKey ? BrainAI.getWorkstationKey(m) : (m.workstation || "");
-                  const label = m.name || m.id;
-                  return `
-                    <span class="machine-pill unassigned-pill" 
-                          draggable="true"
-                          data-machine-id="${m.id || label}"
-                          ondragstart="handleMachineDragStart(event, -1, '${m.id || label}')">
-                      ⚙️ ${label} ${ws ? `<small style="opacity:0.8">(${ws})</small>` : ""}
-                    </span>
-                  `;
-                }).join("")}
+                ${unassignedWsKeys.length > 0 ? `
+                  <div class="slot-ws-grid">
+                    ${unassignedWsKeys.map((wsKey) => `
+                      <div class="ws-block" style="background: #fff8f8; border-color: #fecaca;">
+                        <div class="ws-block-header" style="border-color: #fca5a5;">
+                          <span class="ws-block-title" style="color: #991b1b;">🏭 WS ${wsKey}</span>
+                          <span class="ws-block-count" style="background: #fee2e2; color: #991b1b; border-color: #fca5a5;">${unassignedWsGroups[wsKey].length}</span>
+                        </div>
+                        <div class="ws-machines-grid">
+                          ${unassignedWsGroups[wsKey].map((m) => {
+                            const label = m.name || m.id;
+                            return `
+                              <span class="machine-pill unassigned-pill" 
+                                    draggable="true"
+                                    data-machine-id="${m.id || label}"
+                                    ondragstart="handleMachineDragStart(event, -1, '${m.id || label}')"
+                                    ondragend="handleDragEnd(event)">
+                                <span>⚙️ <strong>${label}</strong></span>
+                              </span>
+                            `;
+                          }).join("")}
+                        </div>
+                      </div>
+                    `).join("")}
+                  </div>
+                ` : `<div style="font-size:11px; color:#166534; padding:8px; width:100%; text-align:center;">Semua mesin tercover sempurna!</div>`}
               </div>
             </div>
           `;
@@ -2766,7 +2953,7 @@
         const totalMachinesCount = allRunning.length;
         const metaEl = document.getElementById("boardMeta");
         if (metaEl) {
-          metaEl.innerText = `${currentPlan.length} Slot CQI | ${totalMachinesCount} Mesin Teralokasi`;
+          metaEl.innerText = `${currentPlan.length} Slot CQI Aktif | ${totalMachinesCount} Mesin Teralokasi`;
         }
       }
 
@@ -2780,6 +2967,15 @@
         draggedItemData = { type: "person", slotIdx, personType, personName, personIdx };
         try { e.dataTransfer.setData("text/plain", JSON.stringify(draggedItemData)); } catch(err){}
         if (e.target) e.target.classList.add("dragging");
+      }
+
+      function handleDragEnd(e) {
+        if (e && e.target) {
+          e.target.classList.remove("dragging");
+        }
+        document.querySelectorAll(".dragging").forEach((el) => el.classList.remove("dragging"));
+        document.querySelectorAll(".slot-card").forEach((el) => el.classList.remove("drag-over"));
+        draggedItemData = null;
       }
 
       function handleBoardDragOver(e) {
@@ -2802,10 +2998,16 @@
         if (!data) {
           try { data = JSON.parse(e.dataTransfer.getData("text/plain")); } catch (err) {}
         }
-        if (!data || !currentPlan) return;
+        if (!data || !currentPlan) {
+          handleDragEnd(e);
+          return;
+        }
 
         const sourceSlotIdx = data.slotIdx;
-        if (sourceSlotIdx === targetSlotIdx) return;
+        if (sourceSlotIdx === targetSlotIdx) {
+          handleDragEnd(e);
+          return;
+        }
 
         if (data.type === "machine") {
           let machineObj = null;
@@ -2820,7 +3022,10 @@
             if (idx !== -1) machineObj = unassigned.splice(idx, 1)[0];
           }
 
-          if (!machineObj) return;
+          if (!machineObj) {
+            handleDragEnd(e);
+            return;
+          }
 
           if (targetSlotIdx >= 0 && currentPlan[targetSlotIdx]) {
             currentPlan[targetSlotIdx].machines.push(machineObj);
@@ -2830,24 +3035,28 @@
             currentPlan.uncoveredMachines = currentPlan.unassignedMachines;
           }
         } else if (data.type === "person") {
-          if (sourceSlotIdx < 0 || targetSlotIdx < 0) return;
-          const srcSlot = currentPlan[sourceSlotIdx];
-          const tgtSlot = currentPlan[targetSlotIdx];
-          if (!srcSlot || !tgtSlot) return;
+          const pType = data.personType || "coreNames";
+          const pName = data.personName;
 
-          const pType = data.personType;
-          const list = srcSlot[pType];
-          if (Array.isArray(list)) {
-            const idx = list.indexOf(data.personName);
-            if (idx !== -1) {
-              const movedName = list.splice(idx, 1)[0];
-              if (!tgtSlot[pType]) tgtSlot[pType] = [];
-              tgtSlot[pType].push(movedName);
+          // Remove from source slot if sourceSlotIdx >= 0
+          if (sourceSlotIdx >= 0 && currentPlan[sourceSlotIdx]) {
+            const srcSlot = currentPlan[sourceSlotIdx];
+            const list = srcSlot[pType];
+            if (Array.isArray(list)) {
+              const idx = list.indexOf(pName);
+              if (idx !== -1) list.splice(idx, 1);
             }
+          }
+
+          // Add to target slot if targetSlotIdx >= 0
+          if (targetSlotIdx >= 0 && currentPlan[targetSlotIdx]) {
+            const tgtSlot = currentPlan[targetSlotIdx];
+            if (!tgtSlot[pType]) tgtSlot[pType] = [];
+            tgtSlot[pType].push(pName);
           }
         }
 
-        draggedItemData = null;
+        handleDragEnd(e);
         recalculatePlanDistance();
         syncUpdatedPlanState();
       }
@@ -2890,24 +3099,59 @@
         if (lastFinalConfig) {
           generateTextOutput(lastFinalConfig);
         }
-        const report = BrainAI.validate(currentPlan, window.machinesToUse || []);
-        renderAlerts(report.info, report.violations);
-
-        const uncovered = currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [];
-        const planPayload = {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-          mode: "standard",
-          slots: JSON.parse(JSON.stringify(currentPlan)),
-          uncoveredMachines: uncovered,
-        };
-
-        try {
-          sessionStorage.setItem("active_planning", JSON.stringify(planPayload));
-          localStorage.setItem("last_active_planning", JSON.stringify(planPayload));
-        } catch (e) {}
-
+        renderInteractiveAlerts();
+        savePlanningCache();
         renderInteractiveBoard();
+      }
+
+      let currentStep = 1;
+
+      function goToStep(stepNum) {
+        if (!canNavigateSteps && stepNum > 1) {
+          alert("Silakan atur Konfigurasi Manpower dan klik 'Lanjut ke Papan Alokasi Interaktif ➔' terlebih dahulu.");
+          return;
+        }
+
+        currentStep = stepNum;
+        const s1 = document.getElementById("stepSection1");
+        const s2 = document.getElementById("stepSection2");
+        const s3 = document.getElementById("stepSection3");
+
+        if (s1) s1.style.display = (stepNum === 1) ? "block" : "none";
+        if (s2) s2.style.display = (stepNum === 2) ? "block" : "none";
+        if (s3) s3.style.display = (stepNum === 3) ? "block" : "none";
+
+        updateStepperUI();
+
+        if (stepNum === 2) {
+          if (!currentPlan) {
+            executePlan();
+          } else {
+            renderInteractiveBoard();
+          }
+          renderInteractiveAlerts();
+        } else if (stepNum === 3) {
+          if (lastFinalConfig && typeof generateTextOutput === "function") {
+            generateTextOutput(lastFinalConfig);
+          }
+        }
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function handleStep1Lanjut() {
+        canNavigateSteps = true;
+        executePlan();
+        goToStep(2);
+        savePlanningCache();
+      }
+
+      function handleStep2Lanjut() {
+        if (lastFinalConfig && typeof generateTextOutput === "function") {
+          generateTextOutput(lastFinalConfig);
+        }
+        goToStep(3);
+        savePlanningCache();
       }
 
       function resetBoardToAutoGenerated() {
@@ -2954,11 +3198,15 @@
       window.renderInteractiveBoard = renderInteractiveBoard;
       window.handleMachineDragStart = handleMachineDragStart;
       window.handlePersonDragStart = handlePersonDragStart;
+      window.handleDragEnd = handleDragEnd;
       window.handleBoardDragOver = handleBoardDragOver;
       window.handleBoardDragLeave = handleBoardDragLeave;
       window.handleBoardDrop = handleBoardDrop;
       window.removeMachineFromSlot = removeMachineFromSlot;
       window.resetBoardToAutoGenerated = resetBoardToAutoGenerated;
+      window.goToStep = goToStep;
+      window.handleStep1Lanjut = handleStep1Lanjut;
+      window.handleStep2Lanjut = handleStep2Lanjut;
     </script>
   </body>
 </html>
