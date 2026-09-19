@@ -117,13 +117,20 @@ export const rule = {
   },
 
   getWorkstationKey(m) {
-    if (!m) return "1A";
+    if (!m) return "";
+    if (typeof m === "string") {
+      const match = m.match(/M-(\d+[A-C]|WW|OT)-/i) || m.match(/(\d+[A-C]|WW|OT)/i);
+      return match ? match[1].toUpperCase() : "";
+    }
     if (m.workstation) return String(m.workstation).toUpperCase();
     if (m.ws) return String(m.ws).toUpperCase();
-    const id = String(m.id || m.name || "");
-    const match = id.match(/(\d+[A-C])/i);
-    if (match) return match[1].toUpperCase();
-    return "1A";
+    const id = String(m.id || "");
+    const idMatch = id.match(/M-(\d+[A-C]|WW|OT)-/i) || id.match(/(\d+[A-C]|WW|OT)/i);
+    if (idMatch) return idMatch[1].toUpperCase();
+    const name = String(m.name || "");
+    const nameMatch = name.match(/(\d+[A-C]|WW|OT)/i);
+    if (nameMatch) return nameMatch[1].toUpperCase();
+    return "";
   },
 
   // Aturan Pencampuran Cluster (Mixing Rule)
@@ -459,7 +466,7 @@ export const rule = {
 
     if (targetCoreCount !== null && targetCoreCount > 0) {
       if (activeSlotsCount !== targetCoreCount) {
-        violations.push(`Jumlah CQI yang digunakan (${activeSlotsCount} CQI) tidak sesuai dengan jumlah personil Core aktif (${targetCoreCount} Core). Sesuai aturan pabrik, jumlah meja CQI yang digunakan WAJIB sama persis dengan jumlah personil Core aktif (1 Meja CQI = 1 Core).`);
+        violations.push(`Jumlah meja CQI aktif (${activeSlotsCount} CQI) belum sesuai dengan jumlah personil Core (${targetCoreCount} Core). Disarankan 1 meja CQI diawaki oleh 1 personil Core.`);
       }
     }
 
@@ -471,9 +478,9 @@ export const rule = {
       const coreCount = typeof s.core === "number" ? s.core : coreNames.length;
 
       if (coreCount === 0 && coreNames.length === 0) {
-        violations.push(`CQI ${cqiNum} tidak memiliki personil Core aktif. Setiap meja CQI yang digunakan wajib diawaki oleh 1 Core.`);
+        violations.push(`Meja CQI ${cqiNum} belum memiliki personil Core aktif. Mohon tugaskan 1 personil Core untuk meja ini.`);
       } else if (coreNames.length > 1 || coreCount > 1) {
-        violations.push(`CQI ${cqiNum} memiliki lebih dari 1 personil Core (${coreNames.join(", ")}). Satu meja CQI hanya boleh diawaki oleh 1 Core.`);
+        violations.push(`Meja CQI ${cqiNum} terisi lebih dari 1 personil Core (${coreNames.join(", ")}). Satu meja CQI diisi tepat 1 personil Core.`);
       }
 
       // Cek duplikasi personil Core
@@ -481,7 +488,7 @@ export const rule = {
         const trimmed = String(cName).trim();
         if (seenCoreNames.has(trimmed)) {
           const prevCqi = seenCoreNames.get(trimmed);
-          violations.push(`Personil Core "${trimmed}" ditugaskan ganda pada CQI ${prevCqi} dan CQI ${cqiNum}. Satu personil Core hanya boleh mengawaki 1 meja CQI.`);
+          violations.push(`Personil Core "${trimmed}" terdaftar ganda di CQI ${prevCqi} dan CQI ${cqiNum}. Mohon pastikan setiap personil hanya mengawaki 1 meja.`);
         } else {
           seenCoreNames.set(trimmed, cqiNum);
         }
@@ -492,13 +499,13 @@ export const rule = {
     if (slot19) {
       const nonOt = (slot19.machines || []).filter(m => !this.isOtMachine(m));
       if (nonOt.length > 0) {
-        violations.push(`CQI 19 memuat mesin selain OT: ${nonOt.map(m => m.name || m.id).join(", ")}. Dilarang keras!`);
+        violations.push(`Meja CQI 19 khusus untuk mesin OT. Mesin berikut disarankan dipindahkan: ${nonOt.map(m => m.name || m.id).join(", ")}.`);
       }
       if ((slot19.machines || []).length > 2) {
-        violations.push(`CQI 19 melebihi batas maksimal 2 mesin OT (terisi ${slot19.machines.length}).`);
+        violations.push(`Meja CQI 19 melebihi kapasitas standar mesin OT (maksimal 2 mesin, saat ini terisi ${slot19.machines.length} mesin).`);
       }
       if ((slot19.nonCore || []).length > 0 || (slot19.longshift || []).length > 0) {
-        violations.push(`CQI 19 dilarang menerima Non-Core maupun Longshift (Strictly 1 Core).`);
+        violations.push(`Meja CQI 19 khusus diawaki 1 personil Core tanpa bantuan Non-Core atau Longshift.`);
       }
     }
 
@@ -506,7 +513,7 @@ export const rule = {
     if (slot24) {
       const invalidIn24 = (slot24.machines || []).filter(m => !this.isWwMachine(m) && !(this.isMachineLineC(m) && this.getMachineClusterGroup(m) === "POUCH"));
       if (invalidIn24.length > 0) {
-        violations.push(`CQI 24 memuat mesin dilarang: ${invalidIn24.map(m => m.name || m.id).join(", ")}. (Hanya mesin WW & APK Line C).`);
+        violations.push(`Meja CQI 24 khusus untuk mesin WW dan pouch Line C. Mesin berikut disarankan dipindahkan: ${invalidIn24.map(m => m.name || m.id).join(", ")}.`);
       }
     }
 
@@ -523,7 +530,7 @@ export const rule = {
       if (supportCount >= 2) allowedMax = capRule.max2Nc;
 
       if (machines.length > allowedMax) {
-        violations.push(`CQI ${cqiNum} (${capRule.name}) memuat ${machines.length} mesin dengan ${supportCount} bantuan (Maksimal diizinkan ${allowedMax} mesin).`);
+        violations.push(`Kapasitas CQI ${cqiNum} (${capRule.name}) terlampaui: terisi ${machines.length} mesin dengan ${supportCount} bantuan (kapasitas yang dianjurkan maksimal ${allowedMax} mesin).`);
       }
     });
 
@@ -679,15 +686,19 @@ export const rule = {
             allPairs.push(...planJson.pairs);
           } else if (Array.isArray(planJson.planning)) {
             planJson.planning.forEach((s) => {
-              const cqiName = s.cqiName || s.name || "";
+              const cqiName = s.cqiName || s.name || s.cqi || "";
               const cqiId = s.cqiId || s.cqi || "";
+              const cqiNum = this.getCqiNumber(s) || this.getCqiNumber(cqiName) || "";
               if (Array.isArray(s.machines)) {
                 s.machines.forEach((m) => {
+                  const mName = typeof m === "string" ? m : (m.name || m.id || "");
+                  const mId = typeof m === "string" ? m : (m.id || m.name || "");
                   allPairs.push({
-                    machineId: m.id,
-                    machineName: m.name,
+                    machineId: mId,
+                    machineName: mName,
                     cqiId: cqiId,
                     cqiName: cqiName,
+                    cqiNum: String(cqiNum || ""),
                   });
                 });
               }
@@ -713,14 +724,14 @@ export const rule = {
     const matches = this.historyData.filter(p => {
       const pId = String(p.machineId || "").toUpperCase();
       const pName = String(p.machineName || "").toUpperCase();
-      return (mId && pId === mId) || (mName && pName === mName);
+      return (mId && (pId === mId || pName === mId)) || (mName && (pName === mName || pId === mName));
     });
 
     if (matches.length === 0) return null;
 
     const counts = {};
     matches.forEach(p => {
-      const num = p.cqiNum ? parseInt(p.cqiNum, 10) : (rule.getCqiNumber(p.cqiName || p.cqiId));
+      const num = p.cqiNum ? parseInt(p.cqiNum, 10) : this.getCqiNumber(p.cqiName || p.cqiId);
       if (num && !isNaN(num)) {
         counts[num] = (counts[num] || 0) + 1;
       }

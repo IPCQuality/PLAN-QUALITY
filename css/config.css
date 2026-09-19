@@ -430,9 +430,25 @@ select option,
   background: #e2e8f0;
   color: var(--text-main);
 }
-.icon-btn.del:hover {
-  color: var(--danger);
+.icon-btn.del {
+  width: auto;
+  min-width: 46px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #991b1b;
   background: #fee2e2;
+  border: 1px solid #fca5a5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn.del:hover {
+  color: #ffffff;
+  background: var(--danger);
+  border-color: var(--danger);
 }
 
 .add-btn {
@@ -800,14 +816,21 @@ select option,
   background: transparent;
   border: none;
   color: #991b1b;
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  padding: 0 2px;
+  padding: 0 3px;
+  margin-left: 2px;
   line-height: 1;
-  border-radius: 2px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
 }
 .machine-remove-btn:hover {
   background: #fee2e2;
+  color: #dc2626;
 }
 .unassigned-pool-card {
   border-color: #fde68a;
@@ -949,22 +972,27 @@ body.modal-open {
 }
 .modal-close-btn {
   background: transparent;
-  border: none;
-  font-size: 18px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
-  border-radius: 4px;
-  width: 30px;
+  border-radius: var(--radius-sm);
+  width: auto;
   height: 30px;
-  display: grid;
-  place-items: center;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition:
     background 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 .modal-close-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: #f1f5f9;
   color: var(--text-main);
+  border-color: #94a3b8;
 }
 .modal-body {
   padding: 24px;
@@ -1156,22 +1184,66 @@ body.modal-open {
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .topbar {
+    height: auto;
+    min-height: 52px;
+    padding: 10px 14px;
+    display: flex;
     flex-direction: column;
     align-items: stretch;
-    padding: 16px;
-    gap: 16px;
+    gap: 8px;
   }
   .topbar-left {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .topbar > div:last-child {
-    flex-direction: column;
-    align-items: stretch !important;
-    gap: 12px !important;
-  }
-  .topbar > div:last-child .btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .back-btn {
+    font-size: 11.5px;
+    padding: 6px 12px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+  .topbar h1 {
+    font-size: 13.5px;
+    border-left: none;
+    padding-left: 0;
+    margin: 0;
+    font-weight: 700;
+  }
+  .badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    flex-shrink: 0;
+  }
+  .stepper-nav {
+    padding: 8px 10px;
+    gap: 6px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 16px;
+  }
+  .stepper-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .step-pill {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+    gap: 6px;
+  }
+  .step-num {
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+  }
+  .step-divider {
+    display: none;
   }
   .container {
     padding: 16px;
@@ -1210,20 +1282,51 @@ body.modal-open {
     justify-content: center;
   }
   .box-header {
-    flex-direction: column;
-    align-items: flex-start;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
   .rolling-group {
-    width: 100%;
+    width: auto;
   }
   .rolling-group .icon-btn {
-    flex: 1;
+    width: 26px;
+    height: 26px;
+    flex: none;
   }
   .stat-card {
     padding: 12px;
   }
   .stat-card span {
     font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-left {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+  }
+  .back-btn {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .badge {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .topbar h1 {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 2px;
   }
 }
 
@@ -1344,9 +1447,10 @@ body.modal-open {
   color: #1d4ed8;
 }
 .step-divider {
-  color: #94a3b8;
-  font-weight: 800;
-  font-size: 1.2rem;
+  width: 24px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
 }
 
 /* Step Footer Actions */

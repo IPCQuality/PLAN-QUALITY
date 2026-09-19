@@ -22,37 +22,14 @@
   </head>
   <body class="mode-landing">
     <header>
-      <div style="display: flex; align-items: center; gap: 10px">
+      <div class="header-left">
         <button
           id="sidebarToggleBtn"
           class="btn control-landing"
           onclick="toggleSidePanel()"
-          title="Filter & Status"
-          style="
-            padding: 6px 10px;
-            font-size: 1.15rem;
-            font-weight: 700;
-            line-height: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 38px;
-            height: 36px;
-          "
+          title="Filter dan Status"
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            style="display: block"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          Menu
         </button>
         <div class="brand">
           MAP LIQUID 3
@@ -60,23 +37,23 @@
         </div>
       </div>
       <div class="controls">
-        <span id="offlineIndicator" style="display:none; font-size:11px; padding:4px 8px; background:#d97706; color:#fff; border-radius:4px; font-weight:700;">⚡ Offline</span>
-        <button id="settingsBtn" class="btn" onclick="handleSettingsClick()" title="Pengaturan & Menu Map">
-          ⚙️ Setelan
+        <span id="offlineIndicator" style="display:none; font-size:11px; padding:4px 8px; background:#d97706; color:#fff; border-radius:4px; font-weight:700;">Offline</span>
+        <button id="settingsBtn" class="btn" onclick="handleSettingsClick()" title="Pengaturan dan Menu Map">
+          Setelan
         </button>
         <button
           id="menuHeatmapBtn"
           class="btn btn-danger control-landing"
           onclick="toggleHeatmap()"
         >
-          🔥 Heatmap OFF
+          Heatmap Nonaktif
         </button>
         <button
           id="goConfigBtn"
           class="btn btn-primary control-landing"
           onclick="goToConfig()"
         >
-          Lanjut Konfigurasi ➔
+          Lanjut Konfigurasi
         </button>
       </div>
     </header>
@@ -153,7 +130,7 @@
           class="zoom-btn"
           id="zoomOutBtn"
           onclick="zoomOut()"
-          title="Zoom Out"
+          title="Perkecil Tampilan"
         >
           -
         </button>
@@ -162,7 +139,7 @@
           class="zoom-btn"
           id="zoomInBtn"
           onclick="zoomIn()"
-          title="Zoom In"
+          title="Perbesar Tampilan"
         >
           +
         </button>
@@ -170,7 +147,7 @@
           class="zoom-btn"
           id="zoomResetBtn"
           onclick="resetZoom()"
-          title="Reset Zoom Ke Ukuran Fit Peta"
+          title="Kembalikan Tampilan"
         >
           ↺
         </button>
@@ -182,21 +159,21 @@
       <div class="modal-card">
         <h3>Pengaturan Map</h3>
         <div class="menu-list">
-          <button class="btn" onclick="activateEditMode()">✏️ Edit Map</button>
+          <button class="btn" onclick="activateEditMode()">Edit Map</button>
           <button class="btn" onclick="openNodeModal('machine')">
-            ➕ Tambah Mesin
+            Tambah Mesin
           </button>
           <button class="btn" onclick="openNodeModal('cqi')">
-            ➕ Tambah CQI
+            Tambah CQI
           </button>
           <button class="btn" onclick="openNodeModal('label')">
-            ➕ Tambah Label
+            Tambah Label
           </button>
           <button class="btn" onclick="openNodeModal('line')">
-            🔲 Tambah Batas Line
+            Tambah Batas Line
           </button>
           <button class="btn btn-success" onclick="exportMapJson()">
-            💾 Save map.json
+            Simpan Map
           </button>
         </div>
         <div class="modal-actions">
@@ -484,7 +461,7 @@
           showHeatmap = true;
           const btn = document.getElementById("menuHeatmapBtn");
           if (btn) {
-            btn.innerText = "🔥 Heatmap ON";
+            btn.innerText = "Heatmap Aktif";
             btn.className = "btn btn-success";
           }
         }
@@ -570,16 +547,15 @@
             return true;
           if (m.ws && String(m.ws).trim().toUpperCase() === targetWs)
             return true;
-          // 2. Gunakan BrainAI.getWorkstationKey jika ada
+          // 2. Cek ID mesin (misal M-1A-2, M-OT-1, M-WW-1)
+          const mId = String(m.id || "");
+          const idMatch = mId.match(/M-(\d+[A-C]|WW|OT)-/i) || mId.match(/(\d+[A-C]|WW|OT)/i);
+          if (idMatch && idMatch[1].toUpperCase() === targetWs) return true;
+          // 3. Gunakan BrainAI.getWorkstationKey jika ada
           const brain = typeof window.BrainAI !== "undefined" ? window.BrainAI : (typeof BrainAI !== "undefined" ? BrainAI : null);
-          if (brain) {
-            const keyObj = brain.getWorkstationKey(m, mapData.labels);
-            if (String(keyObj).trim().toUpperCase() === targetWs) return true;
-            const keyName = brain.getWorkstationKey(
-              m.name || m.id,
-              mapData.labels,
-            );
-            if (String(keyName).trim().toUpperCase() === targetWs) return true;
+          if (brain && typeof brain.getWorkstationKey === "function") {
+            const keyObj = brain.getWorkstationKey(m);
+            if (keyObj && String(keyObj).trim().toUpperCase() === targetWs) return true;
           }
           return false;
         });
@@ -719,7 +695,7 @@
       function toggleHeatmap() {
         const activeSlots = getActivePlanningSlots();
         if (!activePlanning || activeSlots.length === 0) {
-          showToast("Tidak ada plan aktif dari Config!", "error");
+          showToast("Belum ada perencanaan aktif dari halaman Konfigurasi.", "info");
           return;
         }
         showHeatmap = !showHeatmap;
@@ -727,10 +703,10 @@
         const btn = document.getElementById("menuHeatmapBtn");
         if (btn) {
           if (showHeatmap) {
-            btn.innerText = "🔥 Heatmap ON";
+            btn.innerText = "Heatmap Aktif";
             btn.className = "btn btn-success";
           } else {
-            btn.innerText = "🔥 Heatmap OFF";
+            btn.innerText = "Heatmap Nonaktif";
             btn.className = "btn btn-danger";
           }
         }
@@ -741,7 +717,7 @@
         if (editMode) {
           editMode = false;
           document.body.classList.remove("mode-edit");
-          document.getElementById("settingsBtn").innerHTML = "⚙️ Setelan";
+          document.getElementById("settingsBtn").innerHTML = "Setelan";
           document
             .getElementById("settingsBtn")
             .classList.remove("btn-success");
@@ -767,7 +743,7 @@
         document.body.classList.add("mode-edit");
 
         let btn = document.getElementById("settingsBtn");
-        btn.innerHTML = "✔️ Selesai Edit";
+        btn.innerHTML = "Selesai Edit";
         btn.classList.add("btn-success");
 
         document
@@ -1679,8 +1655,8 @@
 
         if (runM.length === 0 || rdyC.length === 0) {
           showToast(
-            "Pastikan ada mesin RUNNING & CQI READY sebelum lanjut config!",
-            "error",
+            "Mohon pastikan setidaknya ada mesin RUNNING dan meja CQI READY sebelum lanjut ke Konfigurasi.",
+            "info",
           );
           return;
         }
