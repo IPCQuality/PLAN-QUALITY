@@ -23,22 +23,50 @@
   <body>
     <div class="toast-container" id="toastContainer"></div>
     <header class="topbar">
-      <nav class="stepper-nav header-stepper" aria-label="Navigasi Tahapan Planning">
-        <div class="step-pill active" id="stepPill1" onclick="goToStep(1)" title="Langkah 1: Konfigurasi Manpower">
-          <span class="step-num">1</span>
-          <span class="step-title">Manpower</span>
+      <div class="topbar-action-left" id="topbarLeft">
+        <a class="btn btn-map-danger" id="headerBtnMap" href="index.html" title="Kembali ke Map Floor">
+          MAP
+        </a>
+        <button class="btn btn-secondary" id="headerBtnBack" style="display:none;" onclick="handleHeaderBack()" title="Kembali ke tahap sebelumnya">
+          BACK
+        </button>
+      </div>
+
+      <div class="header-notif-center" id="headerNotifCenter">
+        <button id="notifBellBtn" class="notif-bell-btn" onclick="toggleAlertPopover(event)" title="Pusat Peringatan & Validasi" aria-label="Notifikasi Peringatan">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span id="notifBadge" class="notif-badge" style="display:none;">0</span>
+        </button>
+        
+        <!-- Popover Peringatan / Alert Center -->
+        <div id="alertPopover" class="alert-popover" style="display:none;" onclick="event.stopPropagation()">
+          <div class="popover-header">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:14px;">🔔</span>
+              <span style="font-weight:700; font-size:13px; color:#0f172a;">Pusat Peringatan &amp; Validasi</span>
+            </div>
+            <button class="popover-close-btn" onclick="toggleAlertPopover(event)">&times;</button>
+          </div>
+          <div id="popoverAlertContent" class="popover-body">
+            <div class="popover-empty">Semua kondisi optimal. Tidak ada peringatan.</div>
+          </div>
         </div>
-        <span class="step-arrow" aria-hidden="true">→</span>
-        <div class="step-pill" id="stepPill2" onclick="goToStep(2)" title="Langkah 2: Dashboard Alokasi Interaktif">
-          <span class="step-num">2</span>
-          <span class="step-title">Dashboard</span>
-        </div>
-        <span class="step-arrow" aria-hidden="true">→</span>
-        <div class="step-pill" id="stepPill3" onclick="goToStep(3)" title="Langkah 3: Output Planning Final">
-          <span class="step-num">3</span>
-          <span class="step-title">Output</span>
-        </div>
-      </nav>
+      </div>
+
+      <div class="topbar-action-right" id="topbarRight">
+        <button class="btn btn-primary" id="headerBtnNext1" onclick="handleStep1Lanjut()">
+          NEXT
+        </button>
+        <button class="btn btn-primary" id="headerBtnNext2" style="display:none;" onclick="handleStep2Lanjut()">
+          NEXT
+        </button>
+        <button class="btn btn-ok" id="headerBtnValidate" style="display:none;" onclick="validateAndExport()">
+          Validasi dan Salin
+        </button>
+      </div>
       <span id="statusBadge" style="display:none"></span>
     </header>
 
@@ -209,23 +237,10 @@
             </div>
           </div>
         </div>
-
-        <div id="alertContainer" class="alert-container"></div>
-
-        <div class="step-footer-actions">
-          <a class="btn btn-map-danger btn-lg" href="index.html">
-            MAP
-          </a>
-          <button class="btn btn-primary btn-lg" onclick="handleStep1Lanjut()">
-            NEXT
-          </button>
-        </div>
       </div>
 
       <!-- LANGKAH 2: PAPAN ALOKASI INTERAKTIF (DRAG & DROP) -->
       <div id="stepSection2" class="step-content" style="display: none;">
-        <div id="interactiveAlertContainer" class="alert-container" style="margin-bottom: 16px;"></div>
-
         <section class="card" id="planBoardSection" style="margin-bottom: 24px;">
           <div class="card-head">
             <div>
@@ -247,15 +262,6 @@
             </div>
           </div>
         </section>
-
-        <div class="step-footer-actions">
-          <button class="btn btn-secondary btn-lg" onclick="goToStep(1)">
-            BACK
-          </button>
-          <button class="btn btn-primary btn-lg" onclick="handleStep2Lanjut()">
-            NEXT
-          </button>
-        </div>
       </div>
 
       <!-- LANGKAH 3: OUTPUT PLANNING FINAL FULL SCREEN -->
@@ -294,15 +300,28 @@
             </button>
           </div>
         </section>
-
-        <div class="step-footer-actions">
-          <button class="btn btn-secondary btn-lg" onclick="goToStep(2)">
-            BACK
-          </button>
-          <div></div>
-        </div>
       </div>
     </div>
+
+    <!-- STICKY FOOTER STEPPER (SWAPPED FROM HEADER) -->
+    <footer class="bottombar">
+      <nav class="stepper-nav footer-stepper" aria-label="Navigasi Tahapan Planning">
+        <div class="step-pill active" id="stepPill1" onclick="goToStep(1)" title="Langkah 1: Konfigurasi Manpower">
+          <span class="step-num">1</span>
+          <span class="step-title">Manpower</span>
+        </div>
+        <span class="step-arrow" aria-hidden="true">→</span>
+        <div class="step-pill" id="stepPill2" onclick="goToStep(2)" title="Langkah 2: Dashboard Alokasi Interaktif">
+          <span class="step-num">2</span>
+          <span class="step-title">Dashboard</span>
+        </div>
+        <span class="step-arrow" aria-hidden="true">→</span>
+        <div class="step-pill" id="stepPill3" onclick="goToStep(3)" title="Langkah 3: Output Planning Final">
+          <span class="step-num">3</span>
+          <span class="step-title">Output</span>
+        </div>
+      </nav>
+    </footer>
 
     <!-- Modal Resolusi Kapasitas Overflow Mesin -->
     <div id="overflowModal" class="modal-overlay">
@@ -1754,32 +1773,137 @@
             state.machines.length;
       }
 
-      function renderAlerts(infos = [], violations = []) {
-        const container = document.getElementById("alertContainer");
-        if (!container) return;
-        container.innerHTML = "";
-        infos.forEach((msg) => {
-          let type = "info",
-            icon = "💡";
-          if (msg.includes("SUCCESS")) {
-            type = "success";
-            icon = "✅";
-          } else if (msg.includes("PERINGATAN")) {
-            type = "warning";
-            icon = "🚨";
+      let currentAlertsData = {
+        infos: [],
+        violations: [],
+        unassignedMacs: [],
+        sisaMp: { core: [], nonCore: [], longshift: [] }
+      };
+
+      function updateAlertCenter(newInfos, newViolations) {
+        if (newInfos !== undefined) currentAlertsData.infos = newInfos || [];
+        if (newViolations !== undefined) currentAlertsData.violations = newViolations || [];
+
+        if (typeof currentPlan !== "undefined" && currentPlan) {
+          currentAlertsData.unassignedMacs = currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [];
+          if (typeof getUnassignedManpower === "function") {
+            currentAlertsData.sisaMp = getUnassignedManpower();
           }
-          const card = document.createElement("div");
-          card.className = `alert-card ${type}`;
-          card.innerHTML = `<span class="alert-icon">${icon}</span><div class="alert-body">${msg}</div>`;
-          container.appendChild(card);
-        });
-        violations.forEach((err) => {
-          const card = document.createElement("div");
-          card.className = "alert-card danger";
-          card.innerHTML = `<span class="alert-icon">⚠️</span><div class="alert-body"><strong>Catatan Penyesuaian:</strong> ${err}</div>`;
-          container.appendChild(card);
-        });
+        } else {
+          currentAlertsData.unassignedMacs = [];
+          currentAlertsData.sisaMp = { core: [], nonCore: [], longshift: [] };
+        }
+
+        const bellBtn = document.getElementById("notifBellBtn");
+        const badge = document.getElementById("notifBadge");
+        const popoverBody = document.getElementById("popoverAlertContent");
+
+        const unassignedMacs = currentAlertsData.unassignedMacs || [];
+        const sisaMp = currentAlertsData.sisaMp || { core: [], nonCore: [], longshift: [] };
+        const totalSisaMp = (sisaMp.core || []).length + (sisaMp.nonCore || []).length + (sisaMp.longshift || []).length;
+        const violations = currentAlertsData.violations || [];
+        const infos = currentAlertsData.infos || [];
+
+        let totalIssues = violations.length + (unassignedMacs.length > 0 ? 1 : 0);
+        let totalWarnings = (totalSisaMp > 0 ? 1 : 0);
+
+        // Update badge
+        if (badge && bellBtn) {
+          const totalBadges = totalIssues + totalWarnings;
+          if (totalBadges > 0) {
+            badge.style.display = "inline-flex";
+            badge.innerText = totalBadges;
+            if (violations.length > 0) {
+              badge.className = "notif-badge danger";
+              bellBtn.className = "notif-bell-btn has-danger";
+            } else {
+              badge.className = "notif-badge warning";
+              bellBtn.className = "notif-bell-btn has-warning";
+            }
+          } else {
+            badge.style.display = "none";
+            bellBtn.className = "notif-bell-btn";
+          }
+        }
+
+        // Render popover content
+        if (popoverBody) {
+          let html = "";
+
+          if (unassignedMacs.length > 0) {
+            html += `<div class="popover-alert-card warning">
+              <span class="p-icon">⚠️</span>
+              <div class="p-text"><strong>Sisa Mesin Belum Teralokasi (${unassignedMacs.length} Mesin):</strong> Terdapat mesin di Unassigned Pool. Silakan tarik mesin ke slot CQI.</div>
+            </div>`;
+          }
+
+          if (totalSisaMp > 0) {
+            html += `<div class="popover-alert-card info">
+              <span class="p-icon">👥</span>
+              <div class="p-text"><strong>Manpower Sisa (${totalSisaMp} Orang):</strong> ${sisaMp.core.length > 0 ? `Core: ${sisaMp.core.join(', ')} | ` : ''}${sisaMp.nonCore.length > 0 ? `Non-Core: ${sisaMp.nonCore.join(', ')} | ` : ''}${sisaMp.longshift.length > 0 ? `Longshift: ${sisaMp.longshift.length} orang` : ''}</div>
+            </div>`;
+          }
+
+          violations.forEach((err) => {
+            let humanMsg = err;
+            if (err.includes("Jumlah CQI yang digunakan")) {
+              humanMsg = `<strong>Kesesuaian Core & Meja CQI:</strong> ${err}`;
+            } else if (err.includes("memuat mesin selain OT")) {
+              humanMsg = `<strong>Aturan CQI 19 (OT):</strong> Meja CQI 19 khusus untuk mesin OT (M2/M3) dan dilarang keras diisi jenis mesin lain.`;
+            } else if (err.includes("memuat mesin dilarang")) {
+              humanMsg = `<strong>Aturan CQI 24 (WW):</strong> Meja CQI 24 khusus untuk mesin WW dan APK Line C.`;
+            } else if (err.includes("memuat") && err.includes("mesin dengan")) {
+              humanMsg = `<strong>Kapasitas Berlebih:</strong> ${err}`;
+            }
+            html += `<div class="popover-alert-card danger">
+              <span class="p-icon">🚨</span>
+              <div class="p-text">${humanMsg}</div>
+            </div>`;
+          });
+
+          infos.forEach((msg) => {
+            let type = "info", icon = "💡";
+            if (msg.includes("SUCCESS") || msg.includes("optimal") || msg.includes("valid")) {
+              type = "success"; icon = "✅";
+            } else if (msg.includes("PERINGATAN") || msg.includes("kurang")) {
+              type = "warning"; icon = "⚠️";
+            }
+            html += `<div class="popover-alert-card ${type}">
+              <span class="p-icon">${icon}</span>
+              <div class="p-text">${msg}</div>
+            </div>`;
+          });
+
+          if (!html) {
+            html = `<div class="popover-empty">✓ Semua alokasi tervalidasi dan optimal. Tidak ada catatan peringatan.</div>`;
+          }
+
+          popoverBody.innerHTML = html;
+        }
       }
+
+      function renderAlerts(infos = [], violations = []) {
+        updateAlertCenter(infos, violations);
+      }
+
+      function toggleAlertPopover(event) {
+        if (event) event.stopPropagation();
+        const pop = document.getElementById("alertPopover");
+        if (pop) {
+          const isHidden = pop.style.display === "none" || !pop.style.display;
+          pop.style.display = isHidden ? "flex" : "none";
+        }
+      }
+
+      document.addEventListener("click", (e) => {
+        const pop = document.getElementById("alertPopover");
+        const bell = document.getElementById("notifBellBtn");
+        if (pop && pop.style.display !== "none") {
+          if (!pop.contains(e.target) && !bell?.contains(e.target)) {
+            pop.style.display = "none";
+          }
+        }
+      });
 
       function showOverflowModal(uncovered, plan) {
         if (!uncovered || uncovered.length === 0) return;
@@ -2768,49 +2892,16 @@
       }
 
       function renderInteractiveAlerts() {
-        const container = document.getElementById("interactiveAlertContainer");
-        if (!container) return;
         if (!currentPlan) {
-          container.innerHTML = "";
+          updateAlertCenter([], []);
           return;
         }
         const machinesToValidate = state && state.machines ? state.machines : [];
-        const report = BrainAI.validate(currentPlan, machinesToValidate, lastFinalConfig || planningMode);
-
-        let html = "";
-
-        // Unassigned machines & manpower check
-        const unassignedMacs = currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [];
-        const sisaMp = getUnassignedManpower();
-        const totalSisaMp = sisaMp.core.length + sisaMp.nonCore.length + sisaMp.longshift.length;
-
-        if (unassignedMacs.length > 0) {
-          html += `<div class="alert-card warning"><span class="alert-icon">⚠️</span><div><strong>Sisa Mesin Belum Teralokasi (${unassignedMacs.length} Mesin):</strong> Terdapat mesin di Unassigned Pool yang belum masuk slot CQI. Silakan tarik mesin ke slot CQI yang masih tersedia kuota.</div></div>`;
-        }
-
-        if (totalSisaMp > 0) {
-          html += `<div class="alert-card info"><span class="alert-icon">👥</span><div><strong>Manpower Cadangan / Sisa (${totalSisaMp} Orang):</strong> ${sisaMp.core.length > 0 ? `Core: ${sisaMp.core.join(', ')} | ` : ''}${sisaMp.nonCore.length > 0 ? `Non-Core: ${sisaMp.nonCore.join(', ')} | ` : ''}${sisaMp.longshift.length > 0 ? `Longshift: ${sisaMp.longshift.length} orang` : ''}</div></div>`;
-        }
-
-        (report.violations || []).forEach((err) => {
-          let humanMsg = err;
-          if (err.includes("Jumlah CQI yang digunakan")) {
-            humanMsg = `<strong>Kesesuaian Core & Meja CQI:</strong> ${err}`;
-          } else if (err.includes("memuat mesin selain OT")) {
-            humanMsg = `<strong>Aturan CQI 19 (OT):</strong> Meja CQI 19 khusus untuk mesin OT (M2/M3) dan dilarang keras diisi jenis mesin lain.`;
-          } else if (err.includes("memuat mesin dilarang")) {
-            humanMsg = `<strong>Aturan CQI 24 (WW):</strong> Meja CQI 24 khusus untuk mesin WW dan APK Line C.`;
-          } else if (err.includes("memuat") && err.includes("mesin dengan")) {
-            humanMsg = `<strong>Kapasitas Berlebih:</strong> ${err}`;
-          }
-          html += `<div class="alert-card danger"><span class="alert-icon">🚨</span><div>${humanMsg}</div></div>`;
-        });
-
-        if (report.valid && unassignedMacs.length === 0) {
-          html += `<div class="alert-card success"><span class="alert-icon">✅</span><div><strong>Perencanaan Valid &amp; Optimal:</strong> Seluruh mesin teralokasi dengan rapi, rasio manpower seimbang, dan tidak ada pelanggaran aturan pabrik.</div></div>`;
-        }
-
-        container.innerHTML = html;
+        const brainEngine = getBrain() || window.BrainAI;
+        const report = (brainEngine && typeof brainEngine.validate === "function")
+          ? brainEngine.validate(currentPlan, machinesToValidate, lastFinalConfig || planningMode)
+          : { info: [], violations: [] };
+        updateAlertCenter(report.info, report.violations);
       }
 
       function groupMachinesByWs(machines) {
@@ -3066,22 +3157,11 @@
                   return nameA.localeCompare(nameB, undefined, { numeric: true });
                 });
 
-                const half = Math.ceil(sortedMachines.length / 2);
-                const leftMacs = sortedMachines.slice(0, half);
-                const rightMacs = sortedMachines.slice(half);
+                const isMultiPerson = ncPersonnel.length >= 2;
+                let columnsHtml = "";
 
-                const leftWsGroups = groupMachinesByWs(leftMacs);
-                const leftWsKeys = Object.keys(leftWsGroups).sort();
-
-                const rightWsGroups = groupMachinesByWs(rightMacs);
-                const rightWsKeys = Object.keys(rightWsGroups).sort();
-
-                const personLeft = ncPersonnel[0];
-                const personRight = ncPersonnel[1];
-                const extraPersonnel = ncPersonnel.slice(2);
-
-                const renderColumn = (person, macList, wsGroups, wsKeys) => `
-                  <div class="slot-col">
+                const renderColumn = (person, macList, wsGroups, wsKeys, isSingle = false) => `
+                  <div class="slot-col ${isSingle ? 'slot-col-single' : ''}">
                     <div class="slot-col-header">
                       <div class="slot-col-person-wrapper">
                         ${person ? `
@@ -3092,7 +3172,7 @@
                                 ondragend="handleDragEnd(event)">
                             <span class="person-id-mono">${person.name}</span>
                           </span>
-                        ` : `<span class="slot-col-no-person">(Non-Core Kosong)</span>`}
+                        ` : `<span class="slot-col-no-person">(Tanpa Non-Core / LS)</span>`}
                       </div>
                       <span class="slot-col-count-badge">${macList.length} Mesin</span>
                     </div>
@@ -3126,6 +3206,40 @@
                   </div>
                 `;
 
+                if (isMultiPerson) {
+                  const half = Math.ceil(sortedMachines.length / 2);
+                  const leftMacs = sortedMachines.slice(0, half);
+                  const rightMacs = sortedMachines.slice(half);
+
+                  const leftWsGroups = groupMachinesByWs(leftMacs);
+                  const leftWsKeys = Object.keys(leftWsGroups).sort();
+
+                  const rightWsGroups = groupMachinesByWs(rightMacs);
+                  const rightWsKeys = Object.keys(rightWsGroups).sort();
+
+                  const personLeft = ncPersonnel[0];
+                  const personRight = ncPersonnel[1];
+
+                  columnsHtml = `
+                    <div class="slot-columns-split">
+                      ${renderColumn(personLeft, leftMacs, leftWsGroups, leftWsKeys, false)}
+                      ${renderColumn(personRight, rightMacs, rightWsGroups, rightWsKeys, false)}
+                    </div>
+                  `;
+                } else {
+                  const allWsGroups = groupMachinesByWs(sortedMachines);
+                  const allWsKeys = Object.keys(allWsGroups).sort();
+                  const singlePerson = ncPersonnel.length === 1 ? ncPersonnel[0] : null;
+
+                  columnsHtml = `
+                    <div class="slot-single-col">
+                      ${renderColumn(singlePerson, sortedMachines, allWsGroups, allWsKeys, true)}
+                    </div>
+                  `;
+                }
+
+                const extraPersonnel = ncPersonnel.slice(2);
+
                 return `
                   ${extraPersonnel.length > 0 ? `
                     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:4px 8px; background:#fffbeb; border:1px dashed #fde68a; border-radius:6px;">
@@ -3142,10 +3256,7 @@
                   ` : ''}
 
                   <div class="slot-machines-container">
-                    <div class="slot-columns-split">
-                      ${renderColumn(personLeft, leftMacs, leftWsGroups, leftWsKeys)}
-                      ${renderColumn(personRight, rightMacs, rightWsGroups, rightWsKeys)}
-                    </div>
+                    ${columnsHtml}
                   </div>
                 `;
               })()}
@@ -3327,6 +3438,14 @@
 
       let currentStep = 1;
 
+      function handleHeaderBack() {
+        if (currentStep === 2) {
+          goToStep(1);
+        } else if (currentStep === 3) {
+          goToStep(2);
+        }
+      }
+
       function goToStep(stepNum) {
         if (!canNavigateSteps && stepNum > 1) {
           alert("Silakan lengkapi konfigurasi manpower terlebih dahulu, lalu lanjutkan ke papan alokasi.");
@@ -3341,6 +3460,19 @@
         if (s1) s1.style.display = (stepNum === 1) ? "block" : "none";
         if (s2) s2.style.display = (stepNum === 2) ? "block" : "none";
         if (s3) s3.style.display = (stepNum === 3) ? "block" : "none";
+
+        // Update header action buttons
+        const btnMap = document.getElementById("headerBtnMap");
+        const btnBack = document.getElementById("headerBtnBack");
+        const btnNext1 = document.getElementById("headerBtnNext1");
+        const btnNext2 = document.getElementById("headerBtnNext2");
+        const btnValidate = document.getElementById("headerBtnValidate");
+
+        if (btnMap) btnMap.style.display = (stepNum === 1) ? "inline-flex" : "none";
+        if (btnBack) btnBack.style.display = (stepNum > 1) ? "inline-flex" : "none";
+        if (btnNext1) btnNext1.style.display = (stepNum === 1) ? "inline-flex" : "none";
+        if (btnNext2) btnNext2.style.display = (stepNum === 2) ? "inline-flex" : "none";
+        if (btnValidate) btnValidate.style.display = (stepNum === 3) ? "inline-flex" : "none";
 
         updateStepperUI();
 
@@ -3425,8 +3557,10 @@
       window.removeMachineFromSlot = removeMachineFromSlot;
       window.resetBoardToAutoGenerated = resetBoardToAutoGenerated;
       window.goToStep = goToStep;
+      window.handleHeaderBack = handleHeaderBack;
       window.handleStep1Lanjut = handleStep1Lanjut;
       window.handleStep2Lanjut = handleStep2Lanjut;
+      window.toggleAlertPopover = toggleAlertPopover;
     </script>
   </body>
 </html>

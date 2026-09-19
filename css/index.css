@@ -77,16 +77,15 @@ header {
   gap: 10px;
   letter-spacing: -0.01em;
 }
-.brand span.tag {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
+.brand-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--text-main);
   letter-spacing: 0.5px;
-  background: #eff6ff;
-  color: var(--cqi-ready);
-  border: 1px solid #bfdbfe;
-  padding: 2px 7px;
-  border-radius: 4px;
+  text-align: center;
 }
 .controls {
   display: flex;
@@ -819,9 +818,9 @@ body.modal-open {
     height: auto;
     padding: 10px 14px;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr auto;
     row-gap: 8px;
-    column-gap: 10px;
+    column-gap: 8px;
     align-items: center;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
@@ -833,16 +832,21 @@ body.modal-open {
     gap: 8px;
     min-width: 0;
   }
+  .brand-center {
+    position: static;
+    transform: none;
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 0.98rem;
+    font-weight: 800;
+    text-align: center;
+    white-space: nowrap;
+  }
   .brand {
     font-size: 0.92rem;
     gap: 6px;
     white-space: nowrap;
     margin-bottom: 0;
-  }
-  .brand span.tag {
-    font-size: 0.6rem;
-    padding: 1px 5px;
-    letter-spacing: 0.2px;
   }
   #sidebarToggleBtn {
     height: 34px;
@@ -860,7 +864,7 @@ body.modal-open {
     justify-self: center;
   }
   #settingsBtn {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 1;
     height: 34px;
     padding: 0 12px;
@@ -870,7 +874,7 @@ body.modal-open {
     flex-shrink: 0;
   }
   #menuHeatmapBtn {
-    grid-column: 1;
+    grid-column: 1 / span 2;
     grid-row: 3;
     height: 36px;
     width: 100%;
@@ -879,7 +883,7 @@ body.modal-open {
     white-space: nowrap;
   }
   #goConfigBtn {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 3;
     height: 36px;
     width: 100%;
