@@ -541,8 +541,8 @@ export const rule = {
     };
   },
 
-  formatSlotMachines(machines = [], mapDataOrRunning = null) {
-    if (!Array.isArray(machines) || machines.length === 0) return "-";
+  getSlotMachineParts(machines = [], mapDataOrRunning = null) {
+    if (!Array.isArray(machines) || machines.length === 0) return [];
 
     const standardCapacity = {
       "0A": 1, "1A": 3, "2A": 4, "3A": 3, "4A": 4, "5A": 4, "6A": 4, "7A": 4, "8A": 4, "9A": 4, "10A": 4,
@@ -581,15 +581,20 @@ export const rule = {
     wsGroups.forEach((mList, ws) => {
       const totalCapacity = runningPerWs[ws] || standardCapacity[ws] || 0;
       if (totalCapacity > 1 && mList.length === totalCapacity) {
-        parts.push(`${ws} (${mList.length})`);
+        parts.push({ ws, count: mList.length, text: `${ws} (${mList.length})`, machines: mList });
       } else {
-        mList.forEach(m => {
-          parts.push(m.name || m.id);
-        });
+        const macNames = mList.map(m => m.name || m.id).join(", ");
+        parts.push({ ws, count: mList.length, text: macNames, machines: mList });
       }
     });
 
-    return parts.join(", ");
+    return parts;
+  },
+
+  formatSlotMachines(machines = [], mapDataOrRunning = null) {
+    const parts = this.getSlotMachineParts(machines, mapDataOrRunning);
+    if (!parts || parts.length === 0) return "-";
+    return parts.map(p => p.text).join(", ");
   },
 
   formatText(slots = [], config = {}) {
@@ -620,14 +625,45 @@ export const rule = {
       const coreStr = (s.coreNames || []).join(", ") || "-";
 
       const ncArr = (s.nonCore || []).concat(s.longshift || []);
-      const ncStr = ncArr.length > 0 ? ncArr.join(", ") : "-";
-
-      const machinesStr = this.formatSlotMachines(s.machines || [], allRunning);
 
       out += `${idx + 1}. *CQI ${cqiNum}*\n`;
-      out += `   - Core     : ${coreStr}\n`;
-      out += `   - Non-Core : ${ncStr}\n`;
-      out += `   - Mesin    : ${machinesStr}\n\n`;
+      out += `   - Core  : ${coreStr}\n`;
+
+      if (ncArr.length === 0) {
+        const parts = this.getSlotMachineParts(s.machines || [], allRunning);
+        const machinesStr = parts.map(p => p.text).join(", ") || "-";
+        out += `   - Mesin : ${machinesStr}\n\n`;
+      } else if (ncArr.length === 1) {
+        const parts = this.getSlotMachineParts(s.machines || [], allRunning);
+        const machinesStr = parts.map(p => p.text).join(", ") || "-";
+        out += `   - ${ncArr[0]} : ${machinesStr}\n\n`;
+      } else {
+        const sortedMachines = [...(s.machines || [])].sort((a, b) => {
+          const wsA = this.getWorkstationKey(a);
+          const wsB = this.getWorkstationKey(b);
+          if (wsA !== wsB) return wsA.localeCompare(wsB);
+          const nameA = a.name || a.id || "";
+          const nameB = b.name || b.id || "";
+          return nameA.localeCompare(nameB, undefined, { numeric: true });
+        });
+
+        const numPeople = ncArr.length;
+        const totalMacs = sortedMachines.length;
+        const basePerPerson = Math.floor(totalMacs / numPeople);
+        let remainder = totalMacs % numPeople;
+        let currentStart = 0;
+
+        ncArr.forEach((nc) => {
+          const count = basePerPerson + (remainder > 0 ? 1 : 0);
+          if (remainder > 0) remainder--;
+          const personMacs = sortedMachines.slice(currentStart, currentStart + count);
+          currentStart += count;
+          const personParts = this.getSlotMachineParts(personMacs, allRunning);
+          const personText = personParts.map(p => p.text).join(", ") || "-";
+          out += `   - ${nc} : ${personText}\n`;
+        });
+        out += `\n`;
+      }
     });
 
     out += `- QC Passed  :\n`;

@@ -3035,66 +3035,120 @@
                 </div>
               </div>
 
-              <div class="slot-manpower-box">
-                ${(slot.coreNames || []).map((c, cIdx) => `
+              <div class="slot-core-box">
+                <span class="slot-core-label">Core :</span>
+                ${(slot.coreNames || []).length > 0 ? (slot.coreNames || []).map((c, cIdx) => `
                   <span class="person-pill core" 
                         draggable="true" 
                         ondragstart="handlePersonDragStart(event, ${slotIdx}, 'coreNames', '${c}', ${cIdx})"
                         ondragend="handleDragEnd(event)">
-                    <span class="person-id-mono">${c}</span> <small class="person-role-tag">(Core)</small>
+                    <span class="person-id-mono">${c}</span>
                   </span>
-                `).join("")}
-
-                ${(slot.nonCore || []).map((nc, ncIdx) => `
-                  <span class="person-pill noncore" 
-                        draggable="true" 
-                        ondragstart="handlePersonDragStart(event, ${slotIdx}, 'nonCore', '${nc}', ${ncIdx})"
-                        ondragend="handleDragEnd(event)">
-                    <span class="person-id-mono">${nc}</span> <small class="person-role-tag">(NC)</small>
-                  </span>
-                `).join("")}
-
-                ${(slot.longshift || []).map((ls, lsIdx) => `
-                  <span class="person-pill noncore ls-pill" 
-                        draggable="true" 
-                        ondragstart="handlePersonDragStart(event, ${slotIdx}, 'longshift', '${ls}', ${lsIdx})"
-                        ondragend="handleDragEnd(event)">
-                    <span class="person-id-mono">${ls}</span> <small class="person-role-tag">(LS)</small>
-                  </span>
-                `).join("")}
+                `).join("") : `<span style="font-size:11px; color:#94a3b8; font-style:italic;">Belum ada Core</span>`}
               </div>
 
-              <div class="slot-machines-container">
-                ${wsKeys.length > 0 ? `
-                  <div class="slot-ws-grid">
-                    ${wsKeys.map((wsKey) => `
-                      <div class="ws-block">
-                        <div class="ws-block-header">
-                          <span class="ws-block-title">LINE ${wsKey}</span>
-                          <span class="ws-block-count">${wsGroups[wsKey].length}</span>
-                        </div>
-                        <div class="ws-machines-grid">
-                          ${wsGroups[wsKey].map((m) => {
-                            const label = m.name || m.id;
-                            return `
-                              <span class="machine-pill" 
-                                    draggable="true"
-                                    data-machine-id="${m.id || label}"
-                                    ondragstart="handleMachineDragStart(event, ${slotIdx}, '${m.id || label}')"
-                                    ondragend="handleDragEnd(event)">
-                                <span class="machine-id-mono">${label}</span>
-                                <button class="machine-remove-btn" 
-                                        onclick="removeMachineFromSlot(${slotIdx}, '${m.id || label}')" 
-                                        title="Pindahkan ke Unassigned">&times;</button>
-                              </span>
-                            `;
-                          }).join("")}
-                        </div>
+              ${(() => {
+                const ncPersonnel = [];
+                (slot.nonCore || []).forEach((nc, ncIdx) => {
+                  ncPersonnel.push({ name: nc, type: 'nonCore', idx: ncIdx, isLs: false });
+                });
+                (slot.longshift || []).forEach((ls, lsIdx) => {
+                  ncPersonnel.push({ name: ls, type: 'longshift', idx: lsIdx, isLs: true });
+                });
+
+                // Sort machines so that same WS are together
+                const sortedMachines = [...slot.machines].sort((a, b) => {
+                  const wsA = (BrainAI.getWorkstationKey ? BrainAI.getWorkstationKey(a) : (a.workstation || "")) || "";
+                  const wsB = (BrainAI.getWorkstationKey ? BrainAI.getWorkstationKey(b) : (b.workstation || "")) || "";
+                  if (wsA !== wsB) return wsA.localeCompare(wsB);
+                  const nameA = a.name || a.id || "";
+                  const nameB = b.name || b.id || "";
+                  return nameA.localeCompare(nameB, undefined, { numeric: true });
+                });
+
+                const half = Math.ceil(sortedMachines.length / 2);
+                const leftMacs = sortedMachines.slice(0, half);
+                const rightMacs = sortedMachines.slice(half);
+
+                const leftWsGroups = groupMachinesByWs(leftMacs);
+                const leftWsKeys = Object.keys(leftWsGroups).sort();
+
+                const rightWsGroups = groupMachinesByWs(rightMacs);
+                const rightWsKeys = Object.keys(rightWsGroups).sort();
+
+                const personLeft = ncPersonnel[0];
+                const personRight = ncPersonnel[1];
+                const extraPersonnel = ncPersonnel.slice(2);
+
+                const renderColumn = (person, macList, wsGroups, wsKeys) => `
+                  <div class="slot-col">
+                    <div class="slot-col-header">
+                      <div class="slot-col-person-wrapper">
+                        ${person ? `
+                          <span class="person-pill noncore ${person.isLs ? 'ls-pill' : ''}" 
+                                draggable="true" 
+                                title="Tarik untuk memindahkan personil"
+                                ondragstart="handlePersonDragStart(event, ${slotIdx}, '${person.type}', '${person.name}', ${person.idx})"
+                                ondragend="handleDragEnd(event)">
+                            <span class="person-id-mono">${person.name}</span>
+                          </span>
+                        ` : `<span class="slot-col-no-person">(Non-Core Kosong)</span>`}
                       </div>
-                    `).join("")}
+                      <span class="slot-col-count-badge">${macList.length} Mesin</span>
+                    </div>
+                    <div class="slot-col-body">
+                      ${wsKeys.length > 0 ? wsKeys.map((wsKey) => `
+                        <div class="ws-block">
+                          <div class="ws-block-header">
+                            <span class="ws-block-title">LINE ${wsKey}</span>
+                            <span class="ws-block-count">${wsGroups[wsKey].length}</span>
+                          </div>
+                          <div class="ws-machines-grid">
+                            ${wsGroups[wsKey].map((m) => {
+                              const label = m.name || m.id;
+                              return `
+                                <span class="machine-pill" 
+                                      draggable="true"
+                                      data-machine-id="${m.id || label}"
+                                      ondragstart="handleMachineDragStart(event, ${slotIdx}, '${m.id || label}')"
+                                      ondragend="handleDragEnd(event)">
+                                  <span class="machine-id-mono">${label}</span>
+                                  <button class="machine-remove-btn" 
+                                          onclick="removeMachineFromSlot(${slotIdx}, '${m.id || label}')" 
+                                          title="Pindahkan ke Unassigned">&times;</button>
+                                </span>
+                              `;
+                            }).join("")}
+                          </div>
+                        </div>
+                      `).join("") : `<div class="slot-col-empty-hint">Tidak ada mesin</div>`}
+                    </div>
                   </div>
-                ` : `<div style="font-size:11px; color:#94a3b8; padding:12px; width:100%; text-align:center; border: 1px dashed #cbd5e1; border-radius: 6px;">Tarik &amp; lepas mesin di sini</div>`}
-              </div>
+                `;
+
+                return `
+                  ${extraPersonnel.length > 0 ? `
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:4px 8px; background:#fffbeb; border:1px dashed #fde68a; border-radius:6px;">
+                      <span style="font-size:10px; color:#b45309; font-weight:700;">Asisten Tambahan:</span>
+                      ${extraPersonnel.map(p => `
+                        <span class="person-pill noncore ${p.isLs ? 'ls-pill' : ''}" 
+                              draggable="true" 
+                              ondragstart="handlePersonDragStart(event, ${slotIdx}, '${p.type}', '${p.name}', ${p.idx})"
+                              ondragend="handleDragEnd(event)">
+                          <span class="person-id-mono">${p.name}</span>
+                        </span>
+                      `).join("")}
+                    </div>
+                  ` : ''}
+
+                  <div class="slot-machines-container">
+                    <div class="slot-columns-split">
+                      ${renderColumn(personLeft, leftMacs, leftWsGroups, leftWsKeys)}
+                      ${renderColumn(personRight, rightMacs, rightWsGroups, rightWsKeys)}
+                    </div>
+                  </div>
+                `;
+              })()}
             </div>
           `;
         });
