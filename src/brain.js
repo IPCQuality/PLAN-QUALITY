@@ -530,22 +530,6 @@ export const rule = {
       }
     });
 
-    let unassignedCount = 0;
-    if (Array.isArray(runningMachines) && runningMachines.length > 0) {
-      const totalAssigned = slots.reduce((acc, s) => acc + (s.machines ? s.machines.length : 0), 0);
-      unassignedCount = Math.max(0, runningMachines.length - totalAssigned);
-    }
-    if (slots.unassignedMachines && Array.isArray(slots.unassignedMachines)) {
-      unassignedCount = Math.max(unassignedCount, slots.unassignedMachines.length);
-    }
-    if (slots.uncoveredMachines && Array.isArray(slots.uncoveredMachines)) {
-      unassignedCount = Math.max(unassignedCount, slots.uncoveredMachines.length);
-    }
-
-    if (unassignedCount > 0) {
-      totalLsShortage += Math.ceil(unassignedCount / 2);
-    }
-
     if (totalLsShortage > 0) {
       violations.push(`Kurang ${totalLsShortage} (LS)`);
     }
@@ -1351,8 +1335,9 @@ export const BrainAI = {
           const seg = wsList.slice(idx);
           const w = seg.reduce((s, x) => s + x.weight, 0);
           let cost = Math.pow(w - idealAvg, 2);
-          if (w > maxCore) cost += (w - maxCore) * 20;
-          if (w > maxCap) cost += Math.pow(w - maxCap, 3) * 100;
+          // Penalti tinggi jika melebihi kapasitas Core untuk meminimalisir penggunaan Non-Core / LS
+          if (w > maxCore) cost += Math.pow(w - maxCore, 2) * 50 + (w - maxCore) * 30;
+          if (w > maxCap) cost += Math.pow(w - maxCap, 3) * 200;
           const res = { cost, partitions: [seg] };
           memo.set(key, res);
           return res;
@@ -1368,8 +1353,9 @@ export const BrainAI = {
           currentSegWeight += wsList[i].weight;
 
           let segCost = Math.pow(currentSegWeight - idealAvg, 2);
-          if (currentSegWeight > maxCore) segCost += (currentSegWeight - maxCore) * 20;
-          if (currentSegWeight > maxCap) segCost += Math.pow(currentSegWeight - maxCap, 3) * 100;
+          // Penalti tinggi jika melebihi kapasitas Core untuk meminimalisir penggunaan Non-Core / LS
+          if (currentSegWeight > maxCore) segCost += Math.pow(currentSegWeight - maxCore, 2) * 50 + (currentSegWeight - maxCore) * 30;
+          if (currentSegWeight > maxCap) segCost += Math.pow(currentSegWeight - maxCap, 3) * 200;
 
           const sub = solve(i + 1, remK - 1);
           const totalCost = segCost + sub.cost;
@@ -1473,55 +1459,18 @@ export const BrainAI = {
           zone.forEach(w => {
             w.machines.forEach(m => assignMachineToSlot(m, slot));
           });
-        } else {
-          // Fallback darurat: masukkan ke slot aktif yang paling kompatibel
-          const candidateSlots = Array.from(activeSlotsMap.values()).filter(s => {
-            if (s.cqiNum === 19) return false;
-            return r.canAddMachineToSlotCluster(zone[0].machines[0], s);
-          });
-          if (candidateSlots.length > 0) {
-            const bestSlot = candidateSlots.sort((a, b) => a.machines.length - b.machines.length)[0];
-            zone.forEach(w => {
-              w.machines.forEach(m => assignMachineToSlot(m, bestSlot));
-            });
-          }
         }
+        // Jika tidak ada CQI yang tersedia, biarkan mesin tetap unassigned (tidak dipaksa ke slot lain)
       });
     });
 
     // =========================================================================
-    // STEP 7: JAMINAN 100% MESIN TERALOKASI (ZERO STRANDED GUARANTEE)
+    // STEP 7: PENGELOLAAN MESIN BELUM TERALOKASI (NORMAL UNASSIGNED POOL)
     // =========================================================================
-    // Jika masih ada mesin running yang belum teralokasi karena batasan kuota
+    // Mesin yang tidak teralokasi secara wajar (karena kapasitas CQI penuh atau batasan cluster)
+    // TIDAK DIPAKSAKAN masuk ke CQI yang sudah penuh. Mesin disimpan di unassignedMachines pool
+    // agar dapat di-drag & drop secara manual oleh user pada papan interaktif.
     const unassignedMachines = runningMachines.filter(m => !assignedMachineIds.has(m.id || m.name));
-    if (unassignedMachines.length > 0) {
-      unassignedMachines.forEach(m => {
-        let bestSlot = null;
-        let minDistance = Infinity;
-
-        for (const slot of activeSlotsMap.values()) {
-          if (!r.canAddMachineToSlotCluster(m, slot)) continue;
-          const capRule = r.getClusterCapacityRule([...slot.machines, m]);
-          if (slot.machines.length >= capRule.absoluteMax) continue;
-
-          const dist = geo.getDistance(m, slot);
-          if (dist < minDistance) {
-            minDistance = dist;
-            bestSlot = slot;
-          }
-        }
-
-        if (bestSlot) {
-          assignMachineToSlot(m, bestSlot);
-        } else {
-          // Absolute fallback ke slot apapun yang kompatibel
-          const anyCompatible = Array.from(activeSlotsMap.values()).find(s => r.canAddMachineToSlotCluster(m, s));
-          if (anyCompatible) {
-            assignMachineToSlot(m, anyCompatible);
-          }
-        }
-      });
-    }
 
     // =========================================================================
     // STEP 8: ALOKASI MANPOWER ERGONOMIS (CORE, NON-CORE & LONGSHIFT)
@@ -1548,6 +1497,9 @@ export const BrainAI = {
       if (pA !== pB) return pA - pB;
       return a.cqiNum - b.cqiNum;
     });
+
+    activePlan.unassignedMachines = unassignedMachines;
+    activePlan.uncoveredMachines = unassignedMachines;
 
     return activePlan;
   },

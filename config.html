@@ -421,7 +421,7 @@
                   class="mode-tab-btn active"
                   onclick="switchAddManpowerType('core')"
                 >
-                  Core Manpower
+                  Core
                 </button>
                 <button
                   type="button"
@@ -429,7 +429,7 @@
                   class="mode-tab-btn"
                   onclick="switchAddManpowerType('nonCore')"
                 >
-                  Non-Core Manpower
+                  Non-Core
                 </button>
               </div>
 
@@ -458,7 +458,7 @@
                         font-style: italic;
                       "
                       id="mpIdHelp"
-                      >Dinamis dari master</span
+                      >Otomatis</span
                     >
                   </div>
                   <input
@@ -539,7 +539,7 @@
                   display: flex;
                   justify-content: space-between;
                   align-items: center;
-                  margin-bottom: 4px;
+                  margin-bottom: 8px;
                 "
               >
                 <h4
@@ -551,10 +551,16 @@
                     letter-spacing: 0.5px;
                   "
                 >
-                  Tersedia di Data Sistem (<span id="unusedMasterCount"
-                    >0</span
-                  >)
+                  Master Tersedia (<span id="unusedMasterCount">0</span>)
                 </h4>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="restoreAllMasterItems()"
+                  style="padding: 3px 8px; font-size: 11px"
+                >
+                  Pulihkan Semua
+                </button>
               </div>
               <input
                 type="text"
@@ -991,11 +997,9 @@
 
         if (masterManpowerData) {
           (masterManpowerData.nonCore || []).forEach(scanItem);
-          (masterManpowerData.core || []).forEach(scanItem);
         }
         if (manpowerData) {
           (manpowerData.nonCore || []).forEach(scanItem);
-          (manpowerData.core || []).forEach(scanItem);
         }
 
         return Array.from(candidatesMap.values());
@@ -1025,20 +1029,16 @@
 
         if (masterManpowerData) {
           (masterManpowerData.nonCore || []).forEach(scanMilOnly);
-          (masterManpowerData.core || []).forEach(scanMilOnly);
         }
         if (manpowerData) {
           (manpowerData.nonCore || []).forEach(scanMilOnly);
-          (manpowerData.core || []).forEach(scanMilOnly);
         }
 
         if (masterManpowerData) {
           (masterManpowerData.nonCore || []).forEach((i) => scanItem(i, false));
-          (masterManpowerData.core || []).forEach((i) => scanItem(i, false));
         }
         if (manpowerData) {
           (manpowerData.nonCore || []).forEach((i) => scanItem(i, false));
-          (manpowerData.core || []).forEach((i) => scanItem(i, false));
         }
 
         return Array.from(candidatesMap.values());
@@ -1509,7 +1509,7 @@
           if (item.cqi_priority) metaDetails.push(`CQI ${item.cqi_priority}`);
           if (item.job_priority) metaDetails.push(item.job_priority);
           const metaStr =
-            metaDetails.length > 0 ? ` • ${metaDetails.join(" | ")}` : "";
+            metaDetails.length > 0 ? metaDetails.join(" | ") : "";
 
           card.innerHTML = `
         <div class="unused-master-info">
@@ -1517,7 +1517,7 @@
             <span class="mp-id-badge ${isCore ? "core" : "noncore"}">${item.id || "-"}</span>
             <span>${item.name}</span>
           </div>
-          <div class="unused-master-meta">${item.id}${metaStr}</div>
+          ${metaStr ? `<div class="unused-master-meta">${metaStr}</div>` : ""}
         </div>
         <div style="display: flex; gap: 4px; flex-shrink: 0;">
           <button type="button" class="btn btn-choose" style="padding: 4px 8px; font-size: 11px;" title="Isi form dengan data ini">
@@ -1550,6 +1550,46 @@
           ? document.getElementById("searchMasterInput").value
           : "";
         renderUnusedMasterList(q);
+      }
+
+      function restoreAllMasterItems() {
+        const unused = getUnusedMasterManpower(currentAddType);
+        if (!unused || unused.length === 0) {
+          alert("Tidak ada data master yang dapat dipulihkan.");
+          return;
+        }
+
+        const targetKey = currentAddType === "core" ? "core" : "nonCore";
+        let addedCount = 0;
+
+        unused.forEach((item) => {
+          const exists = manpowerData[targetKey].some((existing) => {
+            const existingName = (
+              typeof existing === "object" ? existing.name : existing || ""
+            )
+              .trim()
+              .toLowerCase();
+            return existingName === item.name.trim().toLowerCase();
+          });
+
+          if (!exists) {
+            manpowerData[targetKey].push({
+              id: item.id || getNextDynamicId(currentAddType),
+              name: item.name,
+              cqi_priority: item.cqi_priority || "",
+              job_priority: item.job_priority || "",
+            });
+            addedCount++;
+          }
+        });
+
+        if (addedCount > 0) {
+          persistManpower();
+          renderAllLists();
+          const searchInput = document.getElementById("searchMasterInput");
+          if (searchInput) searchInput.value = "";
+          renderUnusedMasterList();
+        }
       }
 
       function fillFormWithMasterItem(item) {
@@ -1845,14 +1885,18 @@
 
           violations.forEach((err) => {
             let humanMsg = err;
-            if (err.includes("Jumlah CQI yang digunakan")) {
+            if (err.includes("Jumlah meja CQI aktif") || err.includes("Jumlah CQI yang digunakan")) {
               humanMsg = `<strong>Kesesuaian Core & Meja CQI:</strong> ${err}`;
-            } else if (err.includes("memuat mesin selain OT")) {
-              humanMsg = `<strong>Aturan CQI 19 (OT):</strong> Meja CQI 19 khusus untuk mesin OT (M2/M3) dan dilarang keras diisi jenis mesin lain.`;
-            } else if (err.includes("memuat mesin dilarang")) {
-              humanMsg = `<strong>Aturan CQI 24 (WW):</strong> Meja CQI 24 khusus untuk mesin WW dan APK Line C.`;
-            } else if (err.includes("memuat") && err.includes("mesin dengan")) {
-              humanMsg = `<strong>Kapasitas Berlebih:</strong> ${err}`;
+            } else if (err.includes("belum memiliki personil Core")) {
+              humanMsg = `<strong>Kekurangan Core:</strong> ${err}`;
+            } else if (err.includes("terdaftar ganda")) {
+              humanMsg = `<strong>Duplikasi Personil:</strong> ${err}`;
+            } else if (err.includes("terisi lebih dari 1 personil Core")) {
+              humanMsg = `<strong>Kelebihan Core:</strong> ${err}`;
+            } else if (err.includes("CQI 19") || err.includes("mesin selain OT")) {
+              humanMsg = `<strong>Aturan CQI 19 (OT):</strong> ${err}`;
+            } else if (err.includes("CQI 24") || err.includes("WW")) {
+              humanMsg = `<strong>Aturan CQI 24 (WW):</strong> ${err}`;
             } else if (err.includes("Kurang") || err.includes("kurang") || err.includes("(LS)")) {
               humanMsg = `<strong>Kekurangan Manpower:</strong> ${err}`;
             }
@@ -3476,6 +3520,8 @@
         if (metaEl) {
           metaEl.innerText = `${currentPlan.length} Slot CQI Aktif | ${totalMachinesCount} Mesin Teralokasi`;
         }
+
+        renderInteractiveAlerts();
       }
 
       function handleMachineDragStart(e, slotIdx, machineId) {
