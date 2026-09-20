@@ -2239,6 +2239,9 @@
       // FITUR: Download Data Planning dalam format JSON terstruktur & rapi
       function downloadPlanningJson() {
         try {
+          if (!currentPlan || currentPlan.length === 0) {
+            loadPlanningCache();
+          }
           let activeSlots = currentPlan;
           if (!activeSlots || activeSlots.length === 0) {
             const stored =
@@ -2247,7 +2250,10 @@
             if (stored) {
               try {
                 const parsed = JSON.parse(stored);
-                activeSlots = parsed.slots || parsed;
+                activeSlots = parsed.slots || parsed.currentPlan || parsed;
+                if (parsed.unassignedMachines && Array.isArray(activeSlots) && !activeSlots.unassignedMachines) {
+                  activeSlots.unassignedMachines = parsed.unassignedMachines;
+                }
               } catch (e) {}
             }
           }
@@ -2262,7 +2268,12 @@
           const dateStr = `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`;
           const fileName = `planning-${dateStr}.json`;
 
-          const allRunning = activeSlots.flatMap((s) => s.machines || []);
+          const unassignedList = (activeSlots && (activeSlots.unassignedMachines || activeSlots.uncoveredMachines)) || (currentPlan && (currentPlan.unassignedMachines || currentPlan.uncoveredMachines)) || [];
+
+          const allRunning = (state && Array.isArray(state.machines) && state.machines.length > 0)
+            ? state.machines
+            : [...activeSlots.flatMap((s) => s.machines || []), ...unassignedList];
+
           const totalMachines = allRunning.length;
 
           // Ambil data penugasan khusus
@@ -2391,6 +2402,7 @@
               support_fg: supportFgVal || null,
             },
             planning: structuredPlanning,
+            unassigned_machines: unassignedList.map((m) => m.name || m.id || m),
             raw_slots: activeSlots,
           };
 
@@ -2583,6 +2595,9 @@
       };
 
       async function exportExcel() {
+        if (!currentPlan || currentPlan.length === 0) {
+          loadPlanningCache();
+        }
         if (!currentPlan || currentPlan.length === 0)
           return alert("Perencanaan belum tersedia. Silakan buat perencanaan terlebih dahulu.");
         try {
@@ -2624,11 +2639,12 @@
         });
 
         // Subtitle Row 2: Stamp
+        const unassignedList = (currentPlan && (currentPlan.unassignedMachines || currentPlan.uncoveredMachines)) || [];
         const totalCQI = currentPlan.length;
         const totalMesin = currentPlan.reduce((a, s) => a + (s.machines ? s.machines.length : 0), 0);
         const dateObj = new Date();
         const dateFormatted = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
-        const stampText = `Dibuat : ${dateFormatted}   |   Total CQI: ${totalCQI}   |   Total Mesin: ${totalMesin}`;
+        const stampText = `Dibuat : ${dateFormatted}   |   Total CQI: ${totalCQI}   |   Total Mesin Teralokasi: ${totalMesin}${unassignedList.length > 0 ? `   |   Unassigned: ${unassignedList.length}` : ""}`;
 
         const stampRow = ws.addRow([stampText]);
         ws.mergeCells(stampRow.number, 1, stampRow.number, lastCol);
@@ -2657,7 +2673,9 @@
           return cqiNum(a) - cqiNum(b);
         });
 
-        const allRunning = currentPlan.flatMap((s) => s.machines || []);
+        const allRunning = (state && Array.isArray(state.machines) && state.machines.length > 0)
+          ? state.machines
+          : [...currentPlan.flatMap((s) => s.machines || []), ...unassignedList];
 
         sortedPlan.forEach((slot, i) => {
           const cqiName = slot.cqi ? (slot.cqi.name || `CQI ${slot.cqi.id || i + 1}`) : `CQI ${i + 1}`;
@@ -2761,6 +2779,29 @@
             ws.mergeCells(startRow, 3, endRow, 3);
           }
         });
+
+        if (unassignedList.length > 0) {
+          const unassignedParts = BrainAI.getSlotMachineParts(unassignedList, allRunning);
+          const unassignedSummary = joinMachineParts(unassignedParts);
+          
+          const unHdRow = ws.addRow(["MESIN BELUM TERALOKASI (UNASSIGNED)", "", "", "", ""]);
+          ws.mergeCells(unHdRow.number, 1, unHdRow.number, lastCol);
+          unHdRow.height = 20;
+          applyRangeStyle(ws, unHdRow.number, 1, unHdRow.number, lastCol, {
+            font: { name: "Calibri", size: 10, bold: true, color: { argb: "FFFFFFFF" } },
+            fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FFDC2626" } },
+            alignment: { vertical: "middle", horizontal: "center" },
+            border: boxBorder("FF000000")
+          });
+
+          const unDataRow = ws.addRow(["-", "-", "-", "-", unassignedSummary]);
+          unDataRow.height = 20;
+          unDataRow.eachCell({ includeEmpty: true }, (c, col) => {
+            c.font = { name: "Calibri", size: 10, color: { argb: "FF000000" } };
+            c.border = boxBorder("FF000000");
+            c.alignment = { vertical: "middle", horizontal: col === 5 ? "left" : "center", wrapText: true };
+          });
+        }
 
         // Empty row before small tables
         ws.addRow([]);
