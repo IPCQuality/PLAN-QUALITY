@@ -503,22 +503,52 @@ export const rule = {
       }
     }
 
+    let totalLsShortage = 0;
+
     slots.forEach(s => {
-      const cqiNum = this.getCqiNumber(s);
       const machines = s.machines || [];
       if (machines.length === 0) return;
 
       const capRule = this.getClusterCapacityRule(s);
       const supportCount = (s.nonCore || []).length + (s.longshift || []).length;
 
-      let allowedMax = capRule.maxCoreOnly;
-      if (supportCount === 1) allowedMax = capRule.max1Nc;
-      if (supportCount >= 2) allowedMax = capRule.max2Nc;
+      let reqSupport = 0;
+      if (machines.length <= capRule.maxCoreOnly) {
+        reqSupport = 0;
+      } else if (machines.length <= capRule.max1Nc) {
+        reqSupport = 1;
+      } else if (machines.length <= capRule.max2Nc) {
+        reqSupport = 2;
+      } else {
+        const excess = machines.length - capRule.max2Nc;
+        reqSupport = 2 + Math.ceil(excess / 2);
+      }
 
-      if (machines.length > allowedMax) {
-        violations.push(`Kapasitas CQI ${cqiNum} (${capRule.name}) terlampaui: terisi ${machines.length} mesin dengan ${supportCount} bantuan (kapasitas yang dianjurkan maksimal ${allowedMax} mesin).`);
+      const shortage = reqSupport - supportCount;
+      if (shortage > 0) {
+        totalLsShortage += shortage;
       }
     });
+
+    let unassignedCount = 0;
+    if (Array.isArray(runningMachines) && runningMachines.length > 0) {
+      const totalAssigned = slots.reduce((acc, s) => acc + (s.machines ? s.machines.length : 0), 0);
+      unassignedCount = Math.max(0, runningMachines.length - totalAssigned);
+    }
+    if (slots.unassignedMachines && Array.isArray(slots.unassignedMachines)) {
+      unassignedCount = Math.max(unassignedCount, slots.unassignedMachines.length);
+    }
+    if (slots.uncoveredMachines && Array.isArray(slots.uncoveredMachines)) {
+      unassignedCount = Math.max(unassignedCount, slots.uncoveredMachines.length);
+    }
+
+    if (unassignedCount > 0) {
+      totalLsShortage += Math.ceil(unassignedCount / 2);
+    }
+
+    if (totalLsShortage > 0) {
+      violations.push(`Kurang ${totalLsShortage} (LS)`);
+    }
 
     return {
       valid: violations.length === 0,

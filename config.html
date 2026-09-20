@@ -1853,6 +1853,8 @@
               humanMsg = `<strong>Aturan CQI 24 (WW):</strong> Meja CQI 24 khusus untuk mesin WW dan APK Line C.`;
             } else if (err.includes("memuat") && err.includes("mesin dengan")) {
               humanMsg = `<strong>Kapasitas Berlebih:</strong> ${err}`;
+            } else if (err.includes("Kurang") || err.includes("kurang") || err.includes("(LS)")) {
+              humanMsg = `<strong>Kekurangan Manpower:</strong> ${err}`;
             }
             html += `<div class="popover-alert-card danger">
               <span class="p-icon">🚨</span>
@@ -3290,28 +3292,15 @@
           const macCount = slot.machines.length;
           const maxCapacity = 8; // Standar batas kapasitas normal adalah 8 mesin
           
-          let capStatus = "under";
-          let capBadgeText = `${macCount}/${maxCapacity} Under`;
-          let capBadgeClass = "cap-under";
+          let capStatus = "normal";
+          let capBadgeText = "";
+          let capBadgeClass = "";
 
           if (macCount === 0) {
             capStatus = "empty";
             capBadgeText = `0/${maxCapacity} Kosong`;
             capBadgeClass = "cap-empty";
-          } else if (macCount >= 1 && macCount <= 5) {
-            capStatus = "under";
-            capBadgeText = `${macCount}/${maxCapacity} Under`;
-            capBadgeClass = "cap-under";
-          } else if (macCount >= 6 && macCount <= 7) {
-            capStatus = "optimal";
-            capBadgeText = `${macCount}/${maxCapacity} Optimal`;
-            capBadgeClass = "cap-optimal";
-          } else if (macCount === 8) {
-            capStatus = "max";
-            capBadgeText = `${macCount}/${maxCapacity} At Capacity`;
-            capBadgeClass = "cap-max";
-          } else {
-            // > 8
+          } else if (macCount > maxCapacity) {
             capStatus = "overload";
             capBadgeText = `${macCount}/${maxCapacity} Overload!`;
             capBadgeClass = "cap-overload";
@@ -3333,7 +3322,7 @@
                   <span class="slot-badge-line">${lineName}</span>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                  <span class="slot-capacity-badge ${capBadgeClass}">${capBadgeText}</span>
+                  ${capBadgeText ? `<span class="slot-capacity-badge ${capBadgeClass}">${capBadgeText}</span>` : ""}
                 </div>
               </div>
 
