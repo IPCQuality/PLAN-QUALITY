@@ -386,14 +386,7 @@ export const rule = {
       }
     });
 
-    // Pass 3: Sisa Non-Core dibagikan ke slot dengan mesin terbanyak berikutnya
-    slotsByUrgency.forEach(s => {
-      if ((s.nonCore.length + s.longshift.length) === 0) {
-        giveRealNonCoreFirst(s);
-      }
-    });
-
-    // Pass 4 (Longshift): Penuhi kebutuhan slot berat yang belum dapat bantuan cukup
+    // Pass 3 (Longshift): Penuhi kebutuhan slot berat yang belum dapat bantuan cukup (> maxCoreOnly)
     slotsByUrgency.forEach(s => {
       const cap = this.getClusterCapacityRule(s);
       const machineCount = (s.machines || []).length;
@@ -402,18 +395,11 @@ export const rule = {
       }
     });
 
-    // Pass 5 (Longshift): Tambah bantuan ke-2 untuk slot > max1Nc
+    // Pass 4 (Longshift): Tambah bantuan ke-2 untuk slot sangat berat (> max1Nc) jika masih ada slot overload
     slotsByUrgency.forEach(s => {
       const cap = this.getClusterCapacityRule(s);
       const machineCount = (s.machines || []).length;
       if (machineCount > cap.max1Nc && (s.nonCore.length + s.longshift.length) < 2) {
-        giveLongshiftFallback(s);
-      }
-    });
-
-    // Pass 6 (Longshift): Sisa LS ke slot dengan beban tertinggi berikutnya
-    slotsByUrgency.forEach(s => {
-      if ((s.nonCore.length + s.longshift.length) < 2) {
         giveLongshiftFallback(s);
       }
     });
@@ -612,7 +598,7 @@ export const rule = {
     });
     const sisaLs = Math.max(0, totalLs - usedLs);
 
-    let out = `*PLANNING SHIFT LIQUID 3*\n`;
+    let out = `*PLANNING LIQUID 3*\n`;
     out += `Tanggal: ${dateStr}\n`;
     out += `Sisa LS       : ${sisaLs} Belum Terpakai\n\n`;
 
@@ -634,9 +620,14 @@ export const rule = {
         const machinesStr = parts.map(p => p.text).join(", ") || "-";
         out += `   - Mesin : ${machinesStr}\n\n`;
       } else if (ncArr.length === 1) {
+        const isLs = (s.nonCore || []).length === 0;
+        let ncLabel = typeof ncArr[0] === "object" ? (ncArr[0].name || ncArr[0].id) : String(ncArr[0]);
+        if (isLs || ncLabel.toLowerCase().includes("ls") || ncLabel.toLowerCase().includes("longshift")) {
+          ncLabel = "(LS)";
+        }
         const parts = this.getSlotMachineParts(s.machines || [], allRunning);
         const machinesStr = parts.map(p => p.text).join(", ") || "-";
-        out += `   - ${ncArr[0]} : ${machinesStr}\n\n`;
+        out += `   - ${ncLabel} : ${machinesStr}\n\n`;
       } else {
         const sortedMachines = [...(s.machines || [])].sort((a, b) => {
           const wsA = this.getWorkstationKey(a);
@@ -653,14 +644,21 @@ export const rule = {
         let remainder = totalMacs % numPeople;
         let currentStart = 0;
 
-        ncArr.forEach((nc) => {
+        ncArr.forEach((nc, pIdx) => {
           const count = basePerPerson + (remainder > 0 ? 1 : 0);
           if (remainder > 0) remainder--;
           const personMacs = sortedMachines.slice(currentStart, currentStart + count);
           currentStart += count;
+
+          const isLs = pIdx >= (s.nonCore || []).length;
+          let personLabel = typeof nc === "object" ? (nc.name || nc.id) : String(nc);
+          if (isLs || personLabel.toLowerCase().includes("ls") || personLabel.toLowerCase().includes("longshift")) {
+            personLabel = "(LS)";
+          }
+
           const personParts = this.getSlotMachineParts(personMacs, allRunning);
           const personText = personParts.map(p => p.text).join(", ") || "-";
-          out += `   - ${nc} : ${personText}\n`;
+          out += `   - ${personLabel} : ${personText}\n`;
         });
         out += `\n`;
       }
@@ -1303,7 +1301,8 @@ export const BrainAI = {
     // STEP 5: PARTISI RANTAI KONTIGU BERIMBANG (MINIMUM-VARIANCE DP SWEEP)
     // =========================================================================
     // Fungsi DP untuk membagi urutan workstation kontigu menjadi K zona dengan beban paling seimbang
-    function partitionContiguousWorkstations(wsList, k, maxCap = 8) {
+    // Mengutamakan beban per slot <= maxCore agar meminimalisir kebutuhan bantuan Non-Core / LS
+    function partitionContiguousWorkstations(wsList, k, maxCap = 8, maxCore = 4) {
       const n = wsList.length;
       if (k <= 0 || n === 0) return [];
       if (k === 1) return [wsList];
@@ -1322,6 +1321,7 @@ export const BrainAI = {
           const seg = wsList.slice(idx);
           const w = seg.reduce((s, x) => s + x.weight, 0);
           let cost = Math.pow(w - idealAvg, 2);
+          if (w > maxCore) cost += (w - maxCore) * 20;
           if (w > maxCap) cost += Math.pow(w - maxCap, 3) * 100;
           const res = { cost, partitions: [seg] };
           memo.set(key, res);
@@ -1338,6 +1338,7 @@ export const BrainAI = {
           currentSegWeight += wsList[i].weight;
 
           let segCost = Math.pow(currentSegWeight - idealAvg, 2);
+          if (currentSegWeight > maxCore) segCost += (currentSegWeight - maxCore) * 20;
           if (currentSegWeight > maxCap) segCost += Math.pow(currentSegWeight - maxCap, 3) * 100;
 
           const sub = solve(i + 1, remK - 1);
@@ -1368,7 +1369,8 @@ export const BrainAI = {
       const quota = islandAllocations.get(isl.id) || 0;
       if (quota === 0) return;
 
-      const zones = partitionContiguousWorkstations(isl.workstations, quota, isl.maxCap);
+      const maxCore = isl.category === "GROUP_2" ? 5 : 4;
+      const zones = partitionContiguousWorkstations(isl.workstations, quota, isl.maxCap, maxCore);
 
       // Kumpulkan kandidat CQI READY untuk line ini
       let availableLineCqis = isl.readyCqis.filter(num => !usedCqiNums.has(num));

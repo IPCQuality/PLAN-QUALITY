@@ -172,7 +172,9 @@
                       value="0"
                       placeholder="0"
                       oninput="
-                        localStorage.setItem('ncls_count', this.value);
+                        let v = parseInt(this.value, 10);
+                        if (isNaN(v) || v < 0) v = 0;
+                        localStorage.setItem('ncls_count', v);
                         updateDashboardStats();
                       "
                     />
@@ -244,8 +246,8 @@
         <section class="card" id="planBoardSection" style="margin-bottom: 24px;">
           <div class="card-head">
             <div>
-              <h2>Papan Alokasi Interaktif (Drag &amp; Drop Re-assignment)</h2>
-              <p>Geser (drag &amp; drop) mesin atau manpower antar slot CQI untuk penyesuaian langsung secara visual.</p>
+              <h2>DASHBOARD INTERAKTIF</h2>
+              <p>Geser mesin atau manpower antar slot CQI untuk penyesuaian langsung secara visual.</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
               <span class="meta" id="boardMeta">Belum digenerate</span>
@@ -258,7 +260,7 @@
 
           <div id="interactivePlanBoard" class="plan-board-grid">
             <div class="empty-board-notice">
-              Klik "Generate Planning" atau "Lanjut" untuk menampilkan papan alokasi interaktif.
+              Klik "NEXT" untuk menampilkan Dashboard interaktif.
             </div>
           </div>
         </section>
@@ -282,9 +284,6 @@
             oninput="updateMeta()"
           ></textarea>
           <div class="actions">
-            <button class="btn btn-ok" id="btnValidateCopy" onclick="validateAndExport()">
-              Validasi dan Salin
-            </button>
             <button
               class="btn btn-wa"
               style="background: #16a34a; color: #ffffff; border-color: #16a34a"
@@ -2048,24 +2047,25 @@
             );
           }
 
-          let coreNames = manpowerData.core
-            .map((i) => (typeof i === "object" ? i.name : i))
-            .filter((n) => n && n.trim() !== "");
-          let nonCoreNames = manpowerData.nonCore
-            .map((i) => (typeof i === "object" ? i.name : i))
-            .filter((n) => n && n.trim() !== "");
-          let qcNames = manpowerData.qcPassed
+          let coreNames = (manpowerData.core || [])
+            .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
+            .map((n) => n.trim())
+            .filter((n) => n !== "");
+          let nonCoreNames = (manpowerData.nonCore || [])
+            .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
+            .map((n) => n.trim())
+            .filter((n) => n !== "");
+          let qcNames = (manpowerData.qcPassed || [])
             .map((i) => {
-              let n = typeof i === "object" ? i.name : i;
-              return String(n || "").replace(/^\d+[\.\)\-:]\s*/, "").trim();
+              let n = typeof i === "object" ? (i.name || "") : String(i || "");
+              return n.replace(/^\d+[\.\)\-:]\s*/, "").trim();
             })
-            .filter((n) => n && n !== "");
-          let lsCount =
-            parseInt(
-              document.getElementById("ncLongshiftCount")
-                ? document.getElementById("ncLongshiftCount").value
-                : 0,
-            ) || 0;
+            .filter((n) => n !== "");
+          let lsRaw = document.getElementById("ncLongshiftCount")
+            ? document.getElementById("ncLongshiftCount").value
+            : (localStorage.getItem("ncls_count") || "0");
+          let lsCount = parseInt(lsRaw, 10);
+          if (isNaN(lsCount) || lsCount < 0) lsCount = 0;
           let longshiftNames = Array.from({ length: lsCount }, () => "(LS)");
 
           const brainEngine = getBrain() || window.BrainAI;
@@ -2179,6 +2179,17 @@
           : "kosong";
       }
 
+      function joinMachineParts(parts) {
+        if (!parts || parts.length === 0) return "-";
+        const allWs = parts.every((p) =>
+          /^[0-9A-Za-z]+\s*\(\d+\)$/.test((p.text || "").trim()),
+        );
+        if (allWs) {
+          return parts.map((p) => (p.text || "").trim()).join(" + ");
+        }
+        return parts.map((p) => (p.text || "").trim()).join(", ");
+      }
+
       // FITUR: Download Data Planning dalam format JSON terstruktur & rapi
       function downloadPlanningJson() {
         try {
@@ -2219,34 +2230,93 @@
             ? document.getElementById("supportFgSelect").value.trim()
             : "";
 
-          // Format data slot perencanaan dengan rapi
+          // Format data slot perencanaan dengan rapi dan terbagi per personil
           const structuredPlanning = activeSlots.map((slot, idx) => {
             const cqiName = slot.cqi
               ? slot.cqi.name || slot.cqi.id
-              : `CQI-${idx + 1}`;
-            const coreNames = slot.coreNames || [];
-            const nonCoreNames = slot.nonCore || [];
-            const longshiftNames = slot.longshift || [];
-            const machines = (slot.machines || []).map(
-              (m) => m.name || m.id || m,
-            );
-            const machinesFormatted = BrainAI.formatMachineList(
-              slot.machines,
-              allRunning,
-            );
+              : `CQI ${idx + 1}`;
+            const coreNames = slot.coreNames || (slot.core ? [String(slot.core)] : []);
+            const ncList = slot.nonCore || [];
+            const lsList = slot.longshift || [];
+            const ncArr = ncList.concat(lsList);
+
+            const sortedMachines = [...(slot.machines || [])].sort((a, b) => {
+              const wsA = (BrainAI && BrainAI.getWorkstationKey) ? BrainAI.getWorkstationKey(a) : (a.workstation || "");
+              const wsB = (BrainAI && BrainAI.getWorkstationKey) ? BrainAI.getWorkstationKey(b) : (b.workstation || "");
+              if (wsA !== wsB) return wsA.localeCompare(wsB);
+              const nameA = a.name || a.id || "";
+              const nameB = b.name || b.id || "";
+              return nameA.localeCompare(nameB, undefined, { numeric: true });
+            });
+
+            const personnelAllocations = [];
+            if (ncArr.length === 0) {
+              const parts = BrainAI.getSlotMachineParts(slot.machines || [], allRunning);
+              const macSummary = joinMachineParts(parts);
+              personnelAllocations.push({
+                role: "Core",
+                name: coreNames.join(", ") || "-",
+                machines: (slot.machines || []).map((m) => m.name || m.id || m),
+                machines_summary: macSummary,
+              });
+            } else if (ncArr.length === 1) {
+              const isLs = ncList.length === 0;
+              let pName = typeof ncArr[0] === "object"
+                ? (ncArr[0].name || ncArr[0].id)
+                : String(ncArr[0]);
+              if (isLs || pName.toLowerCase().includes("ls") || pName.toLowerCase().includes("longshift")) {
+                pName = "(LS)";
+              }
+              const parts = BrainAI.getSlotMachineParts(slot.machines || [], allRunning);
+              const macSummary = joinMachineParts(parts);
+              personnelAllocations.push({
+                role: isLs ? "Longshift" : "Non-Core",
+                name: pName,
+                machines: (slot.machines || []).map((m) => m.name || m.id || m),
+                machines_summary: macSummary,
+              });
+            } else {
+              const numPeople = ncArr.length;
+              const totalMacs = sortedMachines.length;
+              const basePerPerson = Math.floor(totalMacs / numPeople);
+              let remainder = totalMacs % numPeople;
+              let currentStart = 0;
+
+              ncArr.forEach((ncItem, pIdx) => {
+                const count = basePerPerson + (remainder > 0 ? 1 : 0);
+                if (remainder > 0) remainder--;
+                const personMacs = sortedMachines.slice(currentStart, currentStart + count);
+                currentStart += count;
+
+                const isLs = pIdx >= ncList.length;
+                let personLabel = typeof ncItem === "object" ? (ncItem.name || ncItem.id) : String(ncItem);
+                if (isLs || personLabel.toLowerCase().includes("ls") || personLabel.toLowerCase().includes("longshift")) {
+                  personLabel = "(LS)";
+                }
+
+                const personParts = BrainAI.getSlotMachineParts(personMacs, allRunning);
+                const personMacSummary = joinMachineParts(personParts);
+
+                personnelAllocations.push({
+                  role: isLs ? "Longshift" : "Non-Core",
+                  name: personLabel,
+                  machines: personMacs.map((m) => m.name || m.id || m),
+                  machines_summary: personMacSummary,
+                });
+              });
+            }
 
             return {
               no: idx + 1,
               cqi: cqiName,
               cqi_line: slot.cqi ? slot.cqi.line || "-" : "-",
-              core: coreNames,
-              non_core: nonCoreNames,
-              longshift: longshiftNames,
-              total_manpower:
-                coreNames.length + nonCoreNames.length + longshiftNames.length,
-              total_machines: machines.length,
-              machines: machines,
-              machines_formatted: machinesFormatted,
+              core: coreNames.join(", ") || "-",
+              non_core: ncList,
+              longshift: lsList,
+              total_manpower: coreNames.length + ncList.length + lsList.length,
+              total_machines: (slot.machines || []).length,
+              personnel_allocations: personnelAllocations,
+              machines: (slot.machines || []).map((m) => m.name || m.id || m),
             };
           });
 
@@ -2263,9 +2333,9 @@
                 : 0,
               total_longshift:
                 parseInt(
-                  document.getElementById("lsInput")
-                    ? document.getElementById("lsInput").value
-                    : 0,
+                  document.getElementById("ncLongshiftCount")
+                    ? document.getElementById("ncLongshiftCount").value
+                    : (localStorage.getItem("ncls_count") || 0),
                   10,
                 ) || 0,
             },
@@ -2383,7 +2453,7 @@
 
         const copied = await copyTextToClipboard(textVal || document.getElementById("textOutput")?.value || "");
 
-        const btn = document.getElementById("btnValidateCopy");
+        const btn = document.getElementById("headerBtnValidate") || document.getElementById("btnValidateCopy");
         if (btn) {
           const originalText = btn.innerText;
           btn.innerText = "✓ Berhasil Disalin!";
@@ -2454,6 +2524,17 @@
         bottom: thin(c),
         right: thin(c),
       });
+      const applyRangeStyle = (ws, startRow, startCol, endRow, endCol, style) => {
+        for (let r = startRow; r <= endRow; r++) {
+          for (let c = startCol; c <= endCol; c++) {
+            const cell = ws.getCell(r, c);
+            if (style.font) cell.font = style.font;
+            if (style.fill) cell.fill = style.fill;
+            if (style.alignment) cell.alignment = style.alignment;
+            if (style.border) cell.border = style.border;
+          }
+        }
+      };
 
       async function exportExcel() {
         if (!currentPlan || currentPlan.length === 0)
@@ -2466,7 +2547,7 @@
 
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet("Planning Shift", {
-          views: [{ state: "frozen", xSplit: 0, ySplit: 4 }],
+          views: [{ state: "frozen", xSplit: 0, ySplit: 3 }],
           pageSetup: {
             orientation: "landscape",
             fitToPage: true,
@@ -2476,159 +2557,261 @@
         });
 
         ws.columns = [
-          { width: 6 },
-          { width: 15 },
-          { width: 28 },
-          { width: 28 },
-          { width: 65 },
+          { width: 6 },   // NO
+          { width: 12 },  // CQI
+          { width: 16 },  // CORE
+          { width: 22 },  // NON-CORE & LS
+          { width: 55 },  // MESIN
         ];
 
+        const lastCol = 5;
+
+        // Title Row 1: PLANNING LIQUID 3
+        const titleRow = ws.addRow(["PLANNING LIQUID 3"]);
+        ws.mergeCells(titleRow.number, 1, titleRow.number, lastCol);
+        titleRow.height = 28;
+        applyRangeStyle(ws, titleRow.number, 1, titleRow.number, lastCol, {
+          font: { name: "Calibri", size: 12, bold: true, color: { argb: "FFFFFFFF" } },
+          fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FF1D3557" } },
+          alignment: { vertical: "middle", horizontal: "center" },
+          border: boxBorder("FF1D3557")
+        });
+
+        // Subtitle Row 2: Stamp
+        const totalCQI = currentPlan.length;
+        const totalMesin = currentPlan.reduce((a, s) => a + (s.machines ? s.machines.length : 0), 0);
+        const dateObj = new Date();
+        const dateFormatted = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
+        const stampText = `Dibuat : ${dateFormatted}   |   Total CQI: ${totalCQI}   |   Total Mesin: ${totalMesin}`;
+
+        const stampRow = ws.addRow([stampText]);
+        ws.mergeCells(stampRow.number, 1, stampRow.number, lastCol);
+        stampRow.height = 20;
+        applyRangeStyle(ws, stampRow.number, 1, stampRow.number, lastCol, {
+          font: { name: "Calibri", size: 10, italic: true, color: { argb: "FF334155" } },
+          fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFFFFF" } },
+          alignment: { vertical: "middle", horizontal: "center" },
+          border: boxBorder("FFCBD5E1")
+        });
+
+        // Headers Row 3: NO, CQI, CORE, NON-CORE & LS, MESIN
         const headers = ["NO", "CQI", "CORE", "NON-CORE & LS", "MESIN"];
+        const headRow = ws.addRow(headers);
+        headRow.height = 24;
+        applyRangeStyle(ws, headRow.number, 1, headRow.number, lastCol, {
+          font: { name: "Calibri", size: 10, bold: true, color: { argb: "FFFFFFFF" } },
+          fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FF2563EB" } },
+          alignment: { vertical: "middle", horizontal: "center", wrapText: true },
+          border: boxBorder("FF000000")
+        });
+
+        // Data Rows
+        const sortedPlan = [...currentPlan].sort((a, b) => {
+          const cqiNum = (s) => (BrainAI && BrainAI.getCqiNumber) ? BrainAI.getCqiNumber(s) : parseInt((s.cqi?.name || s.cqi?.id || "").replace(/\D/g, "") || 0);
+          return cqiNum(a) - cqiNum(b);
+        });
+
         const allRunning = currentPlan.flatMap((s) => s.machines || []);
 
-        const rows = currentPlan.map((slot, i) => {
-          let combinedNc = [];
-          if (slot.nonCore && slot.nonCore.length > 0)
-            combinedNc.push(...slot.nonCore);
-          if (slot.longshift && slot.longshift.length > 0)
-            combinedNc.push(...slot.longshift);
+        sortedPlan.forEach((slot, i) => {
+          const cqiName = slot.cqi ? (slot.cqi.name || `CQI ${slot.cqi.id || i + 1}`) : `CQI ${i + 1}`;
+          
+          // Core
+          const coreStr = (slot.coreNames && slot.coreNames.length > 0)
+            ? slot.coreNames.join(", ")
+            : (slot.core ? String(slot.core) : "-");
 
-          let coreStr =
-            slot.coreNames && slot.coreNames.length > 0
-              ? slot.coreNames.join(", ")
-              : String(slot.core);
-          let ncAndLs = combinedNc.length > 0 ? combinedNc.join(", ") : "-";
-          let macList = BrainAI.formatMachineList(slot.machines, allRunning);
-          return [i + 1, slot.cqi.name, coreStr, ncAndLs, macList];
+          // Non-Core & LS personnel lines
+          const ncList = slot.nonCore || [];
+          const lsList = slot.longshift || [];
+          const ncArr = ncList.concat(lsList);
+
+          const sortedMachines = [...(slot.machines || [])].sort((a, b) => {
+            const wsA = (BrainAI && BrainAI.getWorkstationKey) ? BrainAI.getWorkstationKey(a) : (a.workstation || "");
+            const wsB = (BrainAI && BrainAI.getWorkstationKey) ? BrainAI.getWorkstationKey(b) : (b.workstation || "");
+            if (wsA !== wsB) return wsA.localeCompare(wsB);
+            const nameA = a.name || a.id || "";
+            const nameB = b.name || b.id || "";
+            return nameA.localeCompare(nameB, undefined, { numeric: true });
+          });
+
+          let subRows = [];
+          if (ncArr.length === 0) {
+            const parts = BrainAI.getSlotMachineParts(slot.machines || [], allRunning);
+            const macSummary = joinMachineParts(parts);
+            subRows.push({
+              person: "-",
+              mesin: macSummary
+            });
+          } else if (ncArr.length === 1) {
+            const isLs = ncList.length === 0;
+            let pName = typeof ncArr[0] === "object"
+              ? (ncArr[0].name || ncArr[0].id)
+              : String(ncArr[0]);
+            if (isLs || pName.toLowerCase().includes("ls") || pName.toLowerCase().includes("longshift")) {
+              pName = "(............)";
+            }
+            const parts = BrainAI.getSlotMachineParts(slot.machines || [], allRunning);
+            const macSummary = joinMachineParts(parts);
+            subRows.push({
+              person: pName,
+              mesin: macSummary
+            });
+          } else {
+            const numPeople = ncArr.length;
+            const totalMacs = sortedMachines.length;
+            const basePerPerson = Math.floor(totalMacs / numPeople);
+            let remainder = totalMacs % numPeople;
+            let currentStart = 0;
+
+            ncArr.forEach((ncItem, pIdx) => {
+              const count = basePerPerson + (remainder > 0 ? 1 : 0);
+              if (remainder > 0) remainder--;
+              const personMacs = sortedMachines.slice(currentStart, currentStart + count);
+              currentStart += count;
+
+              const isLs = pIdx >= ncList.length;
+              let personLabel = typeof ncItem === "object" ? (ncItem.name || ncItem.id) : String(ncItem);
+              if (isLs || personLabel.toLowerCase().includes("ls") || personLabel.toLowerCase().includes("longshift")) {
+                personLabel = "(............)";
+              }
+
+              const personParts = BrainAI.getSlotMachineParts(personMacs, allRunning);
+              const personMesinText = joinMachineParts(personParts);
+
+              subRows.push({
+                person: personLabel,
+                mesin: personMesinText
+              });
+            });
+          }
+
+          const startRow = ws.rowCount + 1;
+          subRows.forEach((sub, k) => {
+            const addedRow = ws.addRow([
+              k === 0 ? i + 1 : "",
+              k === 0 ? cqiName : "",
+              k === 0 ? coreStr : "",
+              sub.person,
+              sub.mesin
+            ]);
+            addedRow.height = 20;
+
+            addedRow.eachCell({ includeEmpty: true }, (c, col) => {
+              c.font = { name: "Calibri", size: 10, color: { argb: "FF000000" } };
+              c.border = boxBorder("FF000000");
+              if (col <= 4) {
+                c.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+              } else {
+                c.alignment = { vertical: "middle", horizontal: "left", wrapText: true };
+              }
+            });
+          });
+
+          const endRow = startRow + subRows.length - 1;
+          if (subRows.length > 1) {
+            ws.mergeCells(startRow, 1, endRow, 1);
+            ws.mergeCells(startRow, 2, endRow, 2);
+            ws.mergeCells(startRow, 3, endRow, 3);
+          }
         });
 
-        const lastCol = headers.length;
-        const title = ws.addRow(["PLANNING SHIFT — LIQUID 3"]);
-        ws.mergeCells(title.number, 1, title.number, lastCol);
-        title.height = 30;
-
-        const tCell = ws.getCell(title.number, 1);
-        tCell.font = {
-          name: "Inter",
-          size: 14,
-          bold: true,
-          color: { argb: XL.white },
-        };
-        tCell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: XL.accentDark },
-        };
-        tCell.alignment = { vertical: "middle", horizontal: "center" };
-
-        const stampText =
-          "Dibuat: " +
-          new Date().toLocaleString("id-ID") +
-          "   |   Total CQI: " +
-          currentPlan.length +
-          "   |   Total Mesin: " +
-          currentPlan.reduce((a, s) => a + s.machines.length, 0);
-        const stamp = ws.addRow([stampText]);
-        ws.mergeCells(stamp.number, 1, stamp.number, lastCol);
-        stamp.height = 20;
-
-        const sCell = ws.getCell(stamp.number, 1);
-        sCell.font = {
-          name: "Inter",
-          size: 10,
-          italic: true,
-          color: { argb: "FF475569" },
-        };
-        sCell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: XL.soft },
-        };
-        sCell.alignment = { vertical: "middle", horizontal: "center" };
-
+        // Empty row before small tables
         ws.addRow([]);
 
-        const headRow = ws.addRow(headers);
-        headRow.height = 26;
-        headRow.eachCell((c) => {
-          c.font = {
-            name: "Inter",
-            size: 11,
-            bold: true,
-            color: { argb: XL.white },
-          };
-          c.fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: { argb: XL.accent },
-          };
-          c.alignment = {
-            vertical: "middle",
-            horizontal: "center",
-            wrapText: true,
-          };
-          c.border = boxBorder(XL.accentDark);
-        });
-
-        rows.forEach((r, i) => {
-          const row = ws.addRow(r);
-          let maxLen = Math.max(
-            String(r[2]).length,
-            String(r[3]).length,
-            String(r[4]).length,
-          );
-          row.height = Math.max(22, Math.ceil(maxLen / 45) * 16);
-
-          row.eachCell({ includeEmpty: true }, (c, col) => {
-            c.font = { name: "Inter", size: 10, color: { argb: XL.text } };
-            c.alignment = {
-              vertical: "middle",
-              wrapText: true,
-              horizontal: col === 1 || col === 2 ? "center" : "left",
-            };
-            c.border = boxBorder();
-            if (i % 2 === 1)
-              c.fill = {
-                type: "pattern",
-                pattern: "solid",
-                fgColor: { argb: XL.zebra },
-              };
-          });
-        });
-
-        let qcNames =
-          typeof manpowerData !== "undefined"
-            ? manpowerData.qcPassed
-                .map((i) => (typeof i === "object" ? i.name : i))
-                .filter((n) => n && n.trim() !== "")
-            : [];
-        let qcPassed = "";
-        if (qcNames.length === 1) qcPassed = qcNames[0];
-        else if (qcNames.length > 1)
-          qcPassed = qcNames.map((n, i) => `${i + 1}. ${n}`).join("\n");
-
-        if (qcPassed) {
-          ws.addRow([]);
-          const qcRow = ws.addRow(["QC PASSED:"]);
-          qcRow.getCell(1).font = {
-            name: "Inter",
-            size: 11,
-            bold: true,
-            color: { argb: XL.text },
-          };
-
-          const qcContentRow = ws.addRow([qcPassed]);
-          ws.mergeCells(qcContentRow.number, 1, qcContentRow.number, lastCol);
-          qcContentRow.height = Math.max(22, qcPassed.split("\n").length * 16);
-          const qcCell = qcContentRow.getCell(1);
-          qcCell.font = { name: "Inter", size: 10, color: { argb: XL.text } };
-          qcCell.alignment = {
-            vertical: "top",
-            horizontal: "left",
-            wrapText: true,
-          };
-          qcCell.border = boxBorder();
+        // Small Tables on Left Side (Cols A & B)
+        // Table 1: QC PASSED
+        let qcList = [];
+        if (typeof manpowerData !== "undefined" && manpowerData.qcPassed) {
+          qcList = manpowerData.qcPassed
+            .map((i) => (typeof i === "object" ? i.name : i))
+            .filter((n) => n && n.trim() !== "");
         }
+
+        // Header QC PASSED
+        const qcHdRow = ws.addRow(["QC PASSED", ""]);
+        ws.mergeCells(qcHdRow.number, 1, qcHdRow.number, 2);
+        qcHdRow.height = 20;
+        applyRangeStyle(ws, qcHdRow.number, 1, qcHdRow.number, 2, {
+          font: { name: "Calibri", size: 10, bold: true, color: { argb: "FFFFFFFF" } },
+          fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FF2563EB" } },
+          alignment: { vertical: "middle", horizontal: "center" },
+          border: boxBorder("FF000000")
+        });
+
+        if (qcList.length === 0) {
+          const emptyQcRow = ws.addRow(["-", ""]);
+          ws.mergeCells(emptyQcRow.number, 1, emptyQcRow.number, 2);
+          emptyQcRow.height = 18;
+          applyRangeStyle(ws, emptyQcRow.number, 1, emptyQcRow.number, 2, {
+            font: { name: "Calibri", size: 10, color: { argb: "FF000000" } },
+            alignment: { vertical: "middle", horizontal: "center" },
+            border: boxBorder("FF000000")
+          });
+        } else {
+          qcList.forEach((qcName) => {
+            const qcDataRow = ws.addRow([qcName, ""]);
+            ws.mergeCells(qcDataRow.number, 1, qcDataRow.number, 2);
+            qcDataRow.height = 18;
+            applyRangeStyle(ws, qcDataRow.number, 1, qcDataRow.number, 2, {
+              font: { name: "Calibri", size: 10, color: { argb: "FF000000" } },
+              alignment: { vertical: "middle", horizontal: "center" },
+              border: boxBorder("FF000000")
+            });
+          });
+        }
+
+        // Table 2: MIL-STD
+        let milVal = "Yadi";
+        if (typeof manpowerData !== "undefined") {
+          const el = document.getElementById("milStdSelect");
+          milVal = (el ? el.value : localStorage.getItem("milStd_val") || "Yadi").trim() || "Yadi";
+        }
+
+        const milHdRow = ws.addRow(["MIL-STD", ""]);
+        ws.mergeCells(milHdRow.number, 1, milHdRow.number, 2);
+        milHdRow.height = 20;
+        applyRangeStyle(ws, milHdRow.number, 1, milHdRow.number, 2, {
+          font: { name: "Calibri", size: 10, bold: true, color: { argb: "FFFFFFFF" } },
+          fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FF2563EB" } },
+          alignment: { vertical: "middle", horizontal: "center" },
+          border: boxBorder("FF000000")
+        });
+
+        const milDataRow = ws.addRow([milVal, ""]);
+        ws.mergeCells(milDataRow.number, 1, milDataRow.number, 2);
+        milDataRow.height = 18;
+        applyRangeStyle(ws, milDataRow.number, 1, milDataRow.number, 2, {
+          font: { name: "Calibri", size: 10, color: { argb: "FF000000" } },
+          alignment: { vertical: "middle", horizontal: "center" },
+          border: boxBorder("FF000000")
+        });
+
+        // Table 3: SUPPORT FG
+        let supportVal = "Priyya";
+        if (typeof manpowerData !== "undefined") {
+          const el = document.getElementById("supportFgSelect");
+          supportVal = (el ? el.value : "Priyya").trim() || "Priyya";
+        }
+
+        const supHdRow = ws.addRow(["SUPPORT FG", ""]);
+        ws.mergeCells(supHdRow.number, 1, supHdRow.number, 2);
+        supHdRow.height = 20;
+        applyRangeStyle(ws, supHdRow.number, 1, supHdRow.number, 2, {
+          font: { name: "Calibri", size: 10, bold: true, color: { argb: "FFFFFFFF" } },
+          fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FF2563EB" } },
+          alignment: { vertical: "middle", horizontal: "center" },
+          border: boxBorder("FF000000")
+        });
+
+        const supDataRow = ws.addRow([supportVal, ""]);
+        ws.mergeCells(supDataRow.number, 1, supDataRow.number, 2);
+        supDataRow.height = 18;
+        applyRangeStyle(ws, supDataRow.number, 1, supDataRow.number, 2, {
+          font: { name: "Calibri", size: 10, color: { argb: "FF000000" } },
+          alignment: { vertical: "middle", horizontal: "center" },
+          border: boxBorder("FF000000")
+        });
 
         const buf = await wb.xlsx.writeBuffer();
         const a = document.createElement("a");
@@ -2828,12 +3011,16 @@
 
       function savePlanningCache() {
         if (!currentPlan) return;
+        const currentMachineIds = (state && state.machines ? state.machines : []).map((m) => m.id || m.name).sort().join(",");
+        const currentCqiIds = (state && state.cqis ? state.cqis : []).map((c) => c.id || c.name).sort().join(",");
         const payload = {
           currentPlan: currentPlan,
           slots: JSON.parse(JSON.stringify(currentPlan)),
           lastFinalConfig: lastFinalConfig,
           canNavigateSteps: canNavigateSteps,
           unassignedMachines: currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [],
+          machineIdsHash: currentMachineIds,
+          cqiIdsHash: currentCqiIds,
           timestamp: Date.now()
         };
         try {
@@ -2849,6 +3036,30 @@
           if (!raw) return false;
           const data = JSON.parse(raw);
           if (data && data.currentPlan && Array.isArray(data.currentPlan) && data.currentPlan.length > 0) {
+            const currentMachineIds = (state && state.machines ? state.machines : []).map((m) => m.id || m.name).sort().join(",");
+            const currentCqiIds = (state && state.cqis ? state.cqis : []).map((c) => c.id || c.name).sort().join(",");
+
+            if (data.machineIdsHash && data.machineIdsHash !== currentMachineIds) {
+              localStorage.removeItem("plan_maker_cache_full_v2");
+              sessionStorage.removeItem("active_planning");
+              localStorage.removeItem("last_active_planning");
+              return false;
+            }
+            if (data.cqiIdsHash && data.cqiIdsHash !== currentCqiIds) {
+              localStorage.removeItem("plan_maker_cache_full_v2");
+              sessionStorage.removeItem("active_planning");
+              localStorage.removeItem("last_active_planning");
+              return false;
+            }
+
+            const totalInPlan = (data.currentPlan || []).reduce((acc, s) => acc + (s.machines ? s.machines.length : 0), 0) + (data.unassignedMachines ? data.unassignedMachines.length : 0);
+            if (state && state.machines && state.machines.length > 0 && totalInPlan !== state.machines.length) {
+              localStorage.removeItem("plan_maker_cache_full_v2");
+              sessionStorage.removeItem("active_planning");
+              localStorage.removeItem("last_active_planning");
+              return false;
+            }
+
             currentPlan = data.currentPlan;
             lastFinalConfig = data.lastFinalConfig;
             canNavigateSteps = !!data.canNavigateSteps;
@@ -3447,8 +3658,7 @@
       }
 
       function goToStep(stepNum) {
-        if (!canNavigateSteps && stepNum > 1) {
-          alert("Silakan lengkapi konfigurasi manpower terlebih dahulu, lalu lanjutkan ke papan alokasi.");
+        if (stepNum > 1 && (!canNavigateSteps || !currentPlan || !Array.isArray(currentPlan) || currentPlan.length === 0)) {
           return;
         }
 

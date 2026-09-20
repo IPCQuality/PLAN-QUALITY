@@ -385,17 +385,16 @@
       ];
 
       function clearActivePlanning() {
-        if (activePlanning || sessionStorage.getItem("active_planning") || localStorage.getItem("last_active_planning")) {
-          activePlanning = null;
-          sessionStorage.removeItem("active_planning");
-          localStorage.removeItem("last_active_planning");
-          sessionStorage.removeItem("planning_state");
-          showHeatmap = false;
-          const btn = document.getElementById("menuHeatmapBtn");
-          if (btn) {
-            btn.innerText = "Heatmap";
-            btn.className = "btn";
-          }
+        activePlanning = null;
+        sessionStorage.removeItem("active_planning");
+        localStorage.removeItem("last_active_planning");
+        sessionStorage.removeItem("planning_state");
+        localStorage.removeItem("plan_maker_cache_full_v2");
+        showHeatmap = false;
+        const btn = document.getElementById("menuHeatmapBtn");
+        if (btn) {
+          btn.innerText = "Heatmap";
+          btn.className = "btn";
         }
       }
 
@@ -462,12 +461,9 @@
             saveInternalStorage();
           }
         } else {
-          mapData.machines.forEach(
-            (m) => (m.status = m.status === "RUNNING" ? "RUNNING" : "OFF"),
-          );
-          mapData.cqis.forEach(
-            (c) => (c.status = c.status === "READY" ? "READY" : "OFF"),
-          );
+          // Default awal untuk device baru: set mesin running ALL OFF dan cqi ready ALL OFF
+          mapData.machines.forEach((m) => (m.status = "OFF"));
+          mapData.cqis.forEach((c) => (c.status = "OFF"));
           saveInternalStorage();
         }
 
@@ -1142,99 +1138,82 @@
               return "";
             };
 
+            const isWwOrOt = (ws) => {
+              if (!ws) return false;
+              const u = String(ws).trim().toUpperCase();
+              return u === "WW" || u === "OT" || u.includes("WW") || u.includes("OT");
+            };
+
             const getLabelNodeForWs = (ws, nodeCoords) => {
-              if (!ws) return null;
-              const l = mapData.labels.find(x => String(x.name || "").toUpperCase() === ws.toUpperCase() || String(x.id || "").toUpperCase() === ("L-" + ws).toUpperCase());
-              if (l) return getNodeCoords(l);
+              if (!ws || isWwOrOt(ws)) return null;
+              const wsUpper = String(ws).trim().toUpperCase();
+              const l = mapData.labels.find(x => 
+                String(x.name || "").trim().toUpperCase() === wsUpper ||
+                String(x.id || "").trim().toUpperCase() === ("L-" + wsUpper) ||
+                String(x.id || "").trim().toUpperCase() === wsUpper
+              );
+              if (l) return l;
               if (mapData.labels.length > 0 && nodeCoords) {
                 let best = null, minDist = Infinity;
                 mapData.labels.forEach(lbl => {
                   const lc = getNodeCoords(lbl);
                   const d = Math.hypot(lc.row - nodeCoords.row, lc.col - nodeCoords.col);
-                  if (d < minDist) { minDist = d; best = lc; }
+                  if (d < minDist) { minDist = d; best = lbl; }
                 });
-                return best;
+                if (minDist < 15) return best;
               }
               return null;
             };
 
             const cqiCoords = getNodeCoords(tgt);
-            const remaining = [...rawMachines];
-            const ordered = [];
-            let current = cqiCoords;
-            let currentWs = getWs(tgt);
 
-            // Sequential traversal prioritizing same workstation machines before branching out
-            while (remaining.length > 0) {
-              let nearestIdx = 0;
-              let minDist = Infinity;
-              for (let i = 0; i < remaining.length; i++) {
-                const mc = remaining[i];
-                const mcCoords = getNodeCoords(mc);
-                const mcWs = getWs(mc);
-                const sameWsBonus = (mcWs && mcWs === currentWs) ? 0 : 1000;
-                const d = Math.hypot(mcCoords.row - current.row, mcCoords.col - current.col) + sameWsBonus;
-                if (d < minDist) {
-                  minDist = d;
-                  nearestIdx = i;
-                }
+            // Group machines by workstation
+            const wsGroups = {};
+            rawMachines.forEach(mc => {
+              const ws = getWs(mc) || "DEFAULT";
+              if (!wsGroups[ws]) wsGroups[ws] = [];
+              wsGroups[ws].push(mc);
+            });
+
+            // Sequence of nodes in 1 single path:
+            // [ (furthest machine -> ... -> nearest machine -> WS label if not WW/OT), ..., CQI ]
+            const seqNodes = [];
+
+            Object.keys(wsGroups).forEach(ws => {
+              const groupMcs = wsGroups[ws];
+              if (groupMcs.length === 0) return;
+
+              const labelNode = isWwOrOt(ws) ? null : getLabelNodeForWs(ws, getNodeCoords(groupMcs[0]));
+              const refPoint = labelNode ? getNodeCoords(labelNode) : cqiCoords;
+
+              // Sort machines furthest to nearest relative to refPoint
+              groupMcs.sort((a, b) => {
+                const ca = getNodeCoords(a);
+                const cb = getNodeCoords(b);
+                const da = Math.hypot(ca.row - refPoint.row, ca.col - refPoint.col);
+                const db = Math.hypot(cb.row - refPoint.row, cb.col - refPoint.col);
+                return db - da; // Descending: furthest first
+              });
+
+              seqNodes.push(...groupMcs);
+
+              if (labelNode) {
+                seqNodes.push(labelNode);
               }
-              const [nextMc] = remaining.splice(nearestIdx, 1);
-              ordered.push(nextMc);
-              current = getNodeCoords(nextMc);
-              currentWs = getWs(nextMc);
-            }
+            });
 
-            // Construct orthogonal path: when transitioning between different workstations, route via node labels
-            const seqNodes = [tgt, ...ordered];
-            const waypoints = [getNodeCoords(tgt)];
+            // Finally, add target CQI at end of single path
+            seqNodes.push(tgt);
+
+            // Construct orthogonal path with rounded corners
+            const waypoints = [getNodeCoords(seqNodes[0])];
 
             for (let i = 0; i < seqNodes.length - 1; i++) {
               const u = seqNodes[i];
               const v = seqNodes[i + 1];
               const p1 = getNodeCoords(u);
               const p2 = getNodeCoords(v);
-              const ws1 = getWs(u);
-              const ws2 = getWs(v);
 
-              if (ws1 && ws2 && ws1 !== ws2) {
-                // Crossing to another workstation: MANDATORY routing through node labels
-                const label1 = getLabelNodeForWs(ws1, p1);
-                const label2 = getLabelNodeForWs(ws2, p2);
-
-                if (label1 && label2) {
-                  // Step to label1 (down/up workstation aisle)
-                  if (p1.row !== label1.row || p1.col !== label1.col) {
-                    if (p1.col === label1.col) {
-                      waypoints.push(label1);
-                    } else {
-                      waypoints.push({ row: label1.row, col: p1.col });
-                      waypoints.push(label1);
-                    }
-                  }
-                  // Step from label1 to label2 along the label aisle / corridor
-                  if (label1.row !== label2.row || label1.col !== label2.col) {
-                    if (label1.row === label2.row || label1.col === label2.col) {
-                      waypoints.push(label2);
-                    } else {
-                      waypoints.push({ row: label1.row, col: label2.col });
-                      waypoints.push(label2);
-                    }
-                  }
-                  // Step from label2 to p2 inside target workstation
-                  if (label2.row !== p2.row || label2.col !== p2.col) {
-                    if (label2.col === p2.col) {
-                      waypoints.push(p2);
-                    } else {
-                      waypoints.push({ row: label2.row, col: p2.col });
-                      waypoints.push(p2);
-                    }
-                  }
-                  continue;
-                }
-              }
-
-              // Same workstation or direct connection
               if (p1.row === p2.row || p1.col === p2.col) {
                 waypoints.push(p2);
               } else {
@@ -1343,7 +1322,7 @@
             path.setAttribute("class", "heatmap-flow-line");
             svg.appendChild(path);
 
-            // Node marker at start (CQI)
+            // Node marker at start (furthest machine)
             let startCircle = document.createElementNS(svgNS, "circle");
             startCircle.setAttribute("cx", pixelPoints[0].x.toFixed(1));
             startCircle.setAttribute("cy", pixelPoints[0].y.toFixed(1));
@@ -1353,7 +1332,7 @@
             startCircle.setAttribute("stroke-width", "1.5");
             svg.appendChild(startCircle);
 
-            // Node marker at end (last machine)
+            // Node marker at end (target CQI)
             if (pixelPoints.length > 1) {
               const lastPt = pixelPoints[pixelPoints.length - 1];
               let endCircle = document.createElementNS(svgNS, "circle");
@@ -1690,6 +1669,21 @@
         }
 
         saveInternalStorage();
+
+        // Check whether current running machines match cached planning hash
+        const cachedRaw = localStorage.getItem("plan_maker_cache_full_v2");
+        if (cachedRaw) {
+          try {
+            const cached = JSON.parse(cachedRaw);
+            const currentHash = runM.map((m) => m.id || m.name).sort().join(",");
+            if (cached.machineIdsHash && cached.machineIdsHash !== currentHash) {
+              clearActivePlanning();
+            }
+          } catch (e) {
+            clearActivePlanning();
+          }
+        }
+
         sessionStorage.setItem(
           "planning_state",
           JSON.stringify({
