@@ -816,14 +816,13 @@
         p.classList.toggle("closed");
         const btn = document.getElementById("sidebarToggleBtn");
         if (btn) {
-          if (p.classList.contains("closed")) {
-            btn.style.background = "#ffffff";
-            btn.style.borderColor = "var(--border)";
-            btn.style.color = "var(--text-main)";
+          btn.style.background = "";
+          btn.style.borderColor = "";
+          btn.style.color = "";
+          if (!p.classList.contains("closed")) {
+            btn.classList.add("active");
           } else {
-            btn.style.background = "#eff6ff";
-            btn.style.borderColor = "#bfdbfe";
-            btn.style.color = "var(--cqi-ready)";
+            btn.classList.remove("active");
           }
         }
         setTimeout(() => applyZoom(false), 310);
