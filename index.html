@@ -19,6 +19,22 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/index.css" />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('mapliquid_theme') || localStorage.getItem('theme');
+          if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            saved = 'dark';
+          }
+          if (saved === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <script type="module" src="./src/theme.js"></script>
   </head>
   <body class="mode-landing">
     <header>
@@ -37,9 +53,21 @@
       </div>
       <div class="controls">
         <span id="offlineIndicator" style="display:none; font-size:11px; padding:4px 8px; background:#d97706; color:#fff; border-radius:4px; font-weight:700;">Offline</span>
-        <button id="settingsBtn" class="btn" onclick="handleSettingsClick()" title="Pengaturan dan Menu Map">
-          Setelan
-        </button>
+        <div class="header-action-group">
+          <button
+            id="themeToggleBtn"
+            class="btn btn-theme-toggle"
+            onclick="toggleAppTheme()"
+            title="Beralih ke Tema Gelap"
+            aria-label="Toggle Dark/Light Mode"
+          >
+            <span class="theme-icon" id="themeIcon">🌙</span>
+            <span class="theme-text" id="themeText">Gelap</span>
+          </button>
+          <button id="settingsBtn" class="btn" onclick="handleSettingsClick()" title="Pengaturan dan Menu Map">
+            Setelan
+          </button>
+        </div>
         <button
           id="menuHeatmapBtn"
           class="btn btn-danger control-landing"
@@ -158,6 +186,10 @@
       <div class="modal-card">
         <h3>Pengaturan Map</h3>
         <div class="menu-list">
+          <button class="btn" onclick="toggleAppTheme()" id="modalThemeToggleBtn" style="display:flex; align-items:center; justify-content:space-between;">
+            <span id="modalThemeText">Tema (Gelap / Terang)</span>
+            <span id="modalThemeIcon" style="font-size:16px;">🌙</span>
+          </button>
           <button class="btn" onclick="activateEditMode()">Edit Map</button>
           <button class="btn" onclick="openNodeModal('machine')">
             Tambah Mesin
@@ -194,6 +226,31 @@
             onclick="submitNodeModal()"
           >
             Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL PERINGATAN RESET PLANNING -->
+    <div class="modal-overlay" id="planResetWarningModal" style="z-index: 2500;">
+      <div class="modal-card" style="max-width: 420px; text-align: center; padding: 24px;">
+        <div style="width: 48px; height: 48px; margin: 0 auto 14px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #dc2626; display: flex; align-items: center; justify-content: center;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <h3 style="margin: 0 0 8px; font-size: 17px; font-weight: 700; color: var(--text-main);">Peringatan Reset Planning</h3>
+        <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.5; color: var(--text-muted);">
+          Hal ini dapat menyebabkan planing ter-reset.
+        </p>
+        <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center;">
+          <button type="button" class="btn" style="flex: 1; padding: 9px 16px;" onclick="closePlanResetWarningModal()">
+            Batal
+          </button>
+          <button type="button" class="btn btn-danger" style="flex: 1; padding: 9px 16px;" onclick="executePendingPlanReset()">
+            Lanjutkan
           </button>
         </div>
       </div>
@@ -384,6 +441,58 @@
         'M-0B-2', 'M-WW-1'
       ];
 
+      let pendingResetAction = null;
+
+      function hasActivePlanning() {
+        const activeSlots = getActivePlanningSlots();
+        if (activePlanning && activeSlots.length > 0) return true;
+        try {
+          const raw =
+            sessionStorage.getItem("active_planning") ||
+            localStorage.getItem("last_active_planning");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed) {
+              if (Array.isArray(parsed) && parsed.length > 0) return true;
+              if (Array.isArray(parsed.slots) && parsed.slots.length > 0) return true;
+              if (Array.isArray(parsed.currentPlan) && parsed.currentPlan.length > 0) return true;
+              if (Array.isArray(parsed.planning) && parsed.planning.length > 0) return true;
+            }
+          }
+        } catch (e) {}
+        return false;
+      }
+
+      function confirmPlanResetIfNeeded(actionCallback) {
+        if (!hasActivePlanning()) {
+          actionCallback();
+          return;
+        }
+        pendingResetAction = actionCallback;
+        const modal = document.getElementById("planResetWarningModal");
+        if (modal) {
+          modal.classList.add("active");
+        } else {
+          actionCallback();
+        }
+      }
+
+      function closePlanResetWarningModal() {
+        const modal = document.getElementById("planResetWarningModal");
+        if (modal) modal.classList.remove("active");
+        pendingResetAction = null;
+      }
+      window.closePlanResetWarningModal = closePlanResetWarningModal;
+
+      function executePendingPlanReset() {
+        const action = pendingResetAction;
+        closePlanResetWarningModal();
+        if (typeof action === "function") {
+          action();
+        }
+      }
+      window.executePendingPlanReset = executePendingPlanReset;
+
       function clearActivePlanning() {
         activePlanning = null;
         sessionStorage.removeItem("active_planning");
@@ -399,22 +508,24 @@
       }
 
       function applyShiftPlanning() {
-        clearActivePlanning();
-        const idSet = new Set(PLANNING_72_MACHINE_IDS);
-        mapData.machines.forEach((m) => {
-          m.status = idSet.has(m.id) ? "RUNNING" : "OFF";
+        confirmPlanResetIfNeeded(() => {
+          clearActivePlanning();
+          const idSet = new Set(PLANNING_72_MACHINE_IDS);
+          mapData.machines.forEach((m) => {
+            m.status = idSet.has(m.id) ? "RUNNING" : "OFF";
+          });
+          const readyCqiNames = [
+            "CQI 1", "CQI 2", "CQI 3", "CQI 4", "CQI 5", "CQI 6", "CQI 7", "CQI 8", "CQI 9", "CQI 10",
+            "CQI 11", "CQI 12", "CQI 13", "CQI 14", "CQI 15", "CQI 16", "CQI 17", "CQI 18",
+            "CQI 19", "CQI 20", "CQI 24"
+          ];
+          mapData.cqis.forEach((c) => {
+            c.status = readyCqiNames.includes(c.name) ? "READY" : "OFF";
+          });
+          renderGrid();
+          saveInternalStorage();
+          showToast("72 Mesin diatur RUNNING sesuai Planning Shift 2!", "success");
         });
-        const readyCqiNames = [
-          "CQI 1", "CQI 2", "CQI 3", "CQI 4", "CQI 5", "CQI 6", "CQI 7", "CQI 8", "CQI 9", "CQI 10",
-          "CQI 11", "CQI 12", "CQI 13", "CQI 14", "CQI 15", "CQI 16", "CQI 17", "CQI 18",
-          "CQI 19", "CQI 20", "CQI 24"
-        ];
-        mapData.cqis.forEach((c) => {
-          c.status = readyCqiNames.includes(c.name) ? "READY" : "OFF";
-        });
-        renderGrid();
-        saveInternalStorage();
-        showToast("72 Mesin diatur RUNNING sesuai Planning Shift 2!", "success");
       }
 
       function getActivePlanningSlots() {
@@ -643,40 +754,50 @@
       }
 
       function toggleWorkstation(wsKey) {
-        let macs = getMachinesByWs(wsKey);
-        if (macs.length === 0) return;
+        confirmPlanResetIfNeeded(() => {
+          let macs = getMachinesByWs(wsKey);
+          if (macs.length === 0) return;
 
-        let tgt = macs.every((m) => m.status === "RUNNING") ? "OFF" : "RUNNING";
-        macs.forEach((m) => (m.status = tgt));
-        clearActivePlanning();
-        renderGrid();
-        saveInternalStorage();
+          let tgt = macs.every((m) => m.status === "RUNNING") ? "OFF" : "RUNNING";
+          macs.forEach((m) => (m.status = tgt));
+          clearActivePlanning();
+          renderGrid();
+          saveInternalStorage();
+        });
       }
 
       // Fungsi Global Button yang Diperbaiki agar berfungsi & tersimpan
       function setAllMachinesRunning() {
-        mapData.machines.forEach((m) => (m.status = "RUNNING"));
-        clearActivePlanning();
-        renderGrid();
-        saveInternalStorage();
+        confirmPlanResetIfNeeded(() => {
+          mapData.machines.forEach((m) => (m.status = "RUNNING"));
+          clearActivePlanning();
+          renderGrid();
+          saveInternalStorage();
+        });
       }
       function setAllMachinesOff() {
-        mapData.machines.forEach((m) => (m.status = "OFF"));
-        clearActivePlanning();
-        renderGrid();
-        saveInternalStorage();
+        confirmPlanResetIfNeeded(() => {
+          mapData.machines.forEach((m) => (m.status = "OFF"));
+          clearActivePlanning();
+          renderGrid();
+          saveInternalStorage();
+        });
       }
       function setAllCqiReady() {
-        mapData.cqis.forEach((c) => (c.status = "READY"));
-        clearActivePlanning();
-        renderGrid();
-        saveInternalStorage();
+        confirmPlanResetIfNeeded(() => {
+          mapData.cqis.forEach((c) => (c.status = "READY"));
+          clearActivePlanning();
+          renderGrid();
+          saveInternalStorage();
+        });
       }
       function setAllCqiOff() {
-        mapData.cqis.forEach((c) => (c.status = "OFF"));
-        clearActivePlanning();
-        renderGrid();
-        saveInternalStorage();
+        confirmPlanResetIfNeeded(() => {
+          mapData.cqis.forEach((c) => (c.status = "OFF"));
+          clearActivePlanning();
+          renderGrid();
+          saveInternalStorage();
+        });
       }
 
       function saveInternalStorage() {
@@ -775,15 +896,17 @@
       }
 
       function cycleStatus(node, type) {
-        if (type === "machine") {
-          node.status = node.status === "RUNNING" ? "OFF" : "RUNNING";
-          clearActivePlanning();
-        } else if (type === "cqi") {
-          node.status = node.status === "READY" ? "OFF" : "READY";
-          clearActivePlanning();
-        }
-        renderGrid();
-        saveInternalStorage();
+        confirmPlanResetIfNeeded(() => {
+          if (type === "machine") {
+            node.status = node.status === "RUNNING" ? "OFF" : "RUNNING";
+            clearActivePlanning();
+          } else if (type === "cqi") {
+            node.status = node.status === "READY" ? "OFF" : "READY";
+            clearActivePlanning();
+          }
+          renderGrid();
+          saveInternalStorage();
+        });
       }
 
       function renderGrid() {

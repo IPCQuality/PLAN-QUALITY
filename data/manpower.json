@@ -39,19 +39,19 @@
     {
       "id": "C7",
       "name": "Dini",
-      "cqi_priority": "19",
+      "cqi_priority": "ot",
       "job_priority": ""
     },
     {
       "id": "C8",
       "name": "Mia",
-      "cqi_priority": "24",
+      "cqi_priority": "ww",
       "job_priority": ""
     },
     {
       "id": "C9",
       "name": "Jiddan",
-      "cqi_priority": "24",
+      "cqi_priority": "ww",
       "job_priority": ""
     },
     {
@@ -81,7 +81,7 @@
     {
       "id": "C14",
       "name": "Farhan",
-      "cqi_priority": "19",
+      "cqi_priority": "ot",
       "job_priority": ""
     }
   ],

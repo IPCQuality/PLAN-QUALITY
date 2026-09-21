@@ -256,6 +256,12 @@ export const rule = {
     const coreList = Array.isArray(config.coreData) && config.coreData.length > 0
       ? [...config.coreData]
       : (Array.isArray(config.coreNames) ? [...config.coreNames] : []);
+    const otList = Array.isArray(config.otData) && config.otData.length > 0
+      ? [...config.otData]
+      : (Array.isArray(config.otNames) ? [...config.otNames] : []);
+    const wwList = Array.isArray(config.wwData) && config.wwData.length > 0
+      ? [...config.wwData]
+      : (Array.isArray(config.wwNames) ? [...config.wwNames] : []);
     const nonCoreList = Array.isArray(config.nonCoreData) && config.nonCoreData.length > 0
       ? [...config.nonCoreData]
       : (Array.isArray(config.nonCoreNames) ? [...config.nonCoreNames] : []);
@@ -264,18 +270,32 @@ export const rule = {
 
     const assignedCoreNames = new Set();
 
-    // CQI 19 Prioritas C7 (Dini) / opsi C14 (Farhan)
+    // CQI 19 (OT) - Prioritas Manpower OT (misal Farhan / person di list ot), fallback ke Core dengan cqi_priority ot / 19 (Dini / Farhan / C7 / C14)
     const slot19 = activeSlots.find(s => this.getCqiNumber(s) === 19);
     if (slot19) {
-      const pC7 = coreList.find(c => {
-        const name = typeof c === "object" ? (c.name || c.id) : c;
-        return String(name).toUpperCase().includes("C7") || String(name).toUpperCase().includes("DINI");
-      });
-      const pC14 = coreList.find(c => {
-        const name = typeof c === "object" ? (c.name || c.id) : c;
-        return String(name).toUpperCase().includes("C14") || String(name).toUpperCase().includes("FARHAN");
-      });
-      const chosen19 = pC7 || pC14;
+      let chosen19 = null;
+      if (otList.length > 0) {
+        chosen19 = otList[0];
+      } else {
+        // Cari di coreList personil dengan cqi_priority ot atau 19
+        chosen19 = coreList.find(c => {
+          if (!c) return false;
+          const cqi = typeof c === "object" ? String(c.cqi_priority || "").trim().toLowerCase() : "";
+          return cqi === "ot" || cqi === "19";
+        });
+        if (!chosen19) {
+          const pC7 = coreList.find(c => {
+            const name = typeof c === "object" ? (c.name || c.id) : c;
+            return String(name).toUpperCase().includes("C7") || String(name).toUpperCase().includes("DINI");
+          });
+          const pC14 = coreList.find(c => {
+            const name = typeof c === "object" ? (c.name || c.id) : c;
+            return String(name).toUpperCase().includes("C14") || String(name).toUpperCase().includes("FARHAN");
+          });
+          chosen19 = pC7 || pC14;
+        }
+      }
+
       if (chosen19) {
         const name = typeof chosen19 === "object" ? (chosen19.name || chosen19.id) : chosen19;
         slot19.core = 1;
@@ -284,18 +304,32 @@ export const rule = {
       }
     }
 
-    // CQI 24 Prioritas C8 (Mia) / opsi C9 (Jiddan)
+    // CQI 24 (WW) - Prioritas Manpower WW (misal Jiddan / person di list ww), fallback ke Core dengan cqi_priority ww / 24 (Mia / Jiddan / C8 / C9)
     const slot24 = activeSlots.find(s => this.getCqiNumber(s) === 24);
     if (slot24) {
-      const pC8 = coreList.find(c => {
-        const name = typeof c === "object" ? (c.name || c.id) : c;
-        return String(name).toUpperCase().includes("C8") || String(name).toUpperCase().includes("MIA");
-      });
-      const pC9 = coreList.find(c => {
-        const name = typeof c === "object" ? (c.name || c.id) : c;
-        return String(name).toUpperCase().includes("C9") || String(name).toUpperCase().includes("JIDDAN");
-      });
-      const chosen24 = pC8 || pC9;
+      let chosen24 = null;
+      if (wwList.length > 0) {
+        chosen24 = wwList[0];
+      } else {
+        // Cari di coreList personil dengan cqi_priority ww atau 24
+        chosen24 = coreList.find(c => {
+          if (!c) return false;
+          const cqi = typeof c === "object" ? String(c.cqi_priority || "").trim().toLowerCase() : "";
+          return cqi === "ww" || cqi === "24";
+        });
+        if (!chosen24) {
+          const pC8 = coreList.find(c => {
+            const name = typeof c === "object" ? (c.name || c.id) : c;
+            return String(name).toUpperCase().includes("C8") || String(name).toUpperCase().includes("MIA");
+          });
+          const pC9 = coreList.find(c => {
+            const name = typeof c === "object" ? (c.name || c.id) : c;
+            return String(name).toUpperCase().includes("C9") || String(name).toUpperCase().includes("JIDDAN");
+          });
+          chosen24 = pC8 || pC9;
+        }
+      }
+
       if (chosen24) {
         const name = typeof chosen24 === "object" ? (chosen24.name || chosen24.id) : chosen24;
         slot24.core = 1;
@@ -310,7 +344,7 @@ export const rule = {
       if (s.coreNames && s.coreNames.length > 0) return;
       const availableCore = coreList.find(c => {
         const name = typeof c === "object" ? (c.name || c.id) : c;
-        return !assignedCoreNames.has(name);
+        return name && !assignedCoreNames.has(name);
       });
 
       if (availableCore) {
@@ -321,6 +355,24 @@ export const rule = {
       } else {
         s.core = 1;
         s.coreNames = ["Core " + this.getCqiNumber(s)];
+      }
+    });
+
+    // Distribute any remaining unassigned Core manpower to active slots so NO Core manpower is left unassigned
+    coreList.forEach(c => {
+      const name = typeof c === "object" ? (c.name || c.id) : c;
+      if (!name || assignedCoreNames.has(name)) return;
+
+      let targetSlot = sortedSlots.find(s => {
+        const cqi = this.getCqiNumber(s);
+        return cqi !== 19 && cqi !== 24 && (!s.coreNames || !s.coreNames.includes(name));
+      }) || sortedSlots.find(s => !s.coreNames || !s.coreNames.includes(name));
+
+      if (targetSlot) {
+        if (!targetSlot.coreNames) targetSlot.coreNames = [];
+        targetSlot.coreNames.push(name);
+        targetSlot.core = targetSlot.coreNames.length;
+        assignedCoreNames.add(name);
       }
     });
 
@@ -423,36 +475,57 @@ export const rule = {
     }
 
     // =========================================================================
-    // VALIDASI ATURAN: JUMLAH CQI SESUAI JUMLAH CORE AKTIF
+    // VALIDASI ATURAN: JUMLAH CQI SESUAI JUMLAH CORE + OT + WW AKTIF
     // =========================================================================
-    let targetCoreCount = null;
+    let coreCnt = 0;
+    let otCnt = 0;
+    let wwCnt = 0;
+
     if (typeof configOrCoreCount === "number" && configOrCoreCount > 0) {
-      targetCoreCount = configOrCoreCount;
+      coreCnt = configOrCoreCount;
     } else if (configOrCoreCount && typeof configOrCoreCount === "object") {
       if (Array.isArray(configOrCoreCount.coreNames) && configOrCoreCount.coreNames.length > 0) {
-        targetCoreCount = configOrCoreCount.coreNames.length;
+        coreCnt = configOrCoreCount.coreNames.filter(n => typeof n === "string" ? n.trim().length > 0 : !!n).length;
       } else if (Array.isArray(configOrCoreCount.coreData) && configOrCoreCount.coreData.length > 0) {
-        targetCoreCount = configOrCoreCount.coreData.length;
+        coreCnt = configOrCoreCount.coreData.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
       } else if (typeof configOrCoreCount.core === "number" && configOrCoreCount.core > 0) {
-        targetCoreCount = configOrCoreCount.core;
+        coreCnt = configOrCoreCount.core;
       } else if (typeof configOrCoreCount.total_core === "number" && configOrCoreCount.total_core > 0) {
-        targetCoreCount = configOrCoreCount.total_core;
+        coreCnt = configOrCoreCount.total_core;
+      }
+
+      if (Array.isArray(configOrCoreCount.otNames) && configOrCoreCount.otNames.length > 0) {
+        otCnt = configOrCoreCount.otNames.filter(n => typeof n === "string" ? n.trim().length > 0 : !!n).length;
+      } else if (Array.isArray(configOrCoreCount.otData) && configOrCoreCount.otData.length > 0) {
+        otCnt = configOrCoreCount.otData.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+      }
+
+      if (Array.isArray(configOrCoreCount.wwNames) && configOrCoreCount.wwNames.length > 0) {
+        wwCnt = configOrCoreCount.wwNames.filter(n => typeof n === "string" ? n.trim().length > 0 : !!n).length;
+      } else if (Array.isArray(configOrCoreCount.wwData) && configOrCoreCount.wwData.length > 0) {
+        wwCnt = configOrCoreCount.wwData.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
       }
     }
 
-    // Jika tidak di-pass lewat parameter config, cek konteks global manpowerData (jika di browser)
-    if (targetCoreCount === null) {
-      const globalMp = (typeof window !== "undefined" && window.manpowerData) || (typeof globalThis !== "undefined" && globalThis.manpowerData);
-      if (globalMp && Array.isArray(globalMp.core) && globalMp.core.length > 0) {
-        targetCoreCount = globalMp.core.length;
+    const globalMp = (typeof window !== "undefined" && window.manpowerData) || (typeof globalThis !== "undefined" && globalThis.manpowerData);
+    if (globalMp) {
+      if (coreCnt === 0 && Array.isArray(globalMp.core)) {
+        coreCnt = globalMp.core.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+      }
+      if (otCnt === 0 && Array.isArray(globalMp.ot)) {
+        otCnt = globalMp.ot.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+      }
+      if (wwCnt === 0 && Array.isArray(globalMp.ww)) {
+        wwCnt = globalMp.ww.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
       }
     }
 
+    const targetCoreCount = coreCnt + otCnt + wwCnt;
     const activeSlotsCount = slots.length;
 
-    if (targetCoreCount !== null && targetCoreCount > 0) {
+    if (targetCoreCount > 0) {
       if (activeSlotsCount !== targetCoreCount) {
-        violations.push(`Jumlah meja CQI aktif (${activeSlotsCount} CQI) belum sesuai dengan jumlah personil Core (${targetCoreCount} Core). Disarankan 1 meja CQI diawaki oleh 1 personil Core.`);
+        violations.push(`Jumlah meja CQI aktif (${activeSlotsCount} CQI) belum sesuai dengan jumlah total personil Core + OT + WW (${targetCoreCount} MP). Disarankan 1 meja CQI diawaki oleh 1 personil.`);
       }
     }
 
@@ -1010,18 +1083,50 @@ export const BrainAI = {
     };
 
     // =========================================================================
-    // ATURAN CQI vs CORE: JUMLAH CQI YANG DIGUNAKAN WAJIB SESUAI CORE AKTIF
+    // ATURAN CQI vs CORE + OT + WW: JUMLAH CQI WAJIB SESUAI TOTAL MANPOWER (CORE + OT + WW)
     // =========================================================================
     let targetCoreCount = 0;
+    let coreNum = 0;
+    let otNum = 0;
+    let wwNum = 0;
+
     if (Array.isArray(config.coreNames) && config.coreNames.length > 0) {
-      targetCoreCount = config.coreNames.length;
+      coreNum = config.coreNames.filter(n => typeof n === "string" ? n.trim().length > 0 : !!n).length;
     } else if (Array.isArray(config.coreData) && config.coreData.length > 0) {
-      targetCoreCount = config.coreData.length;
+      coreNum = config.coreData.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
     } else if (typeof config.core === "number" && config.core > 0) {
-      targetCoreCount = config.core;
+      coreNum = config.core;
     } else if (typeof config.total_core === "number" && config.total_core > 0) {
-      targetCoreCount = config.total_core;
-    } else if (readyCqis.length > 0) {
+      coreNum = config.total_core;
+    }
+
+    if (Array.isArray(config.otNames) && config.otNames.length > 0) {
+      otNum = config.otNames.filter(n => typeof n === "string" ? n.trim().length > 0 : !!n).length;
+    } else if (Array.isArray(config.otData) && config.otData.length > 0) {
+      otNum = config.otData.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+    }
+
+    if (Array.isArray(config.wwNames) && config.wwNames.length > 0) {
+      wwNum = config.wwNames.filter(n => typeof n === "string" ? n.trim().length > 0 : !!n).length;
+    } else if (Array.isArray(config.wwData) && config.wwData.length > 0) {
+      wwNum = config.wwData.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+    }
+
+    const globalMpForGen = (typeof window !== "undefined" && window.manpowerData) || (typeof globalThis !== "undefined" && globalThis.manpowerData);
+    if (globalMpForGen) {
+      if (coreNum === 0 && Array.isArray(globalMpForGen.core)) {
+        coreNum = globalMpForGen.core.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+      }
+      if (otNum === 0 && Array.isArray(globalMpForGen.ot)) {
+        otNum = globalMpForGen.ot.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+      }
+      if (wwNum === 0 && Array.isArray(globalMpForGen.ww)) {
+        wwNum = globalMpForGen.ww.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+      }
+    }
+
+    targetCoreCount = coreNum + otNum + wwNum;
+    if (targetCoreCount === 0 && readyCqis.length > 0) {
       targetCoreCount = readyCqis.length;
     }
 

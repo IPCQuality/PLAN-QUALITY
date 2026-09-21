@@ -19,6 +19,22 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/config.css" />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('mapliquid_theme') || localStorage.getItem('theme');
+          if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            saved = 'dark';
+          }
+          if (saved === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <script type="module" src="./src/theme.js"></script>
   </head>
   <body>
     <div class="toast-container" id="toastContainer"></div>
@@ -46,7 +62,7 @@
           <div class="popover-header">
             <div style="display:flex; align-items:center; gap:6px;">
               <span style="font-size:14px;">🔔</span>
-              <span style="font-weight:700; font-size:13px; color:#0f172a;">Pusat Peringatan &amp; Validasi</span>
+              <span style="font-weight:700; font-size:13px; color:var(--text-main);">Pusat Peringatan &amp; Validasi</span>
             </div>
             <button class="popover-close-btn" onclick="toggleAlertPopover(event)">&times;</button>
           </div>
@@ -57,6 +73,16 @@
       </div>
 
       <div class="topbar-action-right" id="topbarRight">
+        <button
+          id="themeToggleBtn"
+          class="btn btn-theme-toggle"
+          onclick="toggleAppTheme()"
+          title="Beralih ke Tema Gelap"
+          aria-label="Toggle Dark/Light Mode"
+        >
+          <span class="theme-icon" id="themeIcon">🌙</span>
+          <span class="theme-text" id="themeText">Gelap</span>
+        </button>
         <button class="btn btn-primary" id="headerBtnNext1" onclick="handleStep1Lanjut()">
           NEXT
         </button>
@@ -101,36 +127,65 @@
         </section>
 
         <div style="margin-top: 20px;">
-          <div class="cols-3-grid">
-            <!-- Kolom 1: Core -->
-            <div class="config-box">
-              <div class="box-header">
-                <h3>Core Manpower</h3>
-                <div class="rolling-group">
-                  <button
-                    class="icon-btn"
-                    onclick="sortListById('core')"
-                    title="Reset urutan sesuai nomor ID (C1, C2, C3...)"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-                  </button>
-                  <button class="icon-btn" onclick="shiftList('core', -1)" title="Geser ke atas">
-                    ▲
-                  </button>
-                  <button class="icon-btn" onclick="shiftList('core', 1)" title="Geser ke bawah">
-                    ▼
-                  </button>
+          <div class="cols-4-grid">
+            <!-- Kolom 1: Core Manpower -->
+            <div style="display: flex; flex-direction: column; gap: 14px">
+              <div class="config-box">
+                <div class="box-header">
+                  <h3>Core Manpower</h3>
+                  <div class="rolling-group">
+                    <button
+                      class="icon-btn"
+                      onclick="sortListById('core')"
+                      title="Reset urutan sesuai nomor ID (C1, C2, C3...)"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                    </button>
+                    <button class="icon-btn" onclick="shiftList('core', -1)" title="Geser ke atas">
+                      ▲
+                    </button>
+                    <button class="icon-btn" onclick="shiftList('core', 1)" title="Geser ke bawah">
+                      ▼
+                    </button>
+                  </div>
+                  <span class="count-badge" id="cnt-core">0</span>
                 </div>
-                <span class="count-badge" id="cnt-core">0</span>
+                <div class="list-container" id="coreListContainer"></div>
+                <button class="add-btn" onclick="addManpowerItem('core')">
+                  + Tambah Core
+                </button>
               </div>
-              <div class="list-container" id="coreListContainer"></div>
-              <button class="add-btn" onclick="addManpowerItem('core')">
-                Tambah Core
-              </button>
             </div>
 
-            <!-- Kolom 2: Non-Core & Longshift -->
-            <div style="display: flex; flex-direction: column; gap: 20px">
+            <!-- Kolom 2: Manpower Khusus (OT & WW) Terpisah dari Core -->
+            <div style="display: flex; flex-direction: column; gap: 14px">
+              <!-- Manpower OT (CQI 19) -->
+              <div class="config-box">
+                <div class="box-header">
+                  <h3>Manpower OT (CQI 19)</h3>
+                  <span class="count-badge" id="cnt-ot">0</span>
+                </div>
+                <div class="list-container" id="otListContainer"></div>
+                <button class="add-btn" id="btn-add-ot" onclick="addManpowerItem('ot')">
+                  + Tambah OT
+                </button>
+              </div>
+
+              <!-- Manpower WW (CQI 24) -->
+              <div class="config-box">
+                <div class="box-header">
+                  <h3>Manpower WW (CQI 24)</h3>
+                  <span class="count-badge" id="cnt-ww">0</span>
+                </div>
+                <div class="list-container" id="wwListContainer"></div>
+                <button class="add-btn" id="btn-add-ww" onclick="addManpowerItem('ww')">
+                  + Tambah WW
+                </button>
+              </div>
+            </div>
+
+            <!-- Kolom 3: Non-Core & Longshift -->
+            <div style="display: flex; flex-direction: column; gap: 14px">
               <div class="config-box">
                 <div class="box-header">
                   <h3>Non-Core Manpower</h3>
@@ -153,7 +208,7 @@
                 </div>
                 <div class="list-container" id="nonCoreListContainer"></div>
                 <button class="add-btn" onclick="addManpowerItem('nonCore')">
-                  Tambah Non-Core
+                  + Tambah Non-Core
                 </button>
               </div>
 
@@ -183,10 +238,10 @@
               </div>
             </div>
 
-            <!-- Kolom 3: QC & Tugas Khusus -->
+            <!-- Kolom 4: QC & Tugas Khusus -->
             <div class="config-box">
               <div class="box-header">
-                <h3>QC Passed & Lainnya</h3>
+                <h3>QC Passed &amp; Tugas Khusus</h3>
                 <div class="rolling-group">
                   <button
                     class="icon-btn"
@@ -209,7 +264,7 @@
                   <label>QC Passed</label>
                   <div class="list-container" id="qcPassedContainer"></div>
                   <button class="add-btn" id="addQcBtn" onclick="addQcItem()">
-                    Tambah QC Passed
+                    + Tambah QC Passed
                   </button>
                 </div>
                 <div class="field-group">
@@ -386,17 +441,16 @@
     <!-- Modal Tambah Manpower (Core / Non-Core) & Pulihkan Master Data -->
     <div id="addManpowerModal" class="modal-overlay">
       <div class="modal-card" style="max-width: 860px">
-        <div class="modal-header" style="background: #eff6ff">
+        <div class="modal-header">
           <div class="modal-title-box">
             <div>
               <h3
                 class="modal-title"
-                style="color: var(--accent)"
                 id="addManpowerModalTitle"
               >
                 Tambah Manpower
               </h3>
-              <p class="modal-subtitle" style="color: #475569">
+              <p class="modal-subtitle">
                 Isi detail manpower baru atau pulihkan dari data master
                 manpower.json
               </p>
@@ -414,7 +468,7 @@
           <div class="add-mp-grid">
             <!-- Kolom Kiri: Form Input -->
             <div class="add-mp-form-col">
-              <div style="display: flex; gap: 8px; margin-bottom: 14px">
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 14px">
                 <button
                   type="button"
                   id="mpTabCore"
@@ -469,7 +523,6 @@
                     style="
                       font-family: &quot;JetBrains Mono&quot;, monospace;
                       font-weight: 700;
-                      background: #f8fafc;
                     "
                   />
                 </div>
@@ -575,13 +628,37 @@
                   border-radius: var(--radius-sm);
                   margin-bottom: 10px;
                   outline: none;
-                  background: #ffffff;
                 "
               />
 
               <div class="unused-master-container" id="unusedMasterList"></div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL PERINGATAN RESET PLANNING -->
+    <div class="modal-overlay" id="planResetWarningModal" style="z-index: 2500;">
+      <div class="modal-card" style="max-width: 420px; text-align: center; padding: 24px;">
+        <div style="width: 48px; height: 48px; margin: 0 auto 14px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #dc2626; display: flex; align-items: center; justify-content: center;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <h3 style="margin: 0 0 8px; font-size: 17px; font-weight: 700; color: var(--text-main);">Peringatan Reset Planning</h3>
+        <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.5; color: var(--text-muted);">
+          Hal ini dapat menyebabkan planing ter-reset.
+        </p>
+        <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center;">
+          <button type="button" class="btn" style="flex: 1; padding: 9px 16px;" onclick="closePlanResetWarningModal()">
+            Batal
+          </button>
+          <button type="button" class="btn btn-danger" style="flex: 1; padding: 9px 16px;" onclick="executePendingPlanReset()">
+            Lanjutkan
+          </button>
         </div>
       </div>
     </div>
@@ -619,8 +696,8 @@
 
       let state = null;
       let currentPlan = [];
-      let manpowerData = { core: [], nonCore: [], qcPassed: [] };
-      let masterManpowerData = { core: [], nonCore: [] };
+      let manpowerData = { core: [], ot: [], ww: [], nonCore: [], qcPassed: [] };
+      let masterManpowerData = { core: [], ot: [], ww: [], nonCore: [] };
       var planningMode = "standard";
       window.planningMode = planningMode;
       let lastFinalConfig = null;
@@ -693,12 +770,16 @@
 
       async function loadManpowerData() {
         let savedCore = localStorage.getItem("manpower_core");
+        let savedOt = localStorage.getItem("manpower_ot");
+        let savedWw = localStorage.getItem("manpower_ww");
         let savedNonCore = localStorage.getItem("manpower_noncore");
         let savedQc = localStorage.getItem("manpower_qc");
 
-        if (savedCore || savedNonCore || savedQc) {
+        if (savedCore || savedOt || savedWw || savedNonCore || savedQc) {
           try {
             manpowerData.core = savedCore ? JSON.parse(savedCore) : [];
+            manpowerData.ot = savedOt ? JSON.parse(savedOt) : [];
+            manpowerData.ww = savedWw ? JSON.parse(savedWw) : [];
             manpowerData.nonCore = savedNonCore ? JSON.parse(savedNonCore) : [];
             manpowerData.qcPassed = savedQc ? JSON.parse(savedQc) : [];
           } catch (e) {}
@@ -725,6 +806,8 @@
 
           masterManpowerData = {
             core: data.core || [],
+            ot: data.ot || [],
+            ww: data.ww || [],
             nonCore: data.nonCore || data.noncore || [],
           };
           try {
@@ -736,6 +819,28 @@
 
           if (!savedCore || manpowerData.core.length === 0) {
             manpowerData.core = data.core || [];
+          } else if (Array.isArray(manpowerData.core)) {
+            // Sinkronisasi cqi_priority jika data core di localStorage belum ter-set
+            manpowerData.core.forEach((c) => {
+              if (c && typeof c === "object") {
+                const name = (c.name || "").toLowerCase();
+                const id = (c.id || "").toLowerCase();
+                if (!c.cqi_priority) {
+                  if (name.includes("dini") || name.includes("farhan") || id === "c7" || id === "c14") c.cqi_priority = "ot";
+                  else if (name.includes("mia") || name.includes("jiddan") || name.includes("jidan") || id === "c8" || id === "c9") c.cqi_priority = "ww";
+                }
+              }
+            });
+          }
+          if (!savedOt || manpowerData.ot.length === 0) {
+            manpowerData.ot = (data.ot && data.ot.length > 0) ? data.ot : [
+              { id: "C14", name: "Farhan", cqi_priority: "ot", job_priority: "ot" }
+            ];
+          }
+          if (!savedWw || manpowerData.ww.length === 0) {
+            manpowerData.ww = (data.ww && data.ww.length > 0) ? data.ww : [
+              { id: "C9", name: "Jiddan", cqi_priority: "ww", job_priority: "ww" }
+            ];
           }
 
           let rawNonCore = data.nonCore || data.noncore || [];
@@ -831,6 +936,14 @@
           JSON.stringify(manpowerData.core),
         );
         localStorage.setItem(
+          "manpower_ot",
+          JSON.stringify(manpowerData.ot),
+        );
+        localStorage.setItem(
+          "manpower_ww",
+          JSON.stringify(manpowerData.ww),
+        );
+        localStorage.setItem(
           "manpower_noncore",
           JSON.stringify(manpowerData.nonCore),
         );
@@ -840,17 +953,158 @@
         );
       }
 
+      function rotateCore(direction = 1) {
+        if (!manpowerData.core || manpowerData.core.length <= 1) return;
+        if (direction === 1) {
+          // Rotasi maju 1 posisi (personil atas bergeser ke bawah)
+          manpowerData.core.push(manpowerData.core.shift());
+        } else if (direction === -1) {
+          // Rotasi mundur 1 posisi
+          manpowerData.core.unshift(manpowerData.core.pop());
+        }
+        persistManpower();
+        renderAllLists();
+        updateActivePlanningManpower();
+      }
+      window.rotateCore = rotateCore;
+
       function renderAllLists() {
         renderList("coreListContainer", manpowerData.core, "core");
+        renderList("otListContainer", manpowerData.ot, "ot");
+        renderList("wwListContainer", manpowerData.ww, "ww");
         renderList("nonCoreListContainer", manpowerData.nonCore, "nonCore");
         renderQcList();
         renderMilStdOptions();
         renderSupportFgOptions();
+        updateOtWwButtonUI();
         updateDashboardStats();
       }
 
+      function updateOtWwButtonUI() {
+        const btnOt = document.getElementById("btn-add-ot");
+        if (btnOt) {
+          const hasOt = manpowerData.ot && manpowerData.ot.length > 0 && manpowerData.ot.some((item) => {
+            const name = typeof item === "object" ? item.name || "" : String(item || "");
+            return name.trim().length > 0;
+          });
+          if (hasOt) {
+            btnOt.innerText = "🔄 Rolling OT";
+            btnOt.title = "Rolling / tukar manpower OT";
+          } else {
+            btnOt.innerText = "+ Tambah OT";
+            btnOt.title = "Tambah manpower OT dari Core";
+          }
+        }
+
+        const btnWw = document.getElementById("btn-add-ww");
+        if (btnWw) {
+          const hasWw = manpowerData.ww && manpowerData.ww.length > 0 && manpowerData.ww.some((item) => {
+            const name = typeof item === "object" ? item.name || "" : String(item || "");
+            return name.trim().length > 0;
+          });
+          if (hasWw) {
+            btnWw.innerText = "🔄 Rolling WW";
+            btnWw.title = "Rolling / tukar manpower WW";
+          } else {
+            btnWw.innerText = "+ Tambah WW";
+            btnWw.title = "Tambah manpower WW dari Core";
+          }
+        }
+      }
+      window.updateOtWwButtonUI = updateOtWwButtonUI;
+
+      function returnMpToCore(mp) {
+        if (!mp) return;
+        const mpName = typeof mp === "object" ? (mp.name || "").trim() : String(mp || "").trim();
+        if (!mpName) return;
+        const mpId = typeof mp === "object" ? (mp.id || "").trim() : "";
+
+        if (!manpowerData.core) manpowerData.core = [];
+
+        // Check if already in core with valid name
+        const alreadyInCore = manpowerData.core.some((c) => {
+          if (!c) return false;
+          const cName = (typeof c === "object" ? c.name || "" : String(c || "")).trim().toLowerCase();
+          return cName === mpName.toLowerCase();
+        });
+        if (alreadyInCore) return;
+
+        // 1. Cari slot di Core dengan ID yang persis sama
+        let targetIdx = -1;
+        if (mpId) {
+          targetIdx = manpowerData.core.findIndex((c) => {
+            if (!c) return false;
+            const cId = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+            return cId === mpId.toLowerCase();
+          });
+        }
+
+        if (targetIdx !== -1) {
+          const slotItem = manpowerData.core[targetIdx];
+          const slotName = (typeof slotItem === "object" ? slotItem.name || "" : String(slotItem || "")).trim();
+          if (slotName && slotName.toLowerCase() !== mpName.toLowerCase()) {
+            // Tempatkan MP lain yang menduduki slot ID ini ke slot asalnya atau slot kosong
+            const displacedMp = slotItem;
+            const displacedId = typeof displacedMp === "object" ? displacedMp.id || "" : "";
+            if (displacedId) {
+              const origIdx = manpowerData.core.findIndex((c) => {
+                if (!c) return false;
+                const cId = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+                return cId === displacedId.toLowerCase();
+              });
+              if (origIdx !== -1 && origIdx !== targetIdx) {
+                const origSlotName = (typeof manpowerData.core[origIdx] === "object" ? manpowerData.core[origIdx].name || "" : "").trim();
+                if (!origSlotName) {
+                  manpowerData.core[origIdx].name = typeof displacedMp === "object" ? displacedMp.name : displacedMp;
+                  manpowerData.core[targetIdx].name = "";
+                }
+              }
+            }
+          }
+        }
+
+        // Jika slot ID masih terisi nama lain, cari slot kosong di Core
+        if (targetIdx !== -1) {
+          const currentSlotName = (typeof manpowerData.core[targetIdx] === "object" ? manpowerData.core[targetIdx].name || "" : "").trim();
+          if (currentSlotName && currentSlotName.toLowerCase() !== mpName.toLowerCase()) {
+            targetIdx = -1;
+          }
+        }
+
+        if (targetIdx === -1) {
+          targetIdx = manpowerData.core.findIndex((c) => {
+            if (!c) return true;
+            const cName = (typeof c === "object" ? c.name || "" : String(c || "")).trim();
+            return !cName;
+          });
+        }
+
+        if (targetIdx !== -1) {
+          const existing = manpowerData.core[targetIdx];
+          if (typeof existing === "object") {
+            existing.name = mpName;
+            if (mpId) existing.id = mpId;
+          } else {
+            manpowerData.core[targetIdx] = {
+              id: mpId || `C${targetIdx + 1}`,
+              name: mpName,
+              cqi_priority: typeof mp === "object" ? mp.cqi_priority || "" : "",
+              job_priority: typeof mp === "object" ? mp.job_priority || "" : "",
+            };
+          }
+        } else {
+          manpowerData.core.push(
+            typeof mp === "object"
+              ? mp
+              : { id: mpId || getNextDynamicId("core"), name: mpName, cqi_priority: "", job_priority: "" }
+          );
+        }
+      }
+      window.returnMpToCore = returnMpToCore;
+
       function renderList(containerId, listArray, type) {
         const container = document.getElementById(containerId);
+        if (!container) return;
         container.innerHTML = "";
         listArray.forEach((item, index) => {
           const row = document.createElement("div");
@@ -862,23 +1116,30 @@
           input.type = "text";
           input.value = typeof item === "object" ? item.name || "" : item;
           input.placeholder = "Nama manpower...";
-          input.oninput = (e) => {
-            if (typeof listArray[index] === "object") {
-              listArray[index].name = e.target.value;
-            } else {
-              listArray[index] = {
-                id: getNextDynamicId(type),
-                name: e.target.value,
-                cqi_priority: "",
-                job_priority: "",
-              };
-            }
-            persistManpower();
-            updateDashboardStats();
-            renderMilStdOptions();
-            renderSupportFgOptions();
-            renderQcList();
-          };
+
+          if (type === "core" || type === "ot" || type === "ww") {
+            input.readOnly = true;
+            input.style.cursor = "default";
+            input.style.userSelect = "none";
+          } else {
+            input.oninput = (e) => {
+              if (typeof listArray[index] === "object") {
+                listArray[index].name = e.target.value;
+              } else {
+                listArray[index] = {
+                  id: getNextDynamicId(type),
+                  name: e.target.value,
+                  cqi_priority: type === "ot" ? "ot" : type === "ww" ? "ww" : "",
+                  job_priority: type === "ot" ? "ot" : type === "ww" ? "ww" : "",
+                };
+              }
+              persistManpower();
+              updateDashboardStats();
+              renderMilStdOptions();
+              renderSupportFgOptions();
+              renderQcList();
+            };
+          }
 
           const rightGroup = document.createElement("div");
           rightGroup.style.display = "flex";
@@ -887,7 +1148,8 @@
 
           if (typeof item === "object" && item.id) {
             const idBadge = document.createElement("span");
-            idBadge.className = `mp-id-badge ${type === "core" ? "core" : "noncore"}`;
+            const badgeClass = type === "core" ? "core" : type === "ot" ? "ot" : type === "ww" ? "ww" : "noncore";
+            idBadge.className = `mp-id-badge ${badgeClass}`;
             idBadge.style.fontSize = "10px";
             idBadge.style.padding = "1px 5px";
             idBadge.title = `ID: ${item.id}${item.cqi_priority ? " | CQI: " + item.cqi_priority : ""}${item.job_priority ? " | Job: " + item.job_priority : ""}`;
@@ -898,10 +1160,15 @@
           const delBtn = document.createElement("button");
           delBtn.className = "icon-btn del";
           delBtn.innerHTML = "Hapus";
-          delBtn.title =
-            "Hapus dari konfigurasi (ID tetap tersimpan di master data)";
+          delBtn.title = (type === "ot" || type === "ww")
+            ? "Kembalikan manpower ini ke kolom Core"
+            : "Hapus dari konfigurasi (ID tetap tersimpan di master data)";
           delBtn.onclick = () => {
-            listArray.splice(index, 1);
+            const removed = listArray.splice(index, 1)[0];
+            if (type === "ot" || type === "ww") {
+              returnMpToCore(removed);
+              updateActivePlanningManpower();
+            }
             persistManpower();
             renderAllLists();
           };
@@ -915,9 +1182,13 @@
         let badgeId =
           type === "core"
             ? "cnt-core"
-            : type === "nonCore"
-              ? "cnt-noncore"
-              : null;
+            : type === "ot"
+              ? "cnt-ot"
+              : type === "ww"
+                ? "cnt-ww"
+                : type === "nonCore"
+                  ? "cnt-noncore"
+                  : null;
         if (badgeId && document.getElementById(badgeId))
           document.getElementById(badgeId).innerText = listArray.length;
       }
@@ -1353,12 +1624,16 @@
       }
 
       function addManpowerItem(type) {
-        openAddManpowerModal(type);
+        if (type === "ot" || type === "ww") {
+          swapManpowerSameCqiPriority(type);
+          return;
+        }
+        openAddManpowerModal(type === "nonCore" ? "nonCore" : "core");
       }
 
       function openAddManpowerModal(type = "core") {
-        currentAddType = type;
-        switchAddManpowerType(type);
+        currentAddType = type === "nonCore" ? "nonCore" : "core";
+        switchAddManpowerType(currentAddType);
         document.getElementById("addManpowerModal").classList.add("active");
         setTimeout(() => {
           const nameInput = document.getElementById("mpInputName");
@@ -1371,22 +1646,21 @@
       }
 
       function switchAddManpowerType(type) {
-        currentAddType = type;
+        currentAddType = type === "nonCore" ? "nonCore" : "core";
         const tabCore = document.getElementById("mpTabCore");
         const tabNonCore = document.getElementById("mpTabNonCore");
-        if (tabCore) tabCore.classList.toggle("active", type === "core");
-        if (tabNonCore)
-          tabNonCore.classList.toggle("active", type === "nonCore");
+        if (tabCore) tabCore.classList.toggle("active", currentAddType === "core");
+        if (tabNonCore) tabNonCore.classList.toggle("active", currentAddType === "nonCore");
 
         const titleEl = document.getElementById("addManpowerModalTitle");
         if (titleEl) {
           titleEl.innerText =
-            type === "core"
+            currentAddType === "core"
               ? "Tambah Core Manpower"
               : "Tambah Non-Core Manpower";
         }
 
-        const nextId = getNextDynamicId(type);
+        const nextId = getNextDynamicId(currentAddType);
         document.getElementById("mpInputId").value = nextId;
         document.getElementById("mpInputName").value = "";
         document.getElementById("mpInputCqiPriority").value = "";
@@ -1398,14 +1672,275 @@
         renderUnusedMasterList();
       }
 
+      function swapManpowerSameCqiPriority(type) {
+        const targetKey = type === "ot" ? "ot" : "ww";
+        if (!manpowerData.core) manpowerData.core = [];
+
+        const defaultCqi = type === "ot" ? "ot" : "ww";
+        const defaultJob = type === "ot" ? "ot" : "ww";
+
+        if (!manpowerData[targetKey]) manpowerData[targetKey] = [];
+
+        const currentSpecialPerson = manpowerData[targetKey][0];
+        const currentName = (typeof currentSpecialPerson === "object" ? currentSpecialPerson.name || "" : currentSpecialPerson || "").trim().toLowerCase();
+        const isOccupied = currentName.length > 0;
+
+        let targetCoreIdx = -1;
+
+        if (type === "ot") {
+          // Prioritas OT: Farhan (C14) -> jika tidak ada / absen / sedang di OT -> Dini (C7)
+          const wantFarhanFirst = (!currentName || currentName.includes("dini"));
+
+          if (wantFarhanFirst) {
+            targetCoreIdx = manpowerData.core.findIndex((c) => {
+              if (!c) return false;
+              const name = (typeof c === "object" ? c.name || "" : c || "").trim().toLowerCase();
+              const id = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+              return id === "c14" || name.includes("farhan");
+            });
+            if (targetCoreIdx === -1) {
+              targetCoreIdx = manpowerData.core.findIndex((c) => {
+                if (!c) return false;
+                const name = (typeof c === "object" ? c.name || "" : c || "").trim().toLowerCase();
+                const id = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+                return id === "c7" || name.includes("dini");
+              });
+            }
+          } else {
+            targetCoreIdx = manpowerData.core.findIndex((c) => {
+              if (!c) return false;
+              const name = (typeof c === "object" ? c.name || "" : c || "").trim().toLowerCase();
+              const id = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+              return id === "c7" || name.includes("dini");
+            });
+            if (targetCoreIdx === -1) {
+              targetCoreIdx = manpowerData.core.findIndex((c) => {
+                if (!c) return false;
+                const name = (typeof c === "object" ? c.name || "" : c || "").trim().toLowerCase();
+                const id = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+                return id === "c14" || name.includes("farhan");
+              });
+            }
+          }
+
+          if (targetCoreIdx === -1) {
+            targetCoreIdx = manpowerData.core.findIndex((c) => {
+              if (!c) return false;
+              const cqi = typeof c === "object" ? String(c.cqi_priority || "").trim().toLowerCase() : "";
+              return cqi === "ot" || cqi === "19";
+            });
+          }
+        } else if (type === "ww") {
+          // Prioritas WW: Jiddan (C9) -> jika tidak ada / absen / sedang di WW -> Mia (C8)
+          const wantJiddanFirst = (!currentName || currentName.includes("mia"));
+
+          if (wantJiddanFirst) {
+            targetCoreIdx = manpowerData.core.findIndex((c) => {
+              if (!c) return false;
+              const name = (typeof c === "object" ? c.name || "" : c || "").trim().toLowerCase();
+              const id = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+              return id === "c9" || name.includes("jiddan") || name.includes("jidan");
+            });
+            if (targetCoreIdx === -1) {
+              targetCoreIdx = manpowerData.core.findIndex((c) => {
+                if (!c) return false;
+                const name = (typeof c === "object" ? c.name || "" : c || "").trim().toLowerCase();
+                const id = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+                return id === "c8" || name.includes("mia");
+              });
+            }
+          } else {
+            targetCoreIdx = manpowerData.core.findIndex((c) => {
+              if (!c) return false;
+              const name = (typeof c === "object" ? c.name || "" : c || "").trim().toLowerCase();
+              const id = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+              return id === "c8" || name.includes("mia");
+            });
+            if (targetCoreIdx === -1) {
+              targetCoreIdx = manpowerData.core.findIndex((c) => {
+                if (!c) return false;
+                const name = (typeof c === "object" ? c.name || "" : c || "").trim().toLowerCase();
+                const id = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
+                return id === "c9" || name.includes("jiddan") || name.includes("jidan");
+              });
+            }
+          }
+
+          if (targetCoreIdx === -1) {
+            targetCoreIdx = manpowerData.core.findIndex((c) => {
+              if (!c) return false;
+              const cqi = typeof c === "object" ? String(c.cqi_priority || "").trim().toLowerCase() : "";
+              return cqi === "ww" || cqi === "24";
+            });
+          }
+        }
+
+        if (targetCoreIdx === -1 && manpowerData.core.length > 0) {
+          targetCoreIdx = 0;
+        }
+
+        if (targetCoreIdx === -1 || targetCoreIdx >= manpowerData.core.length) {
+          return;
+        }
+
+        if (!isOccupied) {
+          // MP OT/WW kosong: Pindahkan personil dari Core ke OT/WW tanpa meninggalkan nama/slot kosong di Core
+          const [movedPerson] = manpowerData.core.splice(targetCoreIdx, 1);
+          const movedObj = typeof movedPerson === "object" ? movedPerson : { id: type === "ot" ? "C14" : "C9", name: String(movedPerson || "") };
+          manpowerData[targetKey] = [{
+            ...movedObj,
+            cqi_priority: defaultCqi,
+            job_priority: defaultJob,
+          }];
+        } else {
+          // MP OT/WW terisi (Rolling): Tukar personil Core dan OT/WW
+          const corePerson = manpowerData.core[targetCoreIdx];
+          const specialPerson = manpowerData[targetKey][0];
+
+          const coreObj = typeof corePerson === "object" ? corePerson : { id: `C${targetCoreIdx + 1}`, name: corePerson, cqi_priority: defaultCqi, job_priority: "" };
+          const specObj = specialPerson && typeof specialPerson === "object" ? specialPerson : { id: type === "ot" ? "C14" : "C9", name: specialPerson || "", cqi_priority: defaultCqi, job_priority: defaultJob };
+
+          manpowerData.core[targetCoreIdx] = {
+            ...coreObj,
+            id: specObj.id || coreObj.id,
+            name: specObj.name || "",
+            cqi_priority: specObj.cqi_priority || defaultCqi,
+            job_priority: specObj.job_priority || "",
+          };
+
+          manpowerData[targetKey][0] = {
+            ...specObj,
+            id: coreObj.id || specObj.id,
+            name: coreObj.name || "",
+            cqi_priority: coreObj.cqi_priority || defaultCqi,
+            job_priority: coreObj.job_priority || defaultJob,
+          };
+        }
+
+        // Batasi maksimal 1 MP di kolom OT / WW
+        manpowerData[targetKey] = manpowerData[targetKey].slice(0, 1);
+
+        // Bersihkan jika ada item kosong yang tersisa di Core
+        manpowerData.core = manpowerData.core.filter((c) => {
+          if (!c) return false;
+          const name = typeof c === "object" ? c.name || "" : String(c || "");
+          return name.trim().length > 0;
+        });
+
+        // "saat klik tombol rolling OT&WW maka tombol reset urutan di kolom core otomatis aktif"
+        if (typeof sortListById === "function") {
+          sortListById("core");
+        }
+
+        persistManpower();
+        renderAllLists();
+        updateDashboardStats();
+        updateActivePlanningManpower();
+      }
+      window.swapManpowerSameCqiPriority = swapManpowerSameCqiPriority;
+
+      function updateActivePlanningManpower() {
+        let activeSlots = currentPlan;
+        let cacheRaw = localStorage.getItem("plan_maker_cache_full_v2") || localStorage.getItem("last_active_planning") || sessionStorage.getItem("active_planning");
+        let cachePayload = null;
+
+        if (cacheRaw) {
+          try {
+            cachePayload = JSON.parse(cacheRaw);
+          } catch (e) {}
+        }
+
+        if ((!activeSlots || activeSlots.length === 0) && cachePayload) {
+          activeSlots = cachePayload.currentPlan || cachePayload.slots;
+        }
+
+        if (!activeSlots || !Array.isArray(activeSlots) || activeSlots.length === 0) {
+          return;
+        }
+
+        let coreNames = (manpowerData.core || [])
+          .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
+          .map((n) => n.trim())
+          .filter((n) => n !== "");
+        let otNames = (manpowerData.ot || [])
+          .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
+          .map((n) => n.trim())
+          .filter((n) => n !== "");
+        let wwNames = (manpowerData.ww || [])
+          .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
+          .map((n) => n.trim())
+          .filter((n) => n !== "");
+        let nonCoreNames = (manpowerData.nonCore || [])
+          .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
+          .map((n) => n.trim())
+          .filter((n) => n !== "");
+
+        const config = {
+          coreData: manpowerData.core,
+          coreNames: coreNames,
+          otData: manpowerData.ot,
+          otNames: otNames,
+          wwData: manpowerData.ww,
+          wwNames: wwNames,
+          nonCoreData: manpowerData.nonCore,
+          nonCoreNames: nonCoreNames,
+          longshift: parseInt(localStorage.getItem("ncls_count") || "0", 10) || 0,
+          milStd: (document.getElementById("milStdSelect") ? document.getElementById("milStdSelect").value : localStorage.getItem("milStd_val") || "").trim(),
+          supportFg: (document.getElementById("supportFgSelect") ? document.getElementById("supportFgSelect").value : "").trim(),
+        };
+
+        // Reset personil pada slot TANPA mengubah slot.machines
+        activeSlots.forEach((s) => {
+          s.coreNames = [];
+          s.core = 0;
+          s.nonCore = [];
+          s.longshift = [];
+        });
+
+        const brain = getBrain() || window.BrainAI;
+        if (brain && typeof brain.assignManpower === "function") {
+          brain.assignManpower(activeSlots, config);
+        }
+
+        currentPlan = activeSlots;
+
+        const planPayload = {
+          version: 1,
+          updatedAt: new Date().toISOString(),
+          mode: "standard",
+          slots: JSON.parse(JSON.stringify(currentPlan)),
+          uncoveredMachines: currentPlan.unassignedMachines || currentPlan.uncoveredMachines || [],
+        };
+
+        try {
+          sessionStorage.setItem("active_planning", JSON.stringify(planPayload));
+          localStorage.setItem("last_active_planning", JSON.stringify(planPayload));
+          if (cachePayload) {
+            cachePayload.currentPlan = currentPlan;
+            cachePayload.slots = JSON.parse(JSON.stringify(currentPlan));
+            cachePayload.timestamp = Date.now();
+            localStorage.setItem("plan_maker_cache_full_v2", JSON.stringify(cachePayload));
+          }
+        } catch (e) {}
+
+        if (typeof generateTextOutput === "function" && (lastFinalConfig || config)) {
+          generateTextOutput(lastFinalConfig || config);
+        }
+        if (typeof renderInteractiveBoard === "function") {
+          renderInteractiveBoard();
+        }
+      }
+      window.updateActivePlanningManpower = updateActivePlanningManpower;
+
       function getNextDynamicId(type) {
-        const prefix = type === "core" ? "C" : "NC";
-        const masterList =
-          (masterManpowerData &&
-            masterManpowerData[type === "core" ? "core" : "nonCore"]) ||
-          [];
-        const currentList =
-          manpowerData[type === "core" ? "core" : "nonCore"] || [];
+        let prefix = "C";
+        if (type === "ot") prefix = "OT";
+        else if (type === "ww") prefix = "WW";
+        else if (type === "nonCore") prefix = "NC";
+
+        const listKey = type === "nonCore" ? "nonCore" : type;
+        const masterList = (masterManpowerData && masterManpowerData[listKey]) || [];
+        const currentList = manpowerData[listKey] || [];
         const qcList = manpowerData.qcPassed || [];
         const allItems = [...masterList, ...currentList, ...qcList];
 
@@ -1428,12 +1963,16 @@
       }
 
       function getUnusedMasterManpower(type) {
-        const masterList =
-          (masterManpowerData &&
-            masterManpowerData[type === "core" ? "core" : "nonCore"]) ||
-          [];
+        const listKey = type === "nonCore" ? "nonCore" : "core";
+        const masterList = (masterManpowerData && masterManpowerData[listKey]) || [];
 
         const activeCore = (manpowerData.core || []).map((i) =>
+          (typeof i === "object" ? i.name : i).trim().toLowerCase(),
+        );
+        const activeOt = (manpowerData.ot || []).map((i) =>
+          (typeof i === "object" ? i.name : i).trim().toLowerCase(),
+        );
+        const activeWw = (manpowerData.ww || []).map((i) =>
           (typeof i === "object" ? i.name : i).trim().toLowerCase(),
         );
         const activeNonCore = (manpowerData.nonCore || []).map((i) =>
@@ -1460,6 +1999,8 @@
         const allActiveNames = new Set(
           [
             ...activeCore,
+            ...activeOt,
+            ...activeWw,
             ...activeNonCore,
             ...activeQc,
             milstd,
@@ -1504,7 +2045,7 @@
           const card = document.createElement("div");
           card.className = "unused-master-card";
 
-          const isCore = currentAddType === "core";
+          const badgeClass = currentAddType === "core" ? "core" : "noncore";
           let metaDetails = [];
           if (item.cqi_priority) metaDetails.push(`CQI ${item.cqi_priority}`);
           if (item.job_priority) metaDetails.push(item.job_priority);
@@ -1514,7 +2055,7 @@
           card.innerHTML = `
         <div class="unused-master-info">
           <div class="unused-master-name">
-            <span class="mp-id-badge ${isCore ? "core" : "noncore"}">${item.id || "-"}</span>
+            <span class="mp-id-badge ${badgeClass}">${item.id || "-"}</span>
             <span>${item.name}</span>
           </div>
           ${metaStr ? `<div class="unused-master-meta">${metaStr}</div>` : ""}
@@ -1563,7 +2104,7 @@
         let addedCount = 0;
 
         unused.forEach((item) => {
-          const exists = manpowerData[targetKey].some((existing) => {
+          const exists = (manpowerData[targetKey] || []).some((existing) => {
             const existingName = (
               typeof existing === "object" ? existing.name : existing || ""
             )
@@ -1573,6 +2114,7 @@
           });
 
           if (!exists) {
+            if (!manpowerData[targetKey]) manpowerData[targetKey] = [];
             manpowerData[targetKey].push({
               id: item.id || getNextDynamicId(currentAddType),
               name: item.name,
@@ -1606,6 +2148,7 @@
 
       function restoreMasterItemDirectly(item) {
         if (!item) return;
+        const targetKey = currentAddType === "core" ? "core" : "nonCore";
         const newItem = {
           id: item.id || getNextDynamicId(currentAddType),
           name: item.name,
@@ -1613,11 +2156,8 @@
           job_priority: item.job_priority || "",
         };
 
-        if (currentAddType === "core") {
-          manpowerData.core.push(newItem);
-        } else {
-          manpowerData.nonCore.push(newItem);
-        }
+        if (!manpowerData[targetKey]) manpowerData[targetKey] = [];
+        manpowerData[targetKey].push(newItem);
 
         persistManpower();
         renderAllLists();
@@ -1641,6 +2181,7 @@
           return;
         }
 
+        const targetKey = currentAddType === "core" ? "core" : "nonCore";
         const newItem = {
           id: id || getNextDynamicId(currentAddType),
           name: name,
@@ -1648,11 +2189,8 @@
           job_priority: jobPriority,
         };
 
-        if (currentAddType === "core") {
-          manpowerData.core.push(newItem);
-        } else {
-          manpowerData.nonCore.push(newItem);
-        }
+        if (!manpowerData[targetKey]) manpowerData[targetKey] = [];
+        manpowerData[targetKey].push(newItem);
 
         persistManpower();
         renderAllLists();
@@ -1663,9 +2201,13 @@
         let list =
           type === "core"
             ? manpowerData.core
-            : type === "nonCore"
-              ? manpowerData.nonCore
-              : manpowerData.qcPassed;
+            : type === "ot"
+              ? manpowerData.ot
+              : type === "ww"
+                ? manpowerData.ww
+                : type === "nonCore"
+                  ? manpowerData.nonCore
+                  : manpowerData.qcPassed;
         if (!list || list.length <= 1) return;
         if (direction === -1) list.push(list.shift());
         else if (direction === 1) list.unshift(list.pop());
@@ -1677,9 +2219,13 @@
         let list =
           type === "core"
             ? manpowerData.core
-            : type === "nonCore"
-              ? manpowerData.nonCore
-              : manpowerData.qcPassed;
+            : type === "ot"
+              ? manpowerData.ot
+              : type === "ww"
+                ? manpowerData.ww
+                : type === "nonCore"
+                  ? manpowerData.nonCore
+                  : manpowerData.qcPassed;
         if (!list || list.length <= 1) return;
 
         const parseId = (item) => {
@@ -1693,10 +2239,8 @@
           }
 
           if (!id && name) {
-            const masterList =
-              (masterManpowerData &&
-                masterManpowerData[type === "core" ? "core" : "nonCore"]) ||
-              [];
+            const listKey = type === "nonCore" ? "nonCore" : type;
+            const masterList = (masterManpowerData && masterManpowerData[listKey]) || [];
             const found = masterList.find(
               (m) => m && m.name && String(m.name).trim().toLowerCase() === name,
             );
@@ -1795,19 +2339,27 @@
       }
 
       function updateDashboardStats() {
-        let validCore = manpowerData.core.filter(
+        let validCore = (manpowerData.core || []).filter(
           (i) => (typeof i === "object" ? i.name : i).trim() !== "",
         ).length;
-        let validNonCore = manpowerData.nonCore.filter(
+        let validOt = (manpowerData.ot || []).filter(
+          (i) => (typeof i === "object" ? i.name : i).trim() !== "",
+        ).length;
+        let validWw = (manpowerData.ww || []).filter(
+          (i) => (typeof i === "object" ? i.name : i).trim() !== "",
+        ).length;
+        let validNonCore = (manpowerData.nonCore || []).filter(
           (i) => (typeof i === "object" ? i.name : i).trim() !== "",
         ).length;
         let validLS =
-          parseInt(document.getElementById("ncLongshiftCount").value) || 0;
-        document.getElementById("db-core").innerText = validCore;
-        document.getElementById("db-noncore").innerText = validNonCore;
-        document.getElementById("db-ls").innerText = validLS;
-        document.getElementById("cnt-ls").innerText = validLS;
-        if (state && state.machines)
+          parseInt(document.getElementById("ncLongshiftCount") ? document.getElementById("ncLongshiftCount").value : 0) || 0;
+        if (document.getElementById("db-core")) document.getElementById("db-core").innerText = validCore;
+        if (document.getElementById("db-noncore")) document.getElementById("db-noncore").innerText = validNonCore;
+        if (document.getElementById("db-ls")) document.getElementById("db-ls").innerText = validLS;
+        if (document.getElementById("cnt-ls")) document.getElementById("cnt-ls").innerText = validLS;
+        if (document.getElementById("cnt-ot")) document.getElementById("cnt-ot").innerText = validOt;
+        if (document.getElementById("cnt-ww")) document.getElementById("cnt-ww").innerText = validWw;
+        if (state && state.machines && document.getElementById("db-covered"))
           document.getElementById("db-covered").innerText =
             state.machines.length;
       }
@@ -2097,6 +2649,14 @@
             .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
             .map((n) => n.trim())
             .filter((n) => n !== "");
+          let otNames = (manpowerData.ot || [])
+            .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
+            .map((n) => n.trim())
+            .filter((n) => n !== "");
+          let wwNames = (manpowerData.ww || [])
+            .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
+            .map((n) => n.trim())
+            .filter((n) => n !== "");
           let nonCoreNames = (manpowerData.nonCore || [])
             .map((i) => (typeof i === "object" ? (i.name || "") : String(i || "")))
             .map((n) => n.trim())
@@ -2124,6 +2684,10 @@
             coreData: manpowerData.core,
             coreNames: coreNames,
             core: coreNames.length > 0 ? coreNames.length : 1,
+            otData: manpowerData.ot,
+            otNames: otNames,
+            wwData: manpowerData.ww,
+            wwNames: wwNames,
             nonCoreData: manpowerData.nonCore,
             nonCoreNames: nonCoreNames,
             nonCore: nonCoreNames.length,
@@ -3168,7 +3732,13 @@
           (s.nonCore || []).forEach((nc) => assignedNonCore.add(nc.trim().toLowerCase()));
         });
 
-        const unassignedCore = (manpowerData.core || [])
+        const allCorePool = [
+          ...(manpowerData.core || []),
+          ...(manpowerData.ot || []),
+          ...(manpowerData.ww || [])
+        ];
+
+        const unassignedCore = allCorePool
           .map((i) => (typeof i === "object" ? i.name : i).trim())
           .filter((n) => n && !assignedCore.has(n.toLowerCase()));
 
@@ -3241,10 +3811,10 @@
               <div class="dock-header all-good">
                 <div class="dock-title-group">
                   <span class="dock-check-badge">✓</span>
-                  <span class="dock-title" style="color: #166534;">Unassigned Pool: Semua Mesin &amp; Manpower Teralokasi Penuh!</span>
+                  <span class="dock-title dock-title-success">Unassigned Pool: Semua Mesin &amp; Manpower Teralokasi Penuh!</span>
                 </div>
                 <div class="dock-actions">
-                  <span class="dock-drop-hint" style="color: #166534; border-color: #86efac;">Drop ke sini untuk unassign</span>
+                  <span class="dock-drop-hint dock-drop-hint-success">Drop ke sini untuk unassign</span>
                 </div>
               </div>
             </div>
@@ -3793,8 +4363,61 @@
         savePlanningCache();
       }
 
+      let pendingResetAction = null;
+
+      function hasActivePlanning() {
+        if (typeof currentPlan !== "undefined" && currentPlan && Array.isArray(currentPlan) && currentPlan.length > 0) return true;
+        try {
+          const raw =
+            sessionStorage.getItem("active_planning") ||
+            localStorage.getItem("last_active_planning");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed) {
+              if (Array.isArray(parsed) && parsed.length > 0) return true;
+              if (Array.isArray(parsed.slots) && parsed.slots.length > 0) return true;
+              if (Array.isArray(parsed.currentPlan) && parsed.currentPlan.length > 0) return true;
+              if (Array.isArray(parsed.planning) && parsed.planning.length > 0) return true;
+            }
+          }
+        } catch (e) {}
+        return false;
+      }
+
+      function confirmPlanResetIfNeeded(actionCallback) {
+        if (!hasActivePlanning()) {
+          actionCallback();
+          return;
+        }
+        pendingResetAction = actionCallback;
+        const modal = document.getElementById("planResetWarningModal");
+        if (modal) {
+          modal.classList.add("active");
+        } else {
+          actionCallback();
+        }
+      }
+
+      function closePlanResetWarningModal() {
+        const modal = document.getElementById("planResetWarningModal");
+        if (modal) modal.classList.remove("active");
+        pendingResetAction = null;
+      }
+      window.closePlanResetWarningModal = closePlanResetWarningModal;
+
+      function executePendingPlanReset() {
+        const action = pendingResetAction;
+        closePlanResetWarningModal();
+        if (typeof action === "function") {
+          action();
+        }
+      }
+      window.executePendingPlanReset = executePendingPlanReset;
+
       function resetBoardToAutoGenerated() {
-        executePlan();
+        confirmPlanResetIfNeeded(() => {
+          executePlan();
+        });
       }
 
       // Unregister any existing Service Worker and clean PWA caches
