@@ -26,11 +26,27 @@
           if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             saved = 'dark';
           }
-          if (saved === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-          } else {
-            document.documentElement.setAttribute('data-theme', 'light');
-          }
+          var activeTheme = (saved === 'dark') ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', activeTheme);
+          window.getAppTheme = function() {
+            return document.documentElement.getAttribute('data-theme') || activeTheme;
+          };
+          window.toggleAppTheme = function() {
+            var curr = window.getAppTheme();
+            var next = (curr === 'dark') ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try {
+              localStorage.setItem('mapliquid_theme', next);
+              localStorage.setItem('theme', next);
+            } catch(e) {}
+            if (typeof window.updateThemeUI === 'function') {
+              window.updateThemeUI(next);
+            }
+            if (typeof window.showToast === 'function') {
+              window.showToast(next === 'dark' ? 'Tema Gelap diaktifkan' : 'Tema Terang diaktifkan', 'info');
+            }
+            return next;
+          };
         } catch(e) {}
       })();
     </script>
@@ -61,7 +77,7 @@
             title="Beralih ke Tema Gelap"
             aria-label="Toggle Dark/Light Mode"
           >
-            <span class="theme-icon" id="themeIcon">🌙</span>
+            <span class="theme-icon" id="themeIcon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
             <span class="theme-text" id="themeText">Gelap</span>
           </button>
           <button id="settingsBtn" class="btn" onclick="handleSettingsClick()" title="Pengaturan dan Menu Map">

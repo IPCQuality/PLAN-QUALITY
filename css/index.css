@@ -1006,16 +1006,19 @@ body.modal-open {
 .btn-theme-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 0 12px;
+  padding: 0 10px;
   height: 36px;
+  min-width: 86px;
+  box-sizing: border-box;
   font-weight: 600;
   font-size: 0.82rem;
   border-radius: var(--radius-sm);
   background: #ffffff;
   border: 1px solid var(--border);
   color: var(--text-main);
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   cursor: pointer;
   user-select: none;
   box-shadow: var(--shadow-sm);
@@ -1023,10 +1026,9 @@ body.modal-open {
 .btn-theme-toggle:hover {
   background: #f8fafc;
   border-color: #94a3b8;
-  transform: translateY(-1px);
 }
 .btn-theme-toggle:active {
-  transform: translateY(0);
+  background: #f8fafc;
 }
 .btn-theme-toggle .theme-icon {
   font-size: 14px;
@@ -1034,11 +1036,13 @@ body.modal-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .btn-theme-toggle .theme-text {
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 /* =========================================================

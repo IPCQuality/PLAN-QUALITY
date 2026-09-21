@@ -253,7 +253,7 @@ export const rule = {
 
   // Aturan Alokasi Personil
   assignManpower(activeSlots, config = {}) {
-    const coreList = Array.isArray(config.coreData) && config.coreData.length > 0
+    const coreListRaw = Array.isArray(config.coreData) && config.coreData.length > 0
       ? [...config.coreData]
       : (Array.isArray(config.coreNames) ? [...config.coreNames] : []);
     const otList = Array.isArray(config.otData) && config.otData.length > 0
@@ -265,6 +265,18 @@ export const rule = {
     const nonCoreList = Array.isArray(config.nonCoreData) && config.nonCoreData.length > 0
       ? [...config.nonCoreData]
       : (Array.isArray(config.nonCoreNames) ? [...config.nonCoreNames] : []);
+
+    // Hindari duplikasi personil yang sudah ditugaskan ke OT atau WW di dalam Core list
+    const specialAssignedNames = new Set();
+    [...otList, ...wwList].forEach(p => {
+      const n = typeof p === "object" ? (p.name || p.id) : p;
+      if (n) specialAssignedNames.add(String(n).trim().toLowerCase());
+    });
+
+    const coreList = coreListRaw.filter(c => {
+      const n = typeof c === "object" ? (c.name || c.id) : c;
+      return n && !specialAssignedNames.has(String(n).trim().toLowerCase());
+    });
 
     let lsAvailable = typeof config.longshift === "number" ? config.longshift : 6;
 
@@ -353,8 +365,19 @@ export const rule = {
         s.coreNames = [name];
         assignedCoreNames.add(name);
       } else {
-        s.core = 1;
-        s.coreNames = ["Core " + this.getCqiNumber(s)];
+        const availableOtWw = [...otList, ...wwList].find(p => {
+          const name = typeof p === "object" ? (p.name || p.id) : p;
+          return name && !assignedCoreNames.has(name);
+        });
+        if (availableOtWw) {
+          const name = typeof availableOtWw === "object" ? (availableOtWw.name || availableOtWw.id) : availableOtWw;
+          s.core = 1;
+          s.coreNames = [name];
+          assignedCoreNames.add(name);
+        } else {
+          s.core = 1;
+          s.coreNames = ["Core " + this.getCqiNumber(s)];
+        }
       }
     });
 
@@ -1090,10 +1113,29 @@ export const BrainAI = {
     let otNum = 0;
     let wwNum = 0;
 
+    // Kumpulkan personil OT dan WW agar tidak dihitung ganda jika masih ada di list Core
+    const specialOtWwNames = new Set();
+    const extractNameStr = (item) => {
+      if (!item) return "";
+      const val = typeof item === "object" ? (item.name || item.id || "") : String(item);
+      return val.trim().toLowerCase();
+    };
+
+    (config.otNames || []).forEach(n => { const s = extractNameStr(n); if (s) specialOtWwNames.add(s); });
+    (config.otData || []).forEach(d => { const s = extractNameStr(d); if (s) specialOtWwNames.add(s); });
+    (config.wwNames || []).forEach(n => { const s = extractNameStr(n); if (s) specialOtWwNames.add(s); });
+    (config.wwData || []).forEach(d => { const s = extractNameStr(d); if (s) specialOtWwNames.add(s); });
+
     if (Array.isArray(config.coreNames) && config.coreNames.length > 0) {
-      coreNum = config.coreNames.filter(n => typeof n === "string" ? n.trim().length > 0 : !!n).length;
+      coreNum = config.coreNames.filter(n => {
+        const s = extractNameStr(n);
+        return s.length > 0 && !specialOtWwNames.has(s);
+      }).length;
     } else if (Array.isArray(config.coreData) && config.coreData.length > 0) {
-      coreNum = config.coreData.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+      coreNum = config.coreData.filter(d => {
+        const s = extractNameStr(d);
+        return s.length > 0 && !specialOtWwNames.has(s);
+      }).length;
     } else if (typeof config.core === "number" && config.core > 0) {
       coreNum = config.core;
     } else if (typeof config.total_core === "number" && config.total_core > 0) {
@@ -1115,7 +1157,10 @@ export const BrainAI = {
     const globalMpForGen = (typeof window !== "undefined" && window.manpowerData) || (typeof globalThis !== "undefined" && globalThis.manpowerData);
     if (globalMpForGen) {
       if (coreNum === 0 && Array.isArray(globalMpForGen.core)) {
-        coreNum = globalMpForGen.core.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
+        coreNum = globalMpForGen.core.filter(d => {
+          const s = extractNameStr(d);
+          return s.length > 0 && !specialOtWwNames.has(s);
+        }).length;
       }
       if (otNum === 0 && Array.isArray(globalMpForGen.ot)) {
         otNum = globalMpForGen.ot.filter(d => (typeof d === "object" ? d.name : d) && String(typeof d === "object" ? d.name : d).trim().length > 0).length;
@@ -1141,7 +1186,10 @@ export const BrainAI = {
     // Jika target jumlah CQI lebih sedikit dari total ready (misal 14 Core),
     // hanya alokasikan workstation khusus terisolasi (OT & WW), dan sisanya
     // dipartisi terpadu agar total CQI yang digunakan tepat sama dengan Core aktif.
-    if (targetCqiCount >= maxReadyCqis) {
+    // Target jumlah slot CQI ditentukan secara presisi oleh jumlah manpower aktif (CORE + MP WW + MP OT)
+    // CQI aktif pada map bertindak sebagai pool kandidat: BrainAI memilih CQI yang akan digunakan
+    // dari pool CQI aktif ini hingga mencapai targetCount (default 14).
+    if (targetCqiCount >= 21 && maxReadyCqis >= 21) {
       runningMachines.forEach(m => {
         const ws = r.getWorkstationKey(m);
         const learnedNum = this.getLearnedCqiForMachine(m);
@@ -1162,7 +1210,13 @@ export const BrainAI = {
         }
       });
     } else {
-      // Alokasi khusus mesin OT & WW yang wajib memiliki CQI terpisah
+      // Alokasi khusus mesin/slot OT & WW yang wajib memiliki CQI terpisah jika ada manpower atau mesin running
+      if (otNum > 0 && readyCqiMap.has(19)) {
+        getOrCreateSlot(19);
+      }
+      if (wwNum > 0 && readyCqiMap.has(24)) {
+        getOrCreateSlot(24);
+      }
       runningMachines.forEach(m => {
         if (r.isOtMachine(m) && readyCqiMap.has(19)) {
           const slot = getOrCreateSlot(19);
@@ -1569,6 +1623,36 @@ export const BrainAI = {
       });
     });
 
+    // Pastikan jumlah slot yang digunakan tepat sama dengan target manpower aktif (default 14)
+    // Jika masih ada sisa kuota yang belum terpenuhi dan ada CQI ready yang belum dipakai:
+    if (activeSlotsMap.size < targetCqiCount) {
+      const unusedReadyCqis = Array.from(readyCqiMap.keys()).filter(n => !activeSlotsMap.has(n));
+      while (activeSlotsMap.size < targetCqiCount && unusedReadyCqis.length > 0) {
+        const nextCqiNum = unusedReadyCqis.shift();
+        const slot = getOrCreateSlot(nextCqiNum);
+        const unassigned = runningMachines.filter(m => !assignedMachineIds.has(m.id || m.name));
+        if (unassigned.length > 0) {
+          unassigned.forEach(m => assignMachineToSlot(m, slot));
+        } else {
+          const slotsWithMultipleMachines = Array.from(activeSlotsMap.values())
+            .filter(s => s.cqiNum !== nextCqiNum && s.machines && s.machines.length > 4)
+            .sort((a, b) => b.machines.length - a.machines.length);
+          if (slotsWithMultipleMachines.length > 0) {
+            const heavySlot = slotsWithMultipleMachines[0];
+            const splitCount = Math.floor(heavySlot.machines.length / 2);
+            const machinesToMove = heavySlot.machines.splice(heavySlot.machines.length - splitCount, splitCount);
+            machinesToMove.forEach(m => {
+              slot.machines.push(m);
+              const ws = r.getWorkstationKey(m);
+              if (ws) slot.workstations.add(ws);
+            });
+            slot.totalMachines = slot.machines.length;
+            heavySlot.totalMachines = heavySlot.machines.length;
+          }
+        }
+      }
+    }
+
     // =========================================================================
     // STEP 7: PENGELOLAAN MESIN BELUM TERALOKASI (NORMAL UNASSIGNED POOL)
     // =========================================================================
@@ -1580,7 +1664,12 @@ export const BrainAI = {
     // =========================================================================
     // STEP 8: ALOKASI MANPOWER ERGONOMIS (CORE, NON-CORE & LONGSHIFT)
     // =========================================================================
-    const activePlan = Array.from(activeSlotsMap.values()).filter(s => s.machines && s.machines.length > 0);
+    const activePlan = Array.from(activeSlotsMap.values()).filter(s => {
+      if (s.machines && s.machines.length > 0) return true;
+      if (s.cqiNum === 19 && otNum > 0) return true;
+      if (s.cqiNum === 24 && wwNum > 0) return true;
+      return false;
+    });
     r.assignManpower(activePlan, config);
 
     // Konversi Set workstation menjadi Array terurut
