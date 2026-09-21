@@ -85,7 +85,7 @@
         <div id="alertPopover" class="alert-popover" style="display:none;" onclick="event.stopPropagation()">
           <div class="popover-header">
             <div style="display:flex; align-items:center; gap:6px;">
-              <span style="font-size:14px;">🔔</span>
+              <span style="display:inline-flex; align-items:center; color:var(--primary);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span>
               <span style="font-weight:700; font-size:13px; color:var(--text-main);">Pusat Peringatan &amp; Validasi</span>
             </div>
             <button class="popover-close-btn" onclick="toggleAlertPopover(event)" aria-label="Tutup notifikasi" title="Tutup">
@@ -1078,7 +1078,7 @@
             return name.trim().length > 0;
           });
           if (hasOt) {
-            btnOt.innerText = "🔄 Rolling OT";
+            btnOt.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>Rolling OT`;
             btnOt.title = "Rolling / tukar manpower OT";
           } else {
             btnOt.innerText = "+ Tambah OT";
@@ -1093,7 +1093,7 @@
             return name.trim().length > 0;
           });
           if (hasWw) {
-            btnWw.innerText = "🔄 Rolling WW";
+            btnWw.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>Rolling WW`;
             btnWw.title = "Rolling / tukar manpower WW";
           } else {
             btnWw.innerText = "+ Tambah WW";
@@ -2026,13 +2026,23 @@
 
       function getNextDynamicId(type) {
         let prefix = "C";
-        if (type === "ot") prefix = "OT";
-        else if (type === "ww") prefix = "WW";
-        else if (type === "nonCore") prefix = "NC";
+        if (type === "nonCore") prefix = "NC";
 
-        const listKey = type === "nonCore" ? "nonCore" : type;
-        const masterList = (masterManpowerData && masterManpowerData[listKey]) || [];
-        const currentList = manpowerData[listKey] || [];
+        const isCoreType = type === "core" || type === "ot" || type === "ww";
+        const masterList = isCoreType
+          ? [
+              ...((masterManpowerData && masterManpowerData.core) || []),
+              ...((masterManpowerData && masterManpowerData.ot) || []),
+              ...((masterManpowerData && masterManpowerData.ww) || []),
+            ]
+          : (masterManpowerData && masterManpowerData.nonCore) || [];
+        const currentList = isCoreType
+          ? [
+              ...(manpowerData.core || []),
+              ...(manpowerData.ot || []),
+              ...(manpowerData.ww || []),
+            ]
+          : manpowerData.nonCore || [];
         const qcList = manpowerData.qcPassed || [];
         const allItems = [...masterList, ...currentList, ...qcList];
 
@@ -2516,14 +2526,14 @@
 
           if (unassignedMacs.length > 0) {
             html += `<div class="popover-alert-card warning">
-              <span class="p-icon">⚠️</span>
+              <span class="p-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
               <div class="p-text"><strong>Sisa Mesin Belum Teralokasi (${unassignedMacs.length} Mesin):</strong> Terdapat mesin di Unassigned Pool. Silakan tarik mesin ke slot CQI.</div>
             </div>`;
           }
 
           if (totalSisaMp > 0) {
             html += `<div class="popover-alert-card info">
-              <span class="p-icon">👥</span>
+              <span class="p-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
               <div class="p-text"><strong>Manpower Sisa (${totalSisaMp} Orang):</strong> ${sisaMp.core.length > 0 ? `Core: ${sisaMp.core.join(', ')} | ` : ''}${sisaMp.nonCore.length > 0 ? `Non-Core: ${sisaMp.nonCore.join(', ')} | ` : ''}${sisaMp.longshift.length > 0 ? `Longshift: ${sisaMp.longshift.length} orang` : ''}</div>
             </div>`;
           }
@@ -2546,26 +2556,29 @@
               humanMsg = `<strong>Kekurangan Manpower:</strong> ${err}`;
             }
             html += `<div class="popover-alert-card danger">
-              <span class="p-icon">🚨</span>
+              <span class="p-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
               <div class="p-text">${humanMsg}</div>
             </div>`;
           });
 
           infos.forEach((msg) => {
-            let type = "info", icon = "💡";
+            let type = "info";
+            let iconSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`;
             if (msg.includes("SUCCESS") || msg.includes("optimal") || msg.includes("valid")) {
-              type = "success"; icon = "✅";
+              type = "success";
+              iconSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
             } else if (msg.includes("PERINGATAN") || msg.includes("kurang")) {
-              type = "warning"; icon = "⚠️";
+              type = "warning";
+              iconSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
             }
             html += `<div class="popover-alert-card ${type}">
-              <span class="p-icon">${icon}</span>
+              <span class="p-icon">${iconSvg}</span>
               <div class="p-text">${msg}</div>
             </div>`;
           });
 
           if (!html) {
-            html = `<div class="popover-empty">✓ Semua alokasi tervalidasi dan optimal. Tidak ada catatan peringatan.</div>`;
+            html = `<div class="popover-empty" style="display:flex; align-items:center; gap:6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> <span>Semua alokasi tervalidasi dan optimal. Tidak ada catatan peringatan.</span></div>`;
           }
 
           popoverBody.innerHTML = html;
@@ -3034,6 +3047,11 @@
             };
           });
 
+          const totalCoreCombined =
+            (manpowerData.core ? manpowerData.core.length : 0) +
+            (manpowerData.ot ? manpowerData.ot.length : 0) +
+            (manpowerData.ww ? manpowerData.ww.length : 0);
+
           const exportPayload = {
             meta: {
               app: "MAP LIQUID 3 - Production View",
@@ -3041,7 +3059,7 @@
               generated_at: now.toISOString(),
               total_cqi: structuredPlanning.length,
               total_machines_running: totalMachines,
-              total_core: manpowerData.core ? manpowerData.core.length : 0,
+              total_core: totalCoreCombined,
               total_non_core: manpowerData.nonCore
                 ? manpowerData.nonCore.length
                 : 0,
@@ -3085,7 +3103,13 @@
         if (!container) return;
         const t = document.createElement("div");
         t.className = `toast ${type}`;
-        t.innerHTML = `<span>${type === "success" ? "✓" : type === "warning" ? "⚠️" : "ℹ️"}</span> <span>${msg}</span>`;
+        const iconSvg =
+          type === "success"
+            ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+            : type === "warning"
+            ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
+            : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+        t.innerHTML = `<span style="display:inline-flex; align-items:center;">${iconSvg}</span> <span>${msg}</span>`;
         container.appendChild(t);
         setTimeout(() => {
           if (t.parentNode) t.remove();
@@ -3170,12 +3194,12 @@
 
         const btn = document.getElementById("headerBtnValidate") || document.getElementById("btnValidateCopy");
         if (btn) {
-          const originalText = btn.innerText;
-          btn.innerText = "✓ Berhasil Disalin!";
+          const originalContent = btn.innerHTML;
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px; vertical-align:middle;"><polyline points="20 6 9 17 4 12"></polyline></svg>Berhasil Disalin!`;
           btn.style.background = "#15803d";
           btn.style.color = "#ffffff";
           setTimeout(() => {
-            btn.innerText = originalText;
+            btn.innerHTML = originalContent;
             btn.style.background = "";
             btn.style.color = "";
           }, 2200);
@@ -3674,10 +3698,10 @@
         }
 
         const btn = document.getElementById("btnPushHistory");
-        const origText = btn ? btn.innerText : "";
+        const origHtml = btn ? btn.innerHTML : "";
         if (btn) {
           btn.disabled = true;
-          btn.innerText = "⏳ Menyimpan ke History...";
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px; vertical-align:middle; animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Menyimpan ke History...`;
         }
 
         try {
@@ -3720,6 +3744,11 @@
             machines: (slot.machines || []).map((m) => m.name || m.id || m),
           }));
 
+          const totalCoreCombined =
+            (manpowerData.core ? manpowerData.core.length : 0) +
+            (manpowerData.ot ? manpowerData.ot.length : 0) +
+            (manpowerData.ww ? manpowerData.ww.length : 0);
+
           const exportPayload = {
             meta: {
               app: "PLANING-MAKER",
@@ -3728,6 +3757,17 @@
               timestamp: now.toISOString(),
               total_cqi: structuredPlanning.length,
               total_machines_running: allRunning.length,
+              total_core: totalCoreCombined,
+              total_non_core: manpowerData.nonCore
+                ? manpowerData.nonCore.length
+                : 0,
+              total_longshift:
+                parseInt(
+                  document.getElementById("ncLongshiftCount")
+                    ? document.getElementById("ncLongshiftCount").value
+                    : (localStorage.getItem("ncls_count") || 0),
+                  10,
+                ) || 0,
               mode: planningMode || 1,
             },
             planning: structuredPlanning,
@@ -3749,8 +3789,9 @@
             if (typeof BrainAI.loadAllHistory === "function") {
               await BrainAI.loadAllHistory();
             }
+            showToast(`Hasil perencanaan resmi (${allRunning.length} mesin) berhasil di-push ke folder history: ${res.fileName}`, "success");
             alert(
-              `✅ SUKSES! Hasil perencanaan resmi (${allRunning.length} mesin) berhasil di-push ke folder history: ${res.fileName}\nData riwayat resmi ini langsung dipelajari oleh model cerdas Brain AI.`,
+              `SUKSES! Hasil perencanaan resmi (${allRunning.length} mesin) berhasil di-push ke folder history: ${res.fileName}\nData riwayat resmi ini langsung dipelajari oleh model cerdas Brain AI.`,
             );
           } else {
             throw new Error(res.error || "Gagal menyimpan");
@@ -3763,7 +3804,7 @@
         } finally {
           if (btn) {
             btn.disabled = false;
-            btn.innerText = origText || "💾 Push ke History";
+            btn.innerHTML = origHtml || `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px; vertical-align:middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>Push ke History`;
           }
         }
       }
@@ -3933,7 +3974,7 @@
                  ondrop="handleBoardDrop(event, -1)">
               <div class="dock-header all-good">
                 <div class="dock-title-group">
-                  <span class="dock-check-badge">✓</span>
+                  <span class="dock-check-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
                   <span class="dock-title dock-title-success">Semua Mesin &amp; Manpower Teralokasi</span>
                 </div>
                 <div class="dock-actions">

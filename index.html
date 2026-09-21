@@ -103,6 +103,63 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- EDIT MODE TOOLBAR WITH SNAP-TO-GRID CONTROLS -->
+    <div class="edit-mode-toolbar" id="editModeToolbar">
+      <div class="edit-toolbar-left">
+        <div class="edit-toolbar-title">
+          <span class="edit-dot"></span>
+          <span>MODE EDIT MAP</span>
+        </div>
+        <button
+          id="btnToggleSnap"
+          class="btn-snap-toggle active"
+          onclick="toggleSnapToGrid()"
+          title="Aktifkan / Nonaktifkan Snap-to-Grid Magnetik"
+        >
+          <span style="display:inline-flex; align-items:center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </span>
+          <span id="snapToggleText">Snap-to-Grid: AKTIF</span>
+        </button>
+      </div>
+
+      <div class="edit-toolbar-center">
+        <button class="btn" style="font-size:0.75rem; padding:4px 8px;" onclick="openNodeModal('machine')">+ Mesin</button>
+        <button class="btn" style="font-size:0.75rem; padding:4px 8px;" onclick="openNodeModal('cqi')">+ CQI</button>
+        <button class="btn" style="font-size:0.75rem; padding:4px 8px;" onclick="openNodeModal('label')">+ Label</button>
+        <button class="btn" style="font-size:0.75rem; padding:4px 8px;" onclick="openNodeModal('line')">+ Batas Line</button>
+        <div class="edit-hud-pill" id="editCoordHud">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="2" x2="12" y2="6"></line>
+            <line x1="12" y1="18" x2="12" y2="22"></line>
+            <line x1="2" y1="12" x2="6" y2="12"></line>
+            <line x1="18" y1="12" x2="22" y2="12"></line>
+          </svg>
+          <span id="hudCoordsText">Snap Grid: Siap</span>
+        </div>
+      </div>
+
+      <div class="edit-toolbar-right">
+        <button class="btn btn-success" style="font-size:0.75rem; padding:5px 12px;" onclick="exportMapJson()">Simpan Map</button>
+        <button class="btn" style="font-size:0.75rem; padding:5px 12px; background:#e2e8f0; color:#1e293b; font-weight:700;" onclick="handleSettingsClick()">Selesai Edit</button>
+      </div>
+    </div>
+
+    <!-- Floating Snap-to-Grid Tooltip HUD -->
+    <div id="snapDragBadge" class="snap-drag-badge">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v20M2 12h20"/>
+      </svg>
+      <span id="snapBadgeText">Snap:</span>
+      <span id="snapBadgeCoord" class="snap-badge-coord">R1 : C1</span>
+    </div>
+
     <div class="main-layout">
       <div class="side-panel closed control-landing" id="sidePanel">
         <div class="panel-header"><h3>Filter & Status</h3></div>
@@ -163,9 +220,55 @@
       </div>
 
       <div class="map-viewport" id="mapViewport">
+        <!-- Edit Mode Toolbar with Snap-to-Grid Controls -->
+        <div class="edit-mode-toolbar" id="editModeToolbar">
+          <div class="edit-toolbar-left">
+            <span class="edit-toolbar-title">
+              <span class="edit-dot"></span>
+              <span>MODE EDIT</span>
+            </span>
+            <button
+              id="snapToggleBtn"
+              class="btn-snap-toggle active"
+              onclick="toggleSnapToGrid()"
+              title="Aktifkan / Nonaktifkan Snap to Grid saat Drag & Drop"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="3" y1="9" x2="21" y2="9"/>
+                <line x1="3" y1="15" x2="21" y2="15"/>
+                <line x1="9" y1="3" x2="9" y2="21"/>
+                <line x1="15" y1="3" x2="15" y2="21"/>
+              </svg>
+              <span id="snapToggleLabel">Snap-to-Grid: AKTIF</span>
+            </button>
+            <div class="edit-hud-pill">
+              <span>Target:</span>
+              <span class="hud-val" id="snapHudCoords">-</span>
+            </div>
+          </div>
+          <div class="edit-toolbar-center">
+            <button class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('machine')" title="Tambah Node Mesin Baru">+ Mesin</button>
+            <button class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('cqi')" title="Tambah Node CQI Baru">+ CQI</button>
+            <button class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('label')" title="Tambah Label Workstation">+ Label</button>
+            <button class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('line')" title="Tambah Batas Line">+ Batas Line</button>
+          </div>
+          <div class="edit-toolbar-right">
+            <button class="btn btn-success" style="font-size:0.75rem; padding:5px 12px;" onclick="handleSettingsClick()" title="Selesai Mengedit dan Terapkan">Selesai Edit</button>
+          </div>
+        </div>
+
         <div class="grid-wrapper" id="gridWrapper">
           <div class="factory-grid" id="factoryGrid"></div>
         </div>
+
+        <!-- Floating Snap Drag Badge & Line Resize Badge -->
+        <div class="snap-drag-badge" id="snapDragBadge">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
+          <span id="snapDragNodeName">Object</span>
+          <span class="snap-badge-coord" id="snapDragBadgeCoord">R1, C1</span>
+        </div>
+        <div class="line-resize-badge" id="lineResizeBadge"></div>
       </div>
 
       <div class="zoom-controls">
@@ -204,7 +307,7 @@
         <div class="menu-list">
           <button class="btn" onclick="toggleAppTheme()" id="modalThemeToggleBtn" style="display:flex; align-items:center; justify-content:space-between;">
             <span id="modalThemeText">Tema (Gelap / Terang)</span>
-            <span id="modalThemeIcon" style="font-size:16px;">🌙</span>
+            <span id="modalThemeIcon" style="display:inline-flex; align-items:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
           </button>
           <button class="btn" onclick="activateEditMode()">Edit Map</button>
           <button class="btn" onclick="openNodeModal('machine')">
@@ -298,7 +401,9 @@
         showHeatmap = false,
         activePlanning = null;
       let editMode = false,
-        draggedNode = null;
+        draggedNode = null,
+        snapToGrid = true,
+        currentSnapCell = null;
       let activeModalType = null,
         editingNodeId = null;
       let totalCols = 55,
@@ -310,7 +415,11 @@
         const container = document.getElementById("toastContainer");
         const t = document.createElement("div");
         t.className = `toast ${type}`;
-        t.innerHTML = `<span>${type === "success" ? "✅" : "ℹ️"}</span> ${msg}`;
+        const iconSvg =
+          type === "success"
+            ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+            : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+        t.innerHTML = `<span style="display:inline-flex; align-items:center;">${iconSvg}</span> <span>${msg}</span>`;
         container.appendChild(t);
         setTimeout(() => {
           if (t.parentNode) t.remove();
@@ -865,9 +974,167 @@
         renderGrid();
       }
 
+      function toggleSnapToGrid() {
+        snapToGrid = !snapToGrid;
+        localStorage.setItem("map_snap_to_grid", snapToGrid ? "true" : "false");
+
+        const snapBtn = document.getElementById("snapToggleBtn");
+        const snapLabel = document.getElementById("snapToggleLabel");
+        const modalSnapStatus = document.getElementById("modalSnapStatus");
+
+        if (snapBtn) {
+          if (snapToGrid) snapBtn.classList.add("active");
+          else snapBtn.classList.remove("active");
+        }
+        if (snapLabel) {
+          snapLabel.innerText = snapToGrid ? "Snap-to-Grid: AKTIF" : "Snap-to-Grid: NONAKTIF";
+        }
+        if (modalSnapStatus) {
+          modalSnapStatus.innerText = snapToGrid ? "Aktif" : "Nonaktif";
+          modalSnapStatus.style.color = snapToGrid ? "var(--primary)" : "var(--text-muted)";
+        }
+
+        if (snapToGrid) {
+          showToast("Snap-to-Grid Aktif: Objek otomatis terkunci ke sel grid presisi", "success");
+        } else {
+          clearSnapGuides();
+          showToast("Snap-to-Grid Nonaktif: Mode bebas", "info");
+        }
+      }
+
+      function clearSnapGuides() {
+        currentSnapCell = null;
+        document.querySelectorAll(".snap-active-cell").forEach((el) => el.classList.remove("snap-active-cell"));
+        document.querySelectorAll(".snap-guide-row").forEach((el) => el.classList.remove("snap-guide-row"));
+        document.querySelectorAll(".snap-guide-col").forEach((el) => el.classList.remove("snap-guide-col"));
+        document.querySelectorAll(".snap-header-active").forEach((el) => el.classList.remove("snap-header-active"));
+        document.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over"));
+        hideSnapBadge();
+        const hud = document.getElementById("snapHudCoords");
+        if (hud && editMode) hud.innerText = "-";
+      }
+
+      function hideSnapBadge() {
+        const badge = document.getElementById("snapDragBadge");
+        if (badge) badge.classList.remove("visible");
+      }
+
+      function updateSnapBadge(e, r, c, name = "") {
+        const badge = document.getElementById("snapDragBadge");
+        const coordEl = document.getElementById("snapDragBadgeCoord");
+        const nameEl = document.getElementById("snapDragNodeName");
+        if (!badge || !coordEl) return;
+
+        badge.classList.add("visible");
+        badge.style.left = `${e.clientX}px`;
+        badge.style.top = `${e.clientY}px`;
+        coordEl.innerText = `R${r}, C${c}`;
+        if (nameEl) {
+          nameEl.innerText = name || "Object";
+        }
+
+        const hud = document.getElementById("snapHudCoords");
+        if (hud) {
+          hud.innerText = `Row ${r}, Col ${c} ${name ? '(' + name + ')' : ''}`;
+        }
+      }
+
+      function updateCursorHud(r, c) {
+        if (editMode && !draggedNode) {
+          const hud = document.getElementById("snapHudCoords");
+          if (hud) hud.innerText = `Row ${r}, Col ${c}`;
+        }
+      }
+
+      function handleDragOverSnap(r, c, cell, e) {
+        if (!editMode || !draggedNode) return;
+
+        const snappedR = snapToGrid ? Math.max(1, Math.min(totalRows, r)) : r;
+        const snappedC = snapToGrid ? Math.max(1, Math.min(totalCols, c)) : c;
+
+        let objName = "";
+        let width = 1, height = 1;
+        if (draggedNode && draggedNode.type) {
+          const list = mapData[draggedNode.type + "s"];
+          if (list) {
+            const obj = list.find((x) => x.id === draggedNode.id);
+            if (obj) {
+              objName = obj.name || obj.id;
+              if (draggedNode.type === "line") {
+                width = obj.width || 4;
+                height = obj.height || 4;
+              }
+            }
+          }
+        }
+
+        updateSnapBadge(e, snappedR, snappedC, objName);
+
+        if (
+          currentSnapCell &&
+          currentSnapCell.row === snappedR &&
+          currentSnapCell.col === snappedC
+        ) {
+          return;
+        }
+
+        // Clear previous guides
+        document
+          .querySelectorAll(".snap-active-cell")
+          .forEach((el) => el.classList.remove("snap-active-cell"));
+        document
+          .querySelectorAll(".snap-guide-row")
+          .forEach((el) => el.classList.remove("snap-guide-row"));
+        document
+          .querySelectorAll(".snap-guide-col")
+          .forEach((el) => el.classList.remove("snap-guide-col"));
+        document
+          .querySelectorAll(".snap-header-active")
+          .forEach((el) => el.classList.remove("snap-header-active"));
+
+        currentSnapCell = { row: snappedR, col: snappedC };
+
+        // Highlight target snapped cell(s)
+        for (let ri = snappedR; ri < Math.min(totalRows + 1, snappedR + height); ri++) {
+          for (let ci = snappedC; ci < Math.min(totalCols + 1, snappedC + width); ci++) {
+            const targetCell = document.querySelector(
+              `.grid-cell[data-row="${ri}"][data-col="${ci}"]`,
+            );
+            if (targetCell) targetCell.classList.add("snap-active-cell");
+          }
+        }
+
+        // Highlight crosshairs
+        document
+          .querySelectorAll(`.grid-cell[data-row="${snappedR}"]`)
+          .forEach((el) => el.classList.add("snap-guide-row"));
+        document
+          .querySelectorAll(`.grid-cell[data-col="${snappedC}"]`)
+          .forEach((el) => el.classList.add("snap-guide-col"));
+
+        // Highlight Excel header indicators
+        for (let ri = snappedR; ri < Math.min(totalRows + 1, snappedR + height); ri++) {
+          document
+            .querySelectorAll(`.excel-header[data-header-row="${ri}"]`)
+            .forEach((el) => el.classList.add("snap-header-active"));
+        }
+        for (let ci = snappedC; ci < Math.min(totalCols + 1, snappedC + width); ci++) {
+          document
+            .querySelectorAll(`.excel-header[data-header-col="${ci}"]`)
+            .forEach((el) => el.classList.add("snap-header-active"));
+        }
+      }
+
+      function handleDragLeaveSnap(r, c, cell, e) {
+        if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".grid-cell")) {
+          clearSnapGuides();
+        }
+      }
+
       function handleSettingsClick() {
         if (editMode) {
           editMode = false;
+          clearSnapGuides();
           document.body.classList.remove("mode-edit");
           document.getElementById("settingsBtn").innerHTML = "Setelan";
           document
@@ -892,6 +1159,7 @@
       function activateEditMode() {
         closeSettingsModal();
         editMode = true;
+        clearSnapGuides();
         document.body.classList.add("mode-edit");
 
         let btn = document.getElementById("settingsBtn");
@@ -902,10 +1170,13 @@
           .querySelectorAll(".control-landing")
           .forEach((el) => (el.style.display = "none"));
 
+        const hud = document.getElementById("hudCoordsText");
+        if (hud) hud.innerText = "Snap Grid: Siap";
+
         calculateGridBounds();
         renderGrid();
         showToast(
-          "Mode Edit Aktif: Bisa Drag/Drop, Edit (Klik), atau Hapus",
+          "Mode Edit Aktif: Snap-to-Grid presisi aktif saat drag/drop atau resize",
           "info",
         );
       }
@@ -945,6 +1216,7 @@
         for (let c = 1; c <= totalCols; c++) {
           let h = document.createElement("div");
           h.className = "excel-header";
+          h.dataset.headerCol = c;
           h.innerText = c;
           h.style.gridRow = "1";
           h.style.gridColumn = `${c + 1}`;
@@ -953,6 +1225,7 @@
         for (let r = 1; r <= totalRows; r++) {
           let h = document.createElement("div");
           h.className = "excel-header";
+          h.dataset.headerRow = r;
           h.innerText = r;
           h.style.gridRow = `${r + 1}`;
           h.style.gridColumn = "1";
@@ -968,13 +1241,17 @@
             cell.ondragover = (e) => {
               if (editMode) {
                 e.preventDefault();
-                cell.classList.add("drag-over");
+                e.dataTransfer.dropEffect = "move";
+                handleDragOverSnap(r, c, cell, e);
               }
             };
             cell.ondragleave = (e) => {
-              cell.classList.remove("drag-over");
+              if (editMode) {
+                handleDragLeaveSnap(r, c, cell, e);
+              }
             };
             cell.ondrop = (e) => handleDrop(e, r, c, cell);
+            cell.onmouseenter = () => updateCursorHud(r, c);
 
             cellMap[`${r}-${c}`] = cell;
             fragment.appendChild(cell);
@@ -1167,6 +1444,7 @@
             div.ondragend = () => {
               div.style.opacity = "1";
               draggedNode = null;
+              clearSnapGuides();
             };
             div.onclick = (e) => {
               e.stopPropagation();
@@ -1496,29 +1774,48 @@
         if (!list) return;
         let targetObj = list.find((x) => x.id === draggedNode.id);
         if (targetObj) {
-          targetObj.row = r;
-          targetObj.col = c;
+          const targetR = snapToGrid ? Math.max(1, Math.min(totalRows, r)) : r;
+          const targetC = snapToGrid ? Math.max(1, Math.min(totalCols, c)) : c;
+
+          targetObj.row = targetR;
+          targetObj.col = targetC;
           if (targetObj.position) {
-            targetObj.position.row = r;
-            targetObj.position.col = c;
+            targetObj.position.row = targetR;
+            targetObj.position.col = targetC;
           }
           calculateGridBounds();
           clearActivePlanning();
           renderGrid();
           saveInternalStorage();
+
+          // Visual snap drop confirmation flash
+          const droppedCell = document.querySelector(
+            `.grid-cell[data-row="${targetR}"][data-col="${targetC}"]`,
+          );
+          if (droppedCell) {
+            droppedCell.classList.add("snap-placed-flash");
+            setTimeout(
+              () => droppedCell.classList.remove("snap-placed-flash"),
+              650,
+            );
+          }
+
           showToast(
-            `Posisi ${targetObj.name || targetObj.id} berhasil dipindahkan ke Row ${r}, Col ${c}`,
+            `Posisi ${targetObj.name || targetObj.id} berhasil di-snap ke Grid Row ${targetR}, Col ${targetC}`,
             "success",
           );
         }
         draggedNode = null;
+        clearSnapGuides();
       }
 
       function handleDrop(e, r, c, cellElem) {
         if (!editMode || !draggedNode) return;
         e.preventDefault();
-        if (cellElem) cellElem.classList.remove("drag-over");
-        handleDropAt(r, c);
+        clearSnapGuides();
+        const targetR = snapToGrid ? Math.max(1, Math.min(totalRows, r)) : r;
+        const targetC = snapToGrid ? Math.max(1, Math.min(totalCols, c)) : c;
+        handleDropAt(targetR, targetC);
       }
 
       function initResizeLine(e, line, lEl) {
@@ -1536,31 +1833,50 @@
         let newW = startWidth;
         let newH = startHeight;
 
+        let resizeBadge = document.getElementById("lineResizeBadge");
+        if (!resizeBadge) {
+          resizeBadge = document.createElement("div");
+          resizeBadge.id = "lineResizeBadge";
+          resizeBadge.className = "line-resize-badge";
+          document.body.appendChild(resizeBadge);
+        }
+        resizeBadge.style.display = "flex";
+
         function onMouseMove(moveEvent) {
           moveEvent.preventDefault();
           const deltaX = (moveEvent.clientX - startX) / zoom;
           const deltaY = (moveEvent.clientY - startY) / zoom;
 
-          const colsDelta = Math.round(deltaX / cellWidth);
-          const rowsDelta = Math.round(deltaY / cellHeight);
+          const colsDelta = snapToGrid
+            ? Math.round(deltaX / cellWidth)
+            : Math.floor(deltaX / cellWidth);
+          const rowsDelta = snapToGrid
+            ? Math.round(deltaY / cellHeight)
+            : Math.floor(deltaY / cellHeight);
 
           newW = Math.max(1, startWidth + colsDelta);
           newH = Math.max(1, startHeight + rowsDelta);
 
           lEl.style.gridColumn = `${(line.col || 1) + 1} / span ${newW}`;
           lEl.style.gridRow = `${(line.row || 1) + 1} / span ${newH}`;
+
+          resizeBadge.style.left = `${moveEvent.clientX + 16}px`;
+          resizeBadge.style.top = `${moveEvent.clientY + 16}px`;
+          resizeBadge.innerHTML = `<span>Snap: ${newW} Col × ${newH} Row</span> <span style="opacity:0.75; font-size:10px;">(R${line.row}..${line.row + newH - 1}, C${line.col}..${line.col + newW - 1})</span>`;
         }
 
         function onMouseUp() {
           document.removeEventListener("mousemove", onMouseMove);
           document.removeEventListener("mouseup", onMouseUp);
+          if (resizeBadge) resizeBadge.style.display = "none";
+          clearSnapGuides();
 
           line.width = newW;
           line.height = newH;
           calculateGridBounds();
           renderGrid();
           showToast(
-            `Ukuran ${line.name} berhasil diubah: ${line.width} kolom × ${line.height} baris`,
+            `Ukuran ${line.name} berhasil di-snap: ${line.width} kolom × ${line.height} baris`,
             "success",
           );
         }

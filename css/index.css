@@ -748,6 +748,337 @@ body.mode-edit .resize-handle {
   display: block;
 }
 
+/* ==========================================================================
+   SNAP-TO-GRID & EDIT MODE TOOLBAR SYSTEM
+   ========================================================================== */
+
+/* Floating Edit Mode Toolbar */
+.edit-mode-toolbar {
+  display: none;
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1.5px solid var(--border);
+  padding: 8px 18px;
+  z-index: 900;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  animation: editToolbarIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.mode-edit .edit-mode-toolbar {
+  display: flex;
+}
+
+@keyframes editToolbarIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.edit-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.edit-toolbar-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  letter-spacing: 0.5px;
+}
+
+.edit-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  animation: pulseEditDot 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseEditDot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.6;
+  }
+}
+
+.edit-toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-snap-toggle {
+  background: #f8fafc;
+  color: var(--text-main);
+  border: 1.5px solid var(--border);
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 5px 12px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-snap-toggle:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.btn-snap-toggle.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.35);
+}
+
+.edit-hud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--text-muted);
+}
+
+.edit-hud-pill .hud-val {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.edit-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Snap-to-Grid Cell & Crosshair Guides */
+.grid-cell.snap-active-cell {
+  background: rgba(37, 99, 235, 0.18) !important;
+  outline: 2px solid #2563eb !important;
+  outline-offset: -2px;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.45) !important;
+  z-index: 8 !important;
+  position: relative;
+}
+
+.grid-cell.snap-active-cell::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 1.5px dashed #2563eb;
+  border-radius: 4px;
+  pointer-events: none;
+  animation: snapPulse 1.2s infinite alternate;
+}
+
+@keyframes snapPulse {
+  from {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+.grid-cell.snap-guide-row {
+  background-color: rgba(37, 99, 235, 0.04) !important;
+  border-top-color: rgba(37, 99, 235, 0.35) !important;
+  border-bottom-color: rgba(37, 99, 235, 0.35) !important;
+}
+
+.grid-cell.snap-guide-col {
+  background-color: rgba(37, 99, 235, 0.04) !important;
+  border-left-color: rgba(37, 99, 235, 0.35) !important;
+  border-right-color: rgba(37, 99, 235, 0.35) !important;
+}
+
+.excel-header.snap-header-active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+  border-color: #1d4ed8 !important;
+}
+
+/* Floating Snap Drag Tooltip / HUD */
+.snap-drag-badge {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transform: translate(14px, 14px);
+  backdrop-filter: blur(6px);
+  transition: opacity 0.1s ease;
+  white-space: nowrap;
+}
+
+.snap-drag-badge.visible {
+  display: flex;
+}
+
+.snap-drag-badge .snap-badge-coord {
+  background: #2563eb;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+}
+
+/* Line Dimension Snapping Tooltip */
+.line-resize-badge {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30, 58, 138, 0.94);
+  color: #ffffff;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+/* Snap Flash Animation on Drop */
+.grid-cell.snap-placed-flash {
+  animation: snapPlacedFlashAnim 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes snapPlacedFlashAnim {
+  0% {
+    background-color: #22c55e !important;
+    outline: 3px solid #16a34a !important;
+    transform: scale(1.08);
+    z-index: 10;
+  }
+  50% {
+    background-color: rgba(34, 197, 94, 0.3) !important;
+    outline: 2px solid #22c55e !important;
+  }
+  100% {
+    background-color: transparent;
+    outline: none;
+    transform: scale(1);
+    z-index: 2;
+  }
+}
+
+/* Dark Mode Adaptations for Edit Mode & Snap Guides */
+body.dark .edit-mode-toolbar {
+  background: #1e293b;
+  border-bottom-color: #334155;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .edit-toolbar-title {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+body.dark .btn-snap-toggle {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+body.dark .btn-snap-toggle:hover {
+  background: #1e293b;
+  border-color: #60a5fa;
+  color: #93c5fd;
+}
+
+body.dark .btn-snap-toggle.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+body.dark .edit-hud-pill {
+  background: #0f172a;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+body.dark .edit-hud-pill .hud-val {
+  color: #f8fafc;
+}
+
+body.dark.mode-edit .factory-grid {
+  background: #0f172a;
+}
+
+body.dark .grid-cell.snap-active-cell {
+  background: rgba(59, 130, 246, 0.28) !important;
+  outline-color: #60a5fa !important;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.5) !important;
+}
+
+body.dark .grid-cell.snap-guide-row,
+body.dark .grid-cell.snap-guide-col {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+
 /* Modals & Scroll Lock */
 html:has(.modal-overlay.active),
 body:has(.modal-overlay.active),

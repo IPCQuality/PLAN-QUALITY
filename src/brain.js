@@ -514,7 +514,7 @@ export const rule = {
       } else if (typeof configOrCoreCount.core === "number" && configOrCoreCount.core > 0) {
         coreCnt = configOrCoreCount.core;
       } else if (typeof configOrCoreCount.total_core === "number" && configOrCoreCount.total_core > 0) {
-        coreCnt = configOrCoreCount.total_core;
+        coreCnt = Math.max(0, configOrCoreCount.total_core - (otCnt + wwCnt));
       }
 
       if (Array.isArray(configOrCoreCount.otNames) && configOrCoreCount.otNames.length > 0) {
@@ -1139,7 +1139,7 @@ export const BrainAI = {
     } else if (typeof config.core === "number" && config.core > 0) {
       coreNum = config.core;
     } else if (typeof config.total_core === "number" && config.total_core > 0) {
-      coreNum = config.total_core;
+      coreNum = Math.max(0, config.total_core - (otNum + wwNum));
     }
 
     if (Array.isArray(config.otNames) && config.otNames.length > 0) {
