@@ -515,7 +515,7 @@
         mapData.lines = mapData.lines || [];
 
         calculateGridBounds();
-        initializeStatuses();
+        initializeStatuses(false);
         renderWorkstationButtons();
         renderGrid();
         resetZoom(false);
@@ -625,7 +625,7 @@
         return [];
       }
 
-      function initializeStatuses() {
+      function initializeStatuses(shouldRenderGrid = true) {
         try {
           const raw = sessionStorage.getItem("active_planning") || localStorage.getItem("last_active_planning");
           activePlanning = raw ? JSON.parse(raw) : null;
@@ -683,7 +683,9 @@
           }
         }
 
-        renderGrid();
+        if (shouldRenderGrid && typeof renderGrid === "function") {
+          renderGrid();
+        }
       }
 
       let currentWsGroups = [];
@@ -691,74 +693,103 @@
       function renderWorkstationButtons() {
         const container = document.getElementById("wsBtnContainer");
         if (!container) return;
-        container.innerHTML = "";
 
-        const baseGroups = [
-          {
-            title: "LINE A",
-            keys: ["0A", "1A", "2A", "3A", "4A", "5A", "6A", "7A", "8A", "9A", "10A"],
-          },
-          {
-            title: "LINE B",
-            keys: ["0B", "1B", "2B", "3B", "4B", "5B", "6B", "7B", "8B", "9B", "10B", "11B"],
-          },
-          {
-            title: "LINE C",
-            keys: ["1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C"],
-          },
-          { title: "LAINNYA", keys: ["WW", "OT"] },
-        ];
+        try {
+          const baseGroups = [
+            {
+              title: "LINE A",
+              keys: ["0A", "1A", "2A", "3A", "4A", "5A", "6A", "7A", "8A", "9A", "10A"],
+            },
+            {
+              title: "LINE B",
+              keys: ["0B", "1B", "2B", "3B", "4B", "5B", "6B", "7B", "8B", "9B", "10B", "11B"],
+            },
+            {
+              title: "LINE C",
+              keys: ["1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C"],
+            },
+            { title: "LAINNYA", keys: ["WW", "OT"] },
+          ];
 
-        const knownKeys = new Set(baseGroups.flatMap((g) => g.keys));
-        if (mapData && Array.isArray(mapData.machines)) {
-          mapData.machines.forEach((m) => {
-            const wsKey = m.workstation || m.ws || "";
-            if (wsKey && !knownKeys.has(wsKey.toUpperCase())) {
-              baseGroups[3].keys.push(wsKey.toUpperCase());
-              knownKeys.add(wsKey.toUpperCase());
-            }
+          const knownKeys = new Set(baseGroups.flatMap((g) => g.keys.map((k) => String(k).toUpperCase())));
+
+          if (mapData && Array.isArray(mapData.machines)) {
+            mapData.machines.forEach((m) => {
+              if (!m) return;
+              let wsKey = "";
+              if (m.workstation) wsKey = String(m.workstation);
+              else if (m.ws) wsKey = String(m.ws);
+              else {
+                const brain = typeof window.BrainAI !== "undefined" ? window.BrainAI : (typeof BrainAI !== "undefined" ? BrainAI : null);
+                if (brain && typeof brain.getWorkstationKey === "function") {
+                  try { wsKey = brain.getWorkstationKey(m); } catch (e) {}
+                }
+              }
+              if (!wsKey) {
+                const mId = String(m.id || "");
+                const idMatch = mId.match(/M-(\d+[A-C]|WW|OT)-/i) || mId.match(/(\d+[A-C]|WW|OT)/i);
+                if (idMatch) wsKey = idMatch[1];
+              }
+
+              const normalizedKey = String(wsKey || "").trim().toUpperCase();
+              if (normalizedKey && !knownKeys.has(normalizedKey)) {
+                baseGroups[3].keys.push(normalizedKey);
+                knownKeys.add(normalizedKey);
+              }
+            });
+          }
+
+          currentWsGroups = baseGroups;
+
+          const fragment = document.createDocumentFragment();
+
+          baseGroups.forEach((g) => {
+            let box = document.createElement("div");
+            box.className = "ws-group";
+            
+            let titleDiv = document.createElement("div");
+            titleDiv.className = "ws-group-title";
+            titleDiv.innerHTML = `
+              <span>${g.title}</span>
+              <button class="ws-group-toggle-btn" type="button" onclick="toggleGroupWorkstations('${g.title}')" title="Sakelar status untuk semua mesin di ${g.title}">Semua</button>
+            `;
+            box.appendChild(titleDiv);
+
+            let btns = document.createElement("div");
+            btns.className = "ws-group-buttons";
+            g.keys.forEach((k) => {
+              let b = document.createElement("button");
+              b.className = "ws-btn";
+              b.innerText = k;
+              b.id = "ws-btn-" + k;
+              b.onclick = () => toggleWorkstation(k);
+              btns.appendChild(b);
+            });
+            box.appendChild(btns);
+            fragment.appendChild(box);
           });
+
+          // Mengganti isi kontainer hanya ketika seluruh elemen berhasil dibangun (mencegah kontainer kosong akibat error)
+          container.innerHTML = "";
+          container.appendChild(fragment);
+          updateStatsAndButtons();
+        } catch (err) {
+          console.error("renderWorkstationButtons error:", err);
         }
-
-        currentWsGroups = baseGroups;
-
-        baseGroups.forEach((g) => {
-          let box = document.createElement("div");
-          box.className = "ws-group";
-          
-          let titleDiv = document.createElement("div");
-          titleDiv.className = "ws-group-title";
-          titleDiv.innerHTML = `
-            <span>${g.title}</span>
-            <button class="ws-group-toggle-btn" type="button" onclick="toggleGroupWorkstations('${g.title}')" title="Sakelar status untuk semua mesin di ${g.title}">Semua</button>
-          `;
-          box.appendChild(titleDiv);
-
-          let btns = document.createElement("div");
-          btns.className = "ws-group-buttons";
-          g.keys.forEach((k) => {
-            let b = document.createElement("button");
-            b.className = "ws-btn";
-            b.innerText = k;
-            b.id = "ws-btn-" + k;
-            b.onclick = () => toggleWorkstation(k);
-            btns.appendChild(b);
-          });
-          box.appendChild(btns);
-          container.appendChild(box);
-        });
-        updateStatsAndButtons();
       }
 
       function toggleGroupWorkstations(groupTitle) {
         confirmPlanResetIfNeeded(() => {
+          if (!currentWsGroups || currentWsGroups.length === 0) {
+            renderWorkstationButtons();
+          }
           const group = (currentWsGroups || []).find((g) => g.title === groupTitle);
           if (!group) return;
           const macs = group.keys.flatMap((k) => getMachinesByWs(k));
           if (macs.length === 0) return;
 
-          let tgt = macs.every((m) => m.status === "RUNNING") ? "OFF" : "RUNNING";
-          macs.forEach((m) => (m.status = tgt));
+          let tgt = macs.every((m) => m && m.status === "RUNNING") ? "OFF" : "RUNNING";
+          macs.forEach((m) => { if (m) m.status = tgt; });
           clearActivePlanning();
           updateBatchNodesVisual(macs, "machine");
         });
@@ -768,6 +799,7 @@
         if (!wsKey || !mapData || !mapData.machines) return [];
         const targetWs = String(wsKey).trim().toUpperCase();
         return mapData.machines.filter((m) => {
+          if (!m) return false;
           // 1. Cek langsung properti workstation pada objek mesin
           if (
             m.workstation &&
@@ -783,8 +815,10 @@
           // 3. Gunakan BrainAI.getWorkstationKey jika ada
           const brain = typeof window.BrainAI !== "undefined" ? window.BrainAI : (typeof BrainAI !== "undefined" ? BrainAI : null);
           if (brain && typeof brain.getWorkstationKey === "function") {
-            const keyObj = brain.getWorkstationKey(m);
-            if (keyObj && String(keyObj).trim().toUpperCase() === targetWs) return true;
+            try {
+              const keyObj = brain.getWorkstationKey(m);
+              if (keyObj && String(keyObj).trim().toUpperCase() === targetWs) return true;
+            } catch (e) {}
           }
           return false;
         });
@@ -793,17 +827,25 @@
       function updateStatsAndButtons() {
         const statMachineEl = document.getElementById("statMachine");
         const statCqiEl = document.getElementById("statCqi");
-        if (statMachineEl) {
-          statMachineEl.innerText = `${mapData.machines.filter((m) => m.status === "RUNNING").length} / ${mapData.machines.length}`;
+        if (statMachineEl && mapData && Array.isArray(mapData.machines)) {
+          statMachineEl.innerText = `${mapData.machines.filter((m) => m && m.status === "RUNNING").length} / ${mapData.machines.length}`;
         }
-        if (statCqiEl) {
-          statCqiEl.innerText = `${mapData.cqis.filter((c) => c.status === "READY").length} / ${mapData.cqis.length}`;
+        if (statCqiEl && mapData && Array.isArray(mapData.cqis)) {
+          statCqiEl.innerText = `${mapData.cqis.filter((c) => c && c.status === "READY").length} / ${mapData.cqis.length}`;
+        }
+
+        // Self-Healing: Jika kontainer tombol WS belum terisi / hilang, otomatis re-render
+        const container = document.getElementById("wsBtnContainer");
+        if (container && (!container.firstElementChild || container.children.length === 0)) {
+          renderWorkstationButtons();
+          return;
         }
 
         const wsKeys = new Set();
         (currentWsGroups || []).forEach((g) => g.keys.forEach((k) => wsKeys.add(k)));
         if (mapData && Array.isArray(mapData.machines)) {
           mapData.machines.forEach((m) => {
+            if (!m) return;
             const wsVal = m.workstation || m.ws;
             if (wsVal) wsKeys.add(String(wsVal).toUpperCase());
           });
@@ -819,7 +861,7 @@
             return;
           }
 
-          const runningCount = macs.filter((m) => m.status === "RUNNING").length;
+          const runningCount = macs.filter((m) => m && m.status === "RUNNING").length;
           if (runningCount === macs.length) {
             b.className = "ws-btn active-all";
             b.title = `WS ${k}: ${runningCount}/${macs.length} Mesin Running (Klik untuk Sakelar)`;
@@ -938,6 +980,12 @@
           } else {
             btn.classList.remove("active");
           }
+        }
+        const wsCont = document.getElementById("wsBtnContainer");
+        if (wsCont && (!wsCont.firstElementChild || wsCont.children.length === 0)) {
+          renderWorkstationButtons();
+        } else {
+          updateStatsAndButtons();
         }
         setTimeout(() => applyZoom(false), 310);
       }
@@ -1952,6 +2000,7 @@
             }
             clearActivePlanning();
             calculateGridBounds();
+            renderWorkstationButtons();
             renderGrid();
             saveInternalStorage();
             showToast(`${typeLabel} "${objName}" berhasil dihapus`, "info");
@@ -2098,6 +2147,7 @@
         closeNodeModal();
         clearActivePlanning();
         calculateGridBounds();
+        renderWorkstationButtons();
         renderGrid();
         saveInternalStorage();
       }
@@ -2287,38 +2337,35 @@
       // Sinkronisasi real-time peta layout saat alokasi atau data diubah di config.html / tab lain
       window.addEventListener("storage", (e) => {
         if (!e.key || e.key.includes("plan") || e.key.includes("planning") || e.key.includes("map") || e.key.includes("factory") || e.key === "app_theme") {
-          initializeStatuses();
+          initializeStatuses(false);
+          renderWorkstationButtons();
           if (typeof renderGrid === "function") {
             renderGrid();
           }
-          if (typeof updateStats === "function") {
-            updateStats();
-          }
+          updateStatsAndButtons();
         }
       });
 
       // Pastikan saat kembali dari config.html atau saat tab mendapatkan fokus, layout auto-fit dan status tersinkronisasi
       window.addEventListener("pageshow", () => {
-        initializeStatuses();
+        initializeStatuses(false);
+        renderWorkstationButtons();
         if (typeof renderGrid === "function") {
           renderGrid();
         }
-        if (typeof updateStats === "function") {
-          updateStats();
-        }
+        updateStatsAndButtons();
         resetZoom(false);
         setTimeout(() => resetZoom(false), 50);
         setTimeout(() => resetZoom(false), 200);
       });
 
       window.addEventListener("focus", () => {
-        initializeStatuses();
+        initializeStatuses(false);
+        renderWorkstationButtons();
         if (typeof renderGrid === "function") {
           renderGrid();
         }
-        if (typeof updateStats === "function") {
-          updateStats();
-        }
+        updateStatsAndButtons();
         resetZoom(false);
         setTimeout(() => resetZoom(false), 80);
       });
@@ -2377,6 +2424,7 @@
       loadMap();
 
       // Ekspor fungsi global untuk event onclick di HTML & interoperabilitas
+      window.renderWorkstationButtons = renderWorkstationButtons;
       window.updateStats = updateStatsAndButtons;
       window.updateStatsAndButtons = updateStatsAndButtons;
       window.goToConfig = goToConfig;
