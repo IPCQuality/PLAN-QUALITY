@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MAP LIQUID 3</title>
+    <meta name="description" content="AI Assisted CQI Machine Planning and Shift Allocation System" />
+    <meta property="og:title" content="MAP LIQUID 3" />
+    <meta property="og:description" content="AI Assisted CQI Machine Planning and Shift Allocation System" />
     <link rel="manifest" href="/pwa/manifest.json" />
     <meta name="theme-color" content="#0f172a" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -293,7 +296,7 @@
           class="zoom-btn"
           id="zoomResetBtn"
           onclick="resetZoom()"
-          title="Kembalikan Tampilan"
+          title="Auto Fill Layar (↺)"
         >
           ↺
         </button>
@@ -400,6 +403,9 @@
         initialFitZoom = null,
         showHeatmap = false,
         activePlanning = null;
+      let assignments = new Map(),
+        plannedCqiIds = new Set(),
+        cqiShortageMap = new Map();
       let editMode = false,
         draggedNode = null,
         snapToGrid = true,
@@ -529,7 +535,8 @@
         calculateGridBounds();
         initializeStatuses();
         renderWorkstationButtons();
-        applyZoom(true);
+        renderGrid();
+        resetZoom(false);
       }
 
       function calculateGridBounds() {
@@ -620,6 +627,9 @@
 
       function clearActivePlanning() {
         activePlanning = null;
+        assignments = new Map();
+        plannedCqiIds = new Set();
+        cqiShortageMap = new Map();
         sessionStorage.removeItem("active_planning");
         localStorage.removeItem("last_active_planning");
         sessionStorage.removeItem("planning_state");
@@ -627,8 +637,11 @@
         showHeatmap = false;
         const btn = document.getElementById("menuHeatmapBtn");
         if (btn) {
-          btn.innerText = "Heatmap";
-          btn.className = "btn";
+          btn.innerText = "Heatmap Nonaktif";
+          btn.className = "btn btn-danger";
+        }
+        if (typeof renderGrid === "function") {
+          renderGrid();
         }
       }
 
@@ -711,61 +724,66 @@
             btn.innerText = "Heatmap Aktif";
             btn.className = "btn btn-success";
           }
+        } else {
+          showHeatmap = false;
+          const btn = document.getElementById("menuHeatmapBtn");
+          if (btn) {
+            btn.innerText = "Heatmap Nonaktif";
+            btn.className = "btn btn-danger";
+          }
         }
 
         renderGrid();
       }
+
+      let currentWsGroups = [];
 
       function renderWorkstationButtons() {
         const container = document.getElementById("wsBtnContainer");
         if (!container) return;
         container.innerHTML = "";
 
-        const groups = [
+        const baseGroups = [
           {
             title: "LINE A",
-            keys: [
-              "0A",
-              "1A",
-              "2A",
-              "3A",
-              "4A",
-              "5A",
-              "6A",
-              "7A",
-              "8A",
-              "9A",
-              "10A",
-            ],
+            keys: ["0A", "1A", "2A", "3A", "4A", "5A", "6A", "7A", "8A", "9A", "10A"],
           },
           {
             title: "LINE B",
-            keys: [
-              "0B",
-              "1B",
-              "2B",
-              "3B",
-              "4B",
-              "5B",
-              "6B",
-              "7B",
-              "8B",
-              "9B",
-              "10B",
-              "11B",
-            ],
+            keys: ["0B", "1B", "2B", "3B", "4B", "5B", "6B", "7B", "8B", "9B", "10B", "11B"],
           },
           {
             title: "LINE C",
-            keys: ["1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C"],
+            keys: ["0C", "1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C"],
           },
           { title: "LAINNYA", keys: ["WW", "OT"] },
         ];
 
-        groups.forEach((g) => {
+        const knownKeys = new Set(baseGroups.flatMap((g) => g.keys));
+        if (mapData && Array.isArray(mapData.machines)) {
+          mapData.machines.forEach((m) => {
+            const wsKey = m.workstation || m.ws || "";
+            if (wsKey && !knownKeys.has(wsKey.toUpperCase())) {
+              baseGroups[3].keys.push(wsKey.toUpperCase());
+              knownKeys.add(wsKey.toUpperCase());
+            }
+          });
+        }
+
+        currentWsGroups = baseGroups;
+
+        baseGroups.forEach((g) => {
           let box = document.createElement("div");
           box.className = "ws-group";
-          box.innerHTML = `<div class="ws-group-title">${g.title}</div>`;
+          
+          let titleDiv = document.createElement("div");
+          titleDiv.className = "ws-group-title";
+          titleDiv.innerHTML = `
+            <span>${g.title}</span>
+            <button class="ws-group-toggle-btn" onclick="toggleGroupWorkstations('${g.title}')" title="Sakelar status untuk semua mesin di ${g.title}">All</button>
+          `;
+          box.appendChild(titleDiv);
+
           let btns = document.createElement("div");
           btns.className = "ws-group-buttons";
           g.keys.forEach((k) => {
@@ -780,6 +798,20 @@
           container.appendChild(box);
         });
         updateStatsAndButtons();
+      }
+
+      function toggleGroupWorkstations(groupTitle) {
+        confirmPlanResetIfNeeded(() => {
+          const group = (currentWsGroups || []).find((g) => g.title === groupTitle);
+          if (!group) return;
+          const macs = group.keys.flatMap((k) => getMachinesByWs(k));
+          if (macs.length === 0) return;
+
+          let tgt = macs.every((m) => m.status === "RUNNING") ? "OFF" : "RUNNING";
+          macs.forEach((m) => (m.status = tgt));
+          clearActivePlanning();
+          updateBatchNodesVisual(macs, "machine");
+        });
       }
 
       function getMachinesByWs(wsKey) {
@@ -818,64 +850,76 @@
           statCqiEl.innerText = `${mapData.cqis.filter((c) => c.status === "READY").length} / ${mapData.cqis.length}`;
         }
 
-        const wsKeys = [
-          "0A",
-          "1A",
-          "2A",
-          "3A",
-          "4A",
-          "5A",
-          "6A",
-          "7A",
-          "8A",
-          "9A",
-          "10A",
-          "0B",
-          "1B",
-          "2B",
-          "3B",
-          "4B",
-          "5B",
-          "6B",
-          "7B",
-          "8B",
-          "9B",
-          "10B",
-          "11B",
-          "1C",
-          "2C",
-          "3C",
-          "4C",
-          "5C",
-          "6C",
-          "7C",
-          "8C",
-          "9C",
-          "10C",
-          "WW",
-          "OT",
-        ];
+        const wsKeys = new Set();
+        (currentWsGroups || []).forEach((g) => g.keys.forEach((k) => wsKeys.add(k)));
+        if (mapData && Array.isArray(mapData.machines)) {
+          mapData.machines.forEach((m) => {
+            const wsVal = m.workstation || m.ws;
+            if (wsVal) wsKeys.add(String(wsVal).toUpperCase());
+          });
+        }
 
-        for (let k of wsKeys) {
+        wsKeys.forEach((k) => {
           let b = document.getElementById("ws-btn-" + k);
-          if (!b) continue;
+          if (!b) return;
           let macs = getMachinesByWs(k);
           if (macs.length === 0) {
-            b.className = "ws-btn";
-            continue;
+            b.className = "ws-btn empty-ws";
+            b.title = `WS ${k}: Tidak ada mesin di map`;
+            return;
           }
 
-          const runningCount = macs.filter(
-            (m) => m.status === "RUNNING",
-          ).length;
+          const runningCount = macs.filter((m) => m.status === "RUNNING").length;
           if (runningCount === macs.length) {
             b.className = "ws-btn active-all";
+            b.title = `WS ${k}: ${runningCount}/${macs.length} Mesin Running (Klik untuk Sakelar)`;
           } else if (runningCount > 0) {
             b.className = "ws-btn active-partial";
+            b.title = `WS ${k}: ${runningCount}/${macs.length} Mesin Running (Klik untuk Sakelar)`;
           } else {
             b.className = "ws-btn";
+            b.title = `WS ${k}: 0/${macs.length} Mesin Running (Klik untuk Sakelar)`;
           }
+        });
+      }
+
+      function updateSingleNodeVisual(node, type) {
+        const el = document.getElementById(node.id);
+        if (el) {
+          el.classList.remove("RUNNING", "OFF", "READY", "planned", "planned-target", "cqi-shortage", "status-pop");
+          el.classList.add(node.status || "OFF");
+          
+          if (type === "machine") {
+            let planCqi = assignments.get(String(node.id || "").trim()) || assignments.get(String(node.name || "").trim());
+            if (planCqi) el.classList.add("planned");
+          } else if (type === "cqi") {
+            if (plannedCqiIds.has(node.id) || plannedCqiIds.has(node.name)) el.classList.add("planned-target");
+          }
+
+          void el.offsetWidth;
+          el.classList.add("status-pop");
+          setTimeout(() => {
+            if (el) el.classList.remove("status-pop");
+          }, 350);
         }
+      }
+
+      function updateBatchNodesVisual(nodes, type) {
+        nodes.forEach((n, idx) => {
+          const el = document.getElementById(n.id);
+          if (el) {
+            el.classList.remove("RUNNING", "OFF", "READY", "planned", "planned-target", "cqi-shortage", "status-pop");
+            el.classList.add(n.status || "OFF");
+            setTimeout(() => {
+              if (el) {
+                el.classList.add("status-pop");
+                setTimeout(() => el.classList.remove("status-pop"), 320);
+              }
+            }, Math.min(idx * 8, 120));
+          }
+        });
+        updateStatsAndButtons();
+        saveInternalStorage();
       }
 
       function toggleWorkstation(wsKey) {
@@ -886,8 +930,7 @@
           let tgt = macs.every((m) => m.status === "RUNNING") ? "OFF" : "RUNNING";
           macs.forEach((m) => (m.status = tgt));
           clearActivePlanning();
-          renderGrid();
-          saveInternalStorage();
+          updateBatchNodesVisual(macs, "machine");
         });
       }
 
@@ -896,32 +939,28 @@
         confirmPlanResetIfNeeded(() => {
           mapData.machines.forEach((m) => (m.status = "RUNNING"));
           clearActivePlanning();
-          renderGrid();
-          saveInternalStorage();
+          updateBatchNodesVisual(mapData.machines, "machine");
         });
       }
       function setAllMachinesOff() {
         confirmPlanResetIfNeeded(() => {
           mapData.machines.forEach((m) => (m.status = "OFF"));
           clearActivePlanning();
-          renderGrid();
-          saveInternalStorage();
+          updateBatchNodesVisual(mapData.machines, "machine");
         });
       }
       function setAllCqiReady() {
         confirmPlanResetIfNeeded(() => {
           mapData.cqis.forEach((c) => (c.status = "READY"));
           clearActivePlanning();
-          renderGrid();
-          saveInternalStorage();
+          updateBatchNodesVisual(mapData.cqis, "cqi");
         });
       }
       function setAllCqiOff() {
         confirmPlanResetIfNeeded(() => {
           mapData.cqis.forEach((c) => (c.status = "OFF"));
           clearActivePlanning();
-          renderGrid();
-          saveInternalStorage();
+          updateBatchNodesVisual(mapData.cqis, "cqi");
         });
       }
 
@@ -957,6 +996,12 @@
         const activeSlots = getActivePlanningSlots();
         if (!activePlanning || activeSlots.length === 0) {
           showToast("Belum ada perencanaan aktif dari halaman Konfigurasi.", "info");
+          showHeatmap = false;
+          const btn = document.getElementById("menuHeatmapBtn");
+          if (btn) {
+            btn.innerText = "Heatmap Nonaktif";
+            btn.className = "btn btn-danger";
+          }
           return;
         }
         showHeatmap = !showHeatmap;
@@ -976,29 +1021,18 @@
 
       function toggleSnapToGrid() {
         snapToGrid = !snapToGrid;
-        localStorage.setItem("map_snap_to_grid", snapToGrid ? "true" : "false");
-
-        const snapBtn = document.getElementById("snapToggleBtn");
-        const snapLabel = document.getElementById("snapToggleLabel");
-        const modalSnapStatus = document.getElementById("modalSnapStatus");
-
-        if (snapBtn) {
-          if (snapToGrid) snapBtn.classList.add("active");
-          else snapBtn.classList.remove("active");
-        }
-        if (snapLabel) {
-          snapLabel.innerText = snapToGrid ? "Snap-to-Grid: AKTIF" : "Snap-to-Grid: NONAKTIF";
-        }
-        if (modalSnapStatus) {
-          modalSnapStatus.innerText = snapToGrid ? "Aktif" : "Nonaktif";
-          modalSnapStatus.style.color = snapToGrid ? "var(--primary)" : "var(--text-muted)";
-        }
-
-        if (snapToGrid) {
-          showToast("Snap-to-Grid Aktif: Objek otomatis terkunci ke sel grid presisi", "success");
-        } else {
-          clearSnapGuides();
-          showToast("Snap-to-Grid Nonaktif: Mode bebas", "info");
+        const btn = document.getElementById("btnToggleSnap");
+        const txt = document.getElementById("snapToggleText");
+        if (btn && txt) {
+          if (snapToGrid) {
+            btn.classList.add("active");
+            txt.innerText = "Snap-to-Grid: AKTIF";
+            showToast("Snap-to-Grid Aktif: Objek otomatis terkunci ke sel grid presisi", "success");
+          } else {
+            btn.classList.remove("active");
+            txt.innerText = "Snap-to-Grid: NONAKTIF";
+            showToast("Snap-to-Grid Nonaktif: Mode bebas", "info");
+          }
         }
       }
 
@@ -1010,8 +1044,6 @@
         document.querySelectorAll(".snap-header-active").forEach((el) => el.classList.remove("snap-header-active"));
         document.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over"));
         hideSnapBadge();
-        const hud = document.getElementById("snapHudCoords");
-        if (hud && editMode) hud.innerText = "-";
       }
 
       function hideSnapBadge() {
@@ -1021,28 +1053,28 @@
 
       function updateSnapBadge(e, r, c, name = "") {
         const badge = document.getElementById("snapDragBadge");
-        const coordEl = document.getElementById("snapDragBadgeCoord");
-        const nameEl = document.getElementById("snapDragNodeName");
+        const coordEl = document.getElementById("snapBadgeCoord");
+        const textEl = document.getElementById("snapBadgeText");
         if (!badge || !coordEl) return;
 
         badge.classList.add("visible");
         badge.style.left = `${e.clientX}px`;
         badge.style.top = `${e.clientY}px`;
-        coordEl.innerText = `R${r}, C${c}`;
-        if (nameEl) {
-          nameEl.innerText = name || "Object";
+        coordEl.innerText = `Row ${r} : Col ${c}`;
+        if (textEl) {
+          textEl.innerText = name ? `Snap [${name}]:` : "Snap:";
         }
 
-        const hud = document.getElementById("snapHudCoords");
+        const hud = document.getElementById("hudCoordsText");
         if (hud) {
-          hud.innerText = `Row ${r}, Col ${c} ${name ? '(' + name + ')' : ''}`;
+          hud.innerText = `Snap: Row ${r}, Col ${c} ${name ? '(' + name + ')' : ''}`;
         }
       }
 
       function updateCursorHud(r, c) {
         if (editMode && !draggedNode) {
-          const hud = document.getElementById("snapHudCoords");
-          if (hud) hud.innerText = `Row ${r}, Col ${c}`;
+          const hud = document.getElementById("hudCoordsText");
+          if (hud) hud.innerText = `Kursor: Row ${r}, Col ${c}`;
         }
       }
 
@@ -1053,18 +1085,11 @@
         const snappedC = snapToGrid ? Math.max(1, Math.min(totalCols, c)) : c;
 
         let objName = "";
-        let width = 1, height = 1;
         if (draggedNode && draggedNode.type) {
           const list = mapData[draggedNode.type + "s"];
           if (list) {
             const obj = list.find((x) => x.id === draggedNode.id);
-            if (obj) {
-              objName = obj.name || obj.id;
-              if (draggedNode.type === "line") {
-                width = obj.width || 4;
-                height = obj.height || 4;
-              }
-            }
+            if (obj) objName = obj.name || obj.id;
           }
         }
 
@@ -1094,15 +1119,11 @@
 
         currentSnapCell = { row: snappedR, col: snappedC };
 
-        // Highlight target snapped cell(s)
-        for (let ri = snappedR; ri < Math.min(totalRows + 1, snappedR + height); ri++) {
-          for (let ci = snappedC; ci < Math.min(totalCols + 1, snappedC + width); ci++) {
-            const targetCell = document.querySelector(
-              `.grid-cell[data-row="${ri}"][data-col="${ci}"]`,
-            );
-            if (targetCell) targetCell.classList.add("snap-active-cell");
-          }
-        }
+        // Highlight target snapped cell
+        const targetCell = document.querySelector(
+          `.grid-cell[data-row="${snappedR}"][data-col="${snappedC}"]`,
+        );
+        if (targetCell) targetCell.classList.add("snap-active-cell");
 
         // Highlight crosshairs
         document
@@ -1113,16 +1134,11 @@
           .forEach((el) => el.classList.add("snap-guide-col"));
 
         // Highlight Excel header indicators
-        for (let ri = snappedR; ri < Math.min(totalRows + 1, snappedR + height); ri++) {
-          document
-            .querySelectorAll(`.excel-header[data-header-row="${ri}"]`)
-            .forEach((el) => el.classList.add("snap-header-active"));
-        }
-        for (let ci = snappedC; ci < Math.min(totalCols + 1, snappedC + width); ci++) {
-          document
-            .querySelectorAll(`.excel-header[data-header-col="${ci}"]`)
-            .forEach((el) => el.classList.add("snap-header-active"));
-        }
+        document
+          .querySelectorAll(
+            `.excel-header[data-header-row="${snappedR}"], .excel-header[data-header-col="${snappedC}"]`,
+          )
+          .forEach((el) => el.classList.add("snap-header-active"));
       }
 
       function handleDragLeaveSnap(r, c, cell, e) {
@@ -1190,7 +1206,8 @@
             node.status = node.status === "READY" ? "OFF" : "READY";
             clearActivePlanning();
           }
-          renderGrid();
+          updateSingleNodeVisual(node, type);
+          updateStatsAndButtons();
           saveInternalStorage();
         });
       }
@@ -1262,6 +1279,14 @@
         let heatmapState = null;
         const brainInstance = typeof window.BrainAI !== "undefined" ? window.BrainAI : (typeof BrainAI !== "undefined" ? BrainAI : null);
         const activeSlots = getActivePlanningSlots();
+        const heatmapBtn = document.getElementById("menuHeatmapBtn");
+        if (activeSlots.length === 0) {
+          showHeatmap = false;
+          if (heatmapBtn) {
+            heatmapBtn.innerText = "Heatmap Nonaktif";
+            heatmapBtn.className = "btn btn-danger";
+          }
+        }
         if (
           activeSlots.length > 0 &&
           brainInstance &&
@@ -1340,8 +1365,9 @@
           });
         }
 
-        const assignments = new Map();
-        const plannedCqiIds = new Set();
+        assignments = new Map();
+        plannedCqiIds = new Set();
+        cqiShortageMap = new Map();
         let cqiColorMap = {};
 
         if (heatmapState && heatmapState.cqiColorMap) {
@@ -1349,6 +1375,24 @@
         }
 
         if (activeSlots.length > 0) {
+          if (typeof BrainAI !== "undefined" && typeof BrainAI.getCqiShortage === "function") {
+            activeSlots.forEach((s) => {
+              const shortage = BrainAI.getCqiShortage(s);
+              if (shortage) {
+                const cqiObj = s.cqi || (s.name ? { id: s.name, name: s.name } : null);
+                if (cqiObj) {
+                  if (cqiObj.id) cqiShortageMap.set(String(cqiObj.id).trim(), shortage);
+                  if (cqiObj.name) cqiShortageMap.set(String(cqiObj.name).trim(), shortage);
+                }
+                const cqiNum = BrainAI.getCqiNumber(s);
+                if (cqiNum) {
+                  cqiShortageMap.set(`CQI ${cqiNum}`, shortage);
+                  cqiShortageMap.set(`CQI-${cqiNum}`, shortage);
+                }
+              }
+            });
+          }
+
           const fallbackColors = [
             "#be123c",
             "#ea580c",
@@ -1420,16 +1464,35 @@
               }
             }
           } else if (type === "cqi") {
-            if (plannedCqiIds.has(node.id)) {
+            const isPlanned = plannedCqiIds.has(node.id) || plannedCqiIds.has(node.name);
+            const shortage = cqiShortageMap.get(String(node.id || "").trim()) || cqiShortageMap.get(String(node.name || "").trim());
+
+            if (isPlanned) {
               div.classList.add("planned-target");
               let nodeColor = cqiColorMap[node.id] || cqiColorMap[node.name] || "#16a34a";
+              if (shortage) {
+                div.classList.add("cqi-shortage");
+                div.title = shortage.missingCore 
+                  ? `Peringatan: Meja ${node.name} kekurangan personil Core!` 
+                  : `Peringatan: Meja ${node.name} kekurangan ${shortage.missingSupport} (LS)!`;
+              }
               if (showHeatmap && !editMode) {
                 div.style.backgroundColor = nodeColor;
-                div.style.borderColor = nodeColor;
+                div.style.borderColor = shortage ? "#d97706" : nodeColor;
                 div.style.color = "#ffffff";
                 div.style.fontWeight = "800";
-                div.style.boxShadow = `0 0 0 2px #ffffff, 0 4px 14px ${nodeColor}aa`;
-                div.innerHTML = `<span style="color:#ffffff; font-weight:800;">${node.name}</span>`;
+                div.style.boxShadow = shortage 
+                  ? `0 0 0 2px #ffffff, 0 0 0 4px #f59e0b, 0 4px 14px rgba(245, 158, 11, 0.5)`
+                  : `0 0 0 2px #ffffff, 0 4px 14px ${nodeColor}aa`;
+                
+                let shortageBadge = "";
+                if (shortage) {
+                  shortageBadge = `<span class="heatmap-badge" style="background:#fef3c7; color:#b45309; border:1px solid #f59e0b; font-weight:900;">${shortage.missingCore ? 'Kurang Core' : `-${shortage.missingSupport} LS`}</span>`;
+                }
+                div.innerHTML = `<span style="color:#ffffff; font-weight:800;">${node.name}</span>${shortageBadge}`;
+              } else if (shortage && !editMode) {
+                let shortageBadge = `<span class="heatmap-badge" style="background:#fef3c7; color:#b45309; border:1px solid #f59e0b; font-weight:900;">${shortage.missingCore ? 'Kurang Core' : `-${shortage.missingSupport} LS`}</span>`;
+                div.innerHTML = `<span>${node.name}</span>${shortageBadge}`;
               }
             }
           }
@@ -2059,27 +2122,53 @@
         closeSettingsModal();
       }
 
-      function applyZoom(init = false) {
+      function calculateAutoFillZoom() {
+        calculateGridBounds();
         const currentGridWidth = 40 + totalCols * 78;
         const currentGridHeight = 28 + totalRows * 52;
 
-        let mx = mapViewport.clientWidth / currentGridWidth;
-        let my = mapViewport.clientHeight / currentGridHeight;
-        let fitZoom = Math.max(mx, my);
+        const vpW = (mapViewport && mapViewport.clientWidth > 0) 
+          ? mapViewport.clientWidth 
+          : (window.innerWidth - 32);
+        const vpH = (mapViewport && mapViewport.clientHeight > 0) 
+          ? mapViewport.clientHeight 
+          : (window.innerHeight - 175);
 
-        if (!isFinite(fitZoom) || fitZoom <= 0) fitZoom = 0.1;
+        const availWidth = Math.max(160, vpW - 36);
+        const availHeight = Math.max(160, vpH - 36);
+
+        const mx = availWidth / (currentGridWidth + 30);
+        const my = availHeight / (currentGridHeight + 30);
+        
+        // Auto Fill: skala map mengisi layar perangkat secara penuh dan nyaman dibaca
+        let fillZoom = Math.max(mx, my);
+
+        if (!isFinite(fillZoom) || fillZoom <= 0) fillZoom = 0.75;
+        return Math.max(0.35, Math.min(1.15, fillZoom));
+      }
+
+      function calculateFitZoom() {
+        return calculateAutoFillZoom();
+      }
+
+      function applyZoom(init = false) {
+        calculateGridBounds();
+        const currentGridWidth = 40 + totalCols * 78;
+        const currentGridHeight = 28 + totalRows * 52;
+
         if (init || currentZoom === null) {
-          currentZoom = fitZoom;
-          initialFitZoom = fitZoom;
+          const fill = calculateAutoFillZoom();
+          currentZoom = fill;
+          initialFitZoom = fill;
         }
         currentZoom = Math.max(0.1, Math.min(3, currentZoom));
 
         document.getElementById("factoryGrid").style.transform =
           `scale(${currentZoom})`;
         document.getElementById("gridWrapper").style.width =
-          `${currentGridWidth * currentZoom}px`;
+          `${(currentGridWidth + 40) * currentZoom}px`;
         document.getElementById("gridWrapper").style.height =
-          `${currentGridHeight * currentZoom}px`;
+          `${(currentGridHeight + 40) * currentZoom}px`;
 
         updateZoomButtons();
       }
@@ -2091,14 +2180,18 @@
         }
       }
 
-      function resetZoom() {
-        if (initialFitZoom) {
-          currentZoom = initialFitZoom;
-        } else {
-          currentZoom = 1;
-        }
+      function resetZoom(showFeedback = true) {
+        const fillZoom = calculateAutoFillZoom();
+        initialFitZoom = fillZoom;
+        currentZoom = fillZoom;
         applyZoom();
-        showToast("Zoom dikembalikan ke ukuran fit peta", "info");
+        if (mapViewport) {
+          mapViewport.scrollLeft = 0;
+          mapViewport.scrollTop = 0;
+        }
+        if (showFeedback) {
+          showToast("Tampilan map diatur ke Auto Fill layar perangkat", "info");
+        }
       }
 
       function zoomIn() {
@@ -2203,6 +2296,45 @@
           keys.forEach((key) => caches.delete(key));
         });
       }
+
+      // Sinkronisasi real-time peta layout saat alokasi atau data diubah di config.html / tab lain
+      window.addEventListener("storage", (e) => {
+        if (!e.key || e.key.includes("plan") || e.key.includes("planning") || e.key.includes("map") || e.key.includes("factory") || e.key === "app_theme") {
+          initializeStatuses();
+          if (typeof renderGrid === "function") {
+            renderGrid();
+          }
+          if (typeof updateStats === "function") {
+            updateStats();
+          }
+        }
+      });
+
+      // Pastikan saat kembali dari config.html atau saat tab mendapatkan fokus, layout auto-fit dan status tersinkronisasi
+      window.addEventListener("pageshow", () => {
+        initializeStatuses();
+        if (typeof renderGrid === "function") {
+          renderGrid();
+        }
+        if (typeof updateStats === "function") {
+          updateStats();
+        }
+        resetZoom(false);
+        setTimeout(() => resetZoom(false), 50);
+        setTimeout(() => resetZoom(false), 200);
+      });
+
+      window.addEventListener("focus", () => {
+        initializeStatuses();
+        if (typeof renderGrid === "function") {
+          renderGrid();
+        }
+        if (typeof updateStats === "function") {
+          updateStats();
+        }
+        resetZoom(false);
+        setTimeout(() => resetZoom(false), 80);
+      });
 
       loadMap();
 

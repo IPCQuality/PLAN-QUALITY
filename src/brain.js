@@ -216,7 +216,7 @@ export const rule = {
         maxCoreOnly: 4,
         max1Nc: 7,
         max2Nc: 7,
-        absoluteMax: 7,
+        absoluteMax: 8,
         name: "WW_CQI24"
       };
     }
@@ -225,8 +225,8 @@ export const rule = {
       return {
         maxCoreOnly: 5,
         max1Nc: 7,
-        max2Nc: 10,
-        absoluteMax: 10,
+        max2Nc: 8,
+        absoluteMax: 8,
         name: "GROUP_2_POUCH_BOTOL"
       };
     }
@@ -599,12 +599,49 @@ export const rule = {
       }
     }
 
+    const shortages = [];
+    const shortageCqiMap = {};
     let totalLsShortage = 0;
+    let totalCoreShortage = 0;
 
-    slots.forEach(s => {
+    // Evaluasi kekurangan Core per-slot
+    slots.forEach((s, idx) => {
+      const cqiNum = this.getCqiNumber(s);
+      const cqiName = (s.cqi && (s.cqi.name || s.cqi.id)) || `CQI ${cqiNum}`;
+      const cqiId = (s.cqi && s.cqi.id) || `CQI-${cqiNum}`;
+      const coreNames = Array.isArray(s.coreNames) ? s.coreNames.filter(n => n && String(n).trim() !== "") : [];
+      const coreCount = typeof s.core === "number" ? s.core : coreNames.length;
+
+      if (coreCount === 0 && coreNames.length === 0) {
+        totalCoreShortage += 1;
+        const entry = {
+          slotIndex: idx,
+          cqiNum,
+          cqiName,
+          cqiId,
+          missingCore: true,
+          missingSupport: 0,
+          reqSupport: 0,
+          currentSupport: 0,
+          machineCount: (s.machines || []).length,
+          reasons: [`Belum memiliki personil Core aktif`]
+        };
+        shortages.push(entry);
+        shortageCqiMap[cqiId] = entry;
+        shortageCqiMap[cqiName] = entry;
+        shortageCqiMap[String(cqiNum)] = entry;
+      }
+    });
+
+    // Evaluasi kekurangan personil pendukung (Longshift / Non-Core) per-slot
+    const cqiLsShortageList = [];
+    slots.forEach((s, idx) => {
       const machines = s.machines || [];
       if (machines.length === 0) return;
 
+      const cqiNum = this.getCqiNumber(s);
+      const cqiName = (s.cqi && (s.cqi.name || s.cqi.id)) || `CQI ${cqiNum}`;
+      const cqiId = (s.cqi && s.cqi.id) || `CQI-${cqiNum}`;
       const capRule = this.getClusterCapacityRule(s);
       const supportCount = (s.nonCore || []).length + (s.longshift || []).length;
 
@@ -623,18 +660,121 @@ export const rule = {
       const shortage = reqSupport - supportCount;
       if (shortage > 0) {
         totalLsShortage += shortage;
+        const shortageDetail = {
+          cqiName,
+          cqiNum,
+          cqiId,
+          slotIdx: idx,
+          shortage,
+          reqSupport,
+          currentSupport: supportCount,
+          machineCount: machines.length
+        };
+        cqiLsShortageList.push(shortageDetail);
+
+        let existing = shortageCqiMap[cqiId];
+        if (!existing) {
+          existing = {
+            slotIndex: idx,
+            cqiNum,
+            cqiName,
+            cqiId,
+            missingCore: false,
+            missingSupport: shortage,
+            reqSupport,
+            currentSupport: supportCount,
+            machineCount: machines.length,
+            reasons: [`Kekurangan ${shortage} (NC/LS) untuk mengcover ${machines.length} mesin (tersedia ${supportCount} dari butuh ${reqSupport})`]
+          };
+          shortages.push(existing);
+          shortageCqiMap[cqiId] = existing;
+          shortageCqiMap[cqiName] = existing;
+          shortageCqiMap[String(cqiNum)] = existing;
+        } else {
+          existing.missingSupport = shortage;
+          existing.reqSupport = reqSupport;
+          existing.currentSupport = supportCount;
+          existing.reasons.push(`Kekurangan ${shortage} (NC/LS) untuk mengcover ${machines.length} mesin (tersedia ${supportCount} dari butuh ${reqSupport})`);
+        }
       }
     });
 
     if (totalLsShortage > 0) {
-      violations.push(`Kurang ${totalLsShortage} (LS)`);
+      violations.push(`Kurang ${totalLsShortage} (NC/LS)`);
     }
 
     return {
       valid: violations.length === 0,
       violations,
-      info
+      info,
+      shortages,
+      shortageCqiMap,
+      totalLsShortage,
+      totalCoreShortage
     };
+  },
+
+  // Helper untuk memeriksa apakah suatu slot mengalami kekurangan manpower
+  getCqiShortage(slot) {
+    if (!slot) return null;
+    const machines = slot.machines || [];
+    const coreNames = Array.isArray(slot.coreNames) ? slot.coreNames.filter(n => n && String(n).trim() !== "") : [];
+    const coreCount = typeof slot.core === "number" ? slot.core : coreNames.length;
+    const missingCore = (coreCount === 0 && coreNames.length === 0);
+
+    const capRule = this.getClusterCapacityRule(slot);
+    const supportCount = (slot.nonCore || []).length + (slot.longshift || []).length;
+    let reqSupport = 0;
+    if (machines.length > 0) {
+      if (machines.length <= capRule.maxCoreOnly) {
+        reqSupport = 0;
+      } else if (machines.length <= capRule.max1Nc) {
+        reqSupport = 1;
+      } else if (machines.length <= capRule.max2Nc) {
+        reqSupport = 2;
+      } else {
+        const excess = machines.length - capRule.max2Nc;
+        reqSupport = 2 + Math.ceil(excess / 2);
+      }
+    }
+    const missingSupport = Math.max(0, reqSupport - supportCount);
+
+    if (missingCore || missingSupport > 0) {
+      return {
+        missingCore,
+        missingSupport,
+        reqSupport,
+        currentSupport: supportCount,
+        machineCount: machines.length,
+        totalShortage: (missingCore ? 1 : 0) + missingSupport
+      };
+    }
+    return null;
+  },
+
+  isLongshiftToken(val) {
+    if (!val) return false;
+    const s = String(typeof val === "object" ? (val.name || val.id || "") : val).trim();
+    if (s === "(LS)" || s === "LS" || s === "(............)") return true;
+    return /^\(?ls\)?$/i.test(s) || /^longshift$/i.test(s);
+  },
+
+  getSlotSupportPersonnel(slot) {
+    if (!slot) return [];
+    if (Array.isArray(slot.supportPersonnel) && slot.supportPersonnel.length > 0) {
+      return slot.supportPersonnel;
+    }
+    const nc = slot.nonCore || [];
+    const ls = slot.longshift || [];
+    return nc.concat(ls);
+  },
+
+  setSlotSupportPersonnel(slot, list) {
+    if (!slot) return;
+    const cleanList = Array.isArray(list) ? list.filter(Boolean) : [];
+    slot.supportPersonnel = [...cleanList];
+    slot.nonCore = cleanList.filter(p => !this.isLongshiftToken(p));
+    slot.longshift = cleanList.filter(p => this.isLongshiftToken(p));
   },
 
   getSlotMachineParts(machines = [], mapDataOrRunning = null) {
@@ -693,6 +833,135 @@ export const rule = {
     return parts.map(p => p.text).join(", ");
   },
 
+  partitionMachinesBySupport(machines = [], numPeople = 2, explicitAssignments = null) {
+    if (!Array.isArray(machines) || machines.length === 0) {
+      return Array.from({ length: numPeople }, () => []);
+    }
+    if (numPeople <= 1) {
+      return [machines];
+    }
+
+    // Explicit manual column assignments
+    if (explicitAssignments && typeof explicitAssignments === "object") {
+      const buckets = Array.from({ length: numPeople }, () => []);
+      const unassigned = [];
+      machines.forEach((m) => {
+        const id = m.id || m.name;
+        const targetCol = explicitAssignments[id];
+        if (typeof targetCol === "number" && targetCol >= 0 && targetCol < numPeople) {
+          buckets[targetCol].push(m);
+        } else {
+          unassigned.push(m);
+        }
+      });
+      if (unassigned.length === 0) {
+        return buckets;
+      }
+      unassigned.forEach((m) => {
+        let minIdx = 0;
+        for (let i = 1; i < numPeople; i++) {
+          if (buckets[i].length < buckets[minIdx].length) minIdx = i;
+        }
+        buckets[minIdx].push(m);
+      });
+      return buckets;
+    }
+
+    // Workstation-Atomic Partitioning: Workstations (like 4A) must never be split across NC/LS operators
+    const wsMap = {};
+    machines.forEach((m) => {
+      const ws = this.getWorkstationKey(m) || "UMUM";
+      if (!wsMap[ws]) wsMap[ws] = [];
+      wsMap[ws].push(m);
+    });
+
+    const wsKeys = Object.keys(wsMap);
+
+    // Single workstation: split its machines evenly
+    if (wsKeys.length === 1) {
+      const sorted = [...machines].sort((a, b) => {
+        const nameA = a.name || a.id || "";
+        const nameB = b.name || b.id || "";
+        return nameA.localeCompare(nameB, undefined, { numeric: true });
+      });
+      const buckets = Array.from({ length: numPeople }, () => []);
+      const base = Math.floor(sorted.length / numPeople);
+      let rem = sorted.length % numPeople;
+      let cur = 0;
+      for (let i = 0; i < numPeople; i++) {
+        const count = base + (rem > 0 ? 1 : 0);
+        if (rem > 0) rem--;
+        buckets[i] = sorted.slice(cur, cur + count);
+        cur += count;
+      }
+      return buckets;
+    }
+
+    // 2 or more workstations: Partition atomic workstations (e.g. keeping 4A intact under 1 NC/LS)
+    const wsList = wsKeys.map((k) => ({ key: k, machines: wsMap[k] }))
+      .sort((a, b) => b.machines.length - a.machines.length || a.key.localeCompare(b.key));
+
+    const buckets = Array.from({ length: numPeople }, () => []);
+    const bucketCounts = Array(numPeople).fill(0);
+
+    if (numPeople === 2) {
+      const target = Math.round(machines.length / 2);
+      let bestSubset = [];
+      let bestDiff = Infinity;
+      const n = wsList.length;
+      const totalCombinations = 1 << n;
+
+      for (let mask = 0; mask < totalCombinations; mask++) {
+        let sum = 0;
+        const current = [];
+        for (let i = 0; i < n; i++) {
+          if (mask & (1 << i)) {
+            sum += wsList[i].machines.length;
+            current.push(i);
+          }
+        }
+        const diff = Math.abs(sum - target);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          bestSubset = current;
+        }
+      }
+
+      const setBucket0 = new Set(bestSubset);
+      wsList.forEach((wsItem, idx) => {
+        if (setBucket0.has(idx)) {
+          buckets[0].push(...wsItem.machines);
+        } else {
+          buckets[1].push(...wsItem.machines);
+        }
+      });
+
+      const sortFn = (a, b) => {
+        const wsA = this.getWorkstationKey(a) || "";
+        const wsB = this.getWorkstationKey(b) || "";
+        if (wsA !== wsB) return wsA.localeCompare(wsB);
+        const nameA = a.name || a.id || "";
+        const nameB = b.name || b.id || "";
+        return nameA.localeCompare(nameB, undefined, { numeric: true });
+      };
+      buckets[0].sort(sortFn);
+      buckets[1].sort(sortFn);
+      return buckets;
+    }
+
+    // For numPeople > 2: Greedy bin packing
+    wsList.forEach((wsItem) => {
+      let minIdx = 0;
+      for (let i = 1; i < numPeople; i++) {
+        if (bucketCounts[i] < bucketCounts[minIdx]) minIdx = i;
+      }
+      buckets[minIdx].push(...wsItem.machines);
+      bucketCounts[minIdx] += wsItem.machines.length;
+    });
+
+    return buckets;
+  },
+
   formatText(slots = [], config = {}) {
     if (!Array.isArray(slots) || slots.length === 0) {
       return "=== TDK ADA PLAN TERSEDIA ===";
@@ -720,7 +989,7 @@ export const rule = {
       const cqiNum = this.getCqiNumber(s);
       const coreStr = (s.coreNames || []).join(", ") || "-";
 
-      const ncArr = (s.nonCore || []).concat(s.longshift || []);
+      const ncArr = this.getSlotSupportPersonnel(s);
 
       out += `${idx + 1}. *CQI ${cqiNum}*\n`;
       out += `   - Core  : ${coreStr}\n`;
@@ -730,41 +999,18 @@ export const rule = {
         const machinesStr = parts.map(p => p.text).join(", ") || "-";
         out += `   - Mesin : ${machinesStr}\n\n`;
       } else if (ncArr.length === 1) {
-        const isLs = (s.nonCore || []).length === 0;
-        let ncLabel = typeof ncArr[0] === "object" ? (ncArr[0].name || ncArr[0].id) : String(ncArr[0]);
-        if (isLs || ncLabel.toLowerCase().includes("ls") || ncLabel.toLowerCase().includes("longshift")) {
-          ncLabel = "(LS)";
-        }
+        let rawLabel = typeof ncArr[0] === "object" ? (ncArr[0].name || ncArr[0].id) : String(ncArr[0]);
+        let ncLabel = this.isLongshiftToken(rawLabel) ? "(LS)" : rawLabel;
         const parts = this.getSlotMachineParts(s.machines || [], allRunning);
         const machinesStr = parts.map(p => p.text).join(", ") || "-";
         out += `   - ${ncLabel} : ${machinesStr}\n\n`;
       } else {
-        const sortedMachines = [...(s.machines || [])].sort((a, b) => {
-          const wsA = this.getWorkstationKey(a);
-          const wsB = this.getWorkstationKey(b);
-          if (wsA !== wsB) return wsA.localeCompare(wsB);
-          const nameA = a.name || a.id || "";
-          const nameB = b.name || b.id || "";
-          return nameA.localeCompare(nameB, undefined, { numeric: true });
-        });
-
-        const numPeople = ncArr.length;
-        const totalMacs = sortedMachines.length;
-        const basePerPerson = Math.floor(totalMacs / numPeople);
-        let remainder = totalMacs % numPeople;
-        let currentStart = 0;
+        const buckets = this.partitionMachinesBySupport(s.machines || [], ncArr.length, s.machineColAssignments);
 
         ncArr.forEach((nc, pIdx) => {
-          const count = basePerPerson + (remainder > 0 ? 1 : 0);
-          if (remainder > 0) remainder--;
-          const personMacs = sortedMachines.slice(currentStart, currentStart + count);
-          currentStart += count;
-
-          const isLs = pIdx >= (s.nonCore || []).length;
-          let personLabel = typeof nc === "object" ? (nc.name || nc.id) : String(nc);
-          if (isLs || personLabel.toLowerCase().includes("ls") || personLabel.toLowerCase().includes("longshift")) {
-            personLabel = "(LS)";
-          }
+          const personMacs = buckets[pIdx] || [];
+          let rawLabel = typeof nc === "object" ? (nc.name || nc.id) : String(nc);
+          let personLabel = this.isLongshiftToken(rawLabel) ? "(LS)" : rawLabel;
 
           const personParts = this.getSlotMachineParts(personMacs, allRunning);
           const personText = personParts.map(p => p.text).join(", ") || "-";

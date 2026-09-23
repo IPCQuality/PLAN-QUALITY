@@ -9,6 +9,7 @@
     "build": "node -e \"console.log('App ready - using direct brain.js ES Module')\""
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "html2canvas": "^1.4.1"
   }
 }
