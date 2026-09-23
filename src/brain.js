@@ -968,18 +968,11 @@ export const rule = {
     }
 
     const dateStr = formatIndonesianDate(config.tanggal || config.date);
-
-    const totalLs = typeof config.longshift === "number" ? config.longshift : 6;
-    let usedLs = 0;
-    slots.forEach(s => {
-      const lsList = s.longshift || [];
-      usedLs += lsList.length;
-    });
-    const sisaLs = Math.max(0, totalLs - usedLs);
+    const shiftVal = config.shift || config.selectedShift || 1;
 
     let out = `*PLANNING LIQUID 3*\n`;
-    out += `Tanggal: ${dateStr}\n`;
-    out += `Sisa LS       : ${sisaLs} Belum Terpakai\n\n`;
+    out += `Tanggal : ${dateStr}\n`;
+    out += `Shift   : ${shiftVal}\n\n`;
 
     const sortedSlots = [...slots].sort((a, b) => this.getCqiNumber(a) - this.getCqiNumber(b));
 

@@ -1,244 +1,1976 @@
 {
   "meta": {
-    "app": "PLANING-MAKER",
-    "type": "official_history",
-    "date": "2026-09-24",
-    "shift": 1,
-    "timestamp": "2026-09-24T07:00:00.000Z",
-    "total_cqi": 12,
-    "total_machines_running": 30,
-    "total_core": 12,
-    "total_non_core": 0,
-    "total_longshift": 6,
-    "mode": 1
+    "app": "MAP LIQUID 3 - Production View",
+    "date": "22-09-2026",
+    "generated_at": "2026-09-22T14:12:48.197Z",
+    "total_cqi": 13,
+    "total_machines_running": 67,
+    "total_core": 13,
+    "total_non_core": 7,
+    "total_longshift": 2
   },
   "special_assignments": {
-    "qc_passed": [],
-    "mil_std": null,
-    "support_fg": null
+    "qc_passed": [
+      "Yadi",
+      "Alief",
+      "Jalu",
+      "M. Udin",
+      "Yaya"
+    ],
+    "mil_std": "Andi",
+    "support_fg": "Priyya"
   },
   "planning": [
     {
       "no": 1,
       "cqi": "CQI 1",
       "cqi_line": "-",
-      "core": [
-        "Core 1"
-      ],
+      "core": "Chalista",
       "non_core": [],
       "longshift": [],
       "total_manpower": 1,
-      "total_machines": 1,
-      "machines": [
-        "AST 33-16L"
+      "total_machines": 4,
+      "personnel_allocations": [
+        {
+          "role": "Core",
+          "name": "Chalista",
+          "machines": [
+            "AST 14-12L",
+            "AST 36-16L",
+            "AST 44-16L",
+            "AST 61-16L"
+          ],
+          "machines_summary": "AST 14-12L, 1A (3)"
+        }
       ],
-      "machines_formatted": "AST 33-16L"
+      "machines": [
+        "AST 14-12L",
+        "AST 36-16L",
+        "AST 44-16L",
+        "AST 61-16L"
+      ]
     },
     {
       "no": 2,
-      "cqi": "CQI 2",
-      "cqi_line": "-",
-      "core": [
-        "Core 2"
-      ],
-      "non_core": [],
-      "longshift": [
-        "(LS)"
-      ],
-      "total_manpower": 2,
-      "total_machines": 3,
-      "machines": [
-        "AST 70-16L",
-        "AST 69-16L",
-        "AST 68-16L"
-      ],
-      "machines_formatted": "AST 70-16L, AST 69-16L, AST 68-16L"
-    },
-    {
-      "no": 3,
       "cqi": "CQI 3",
       "cqi_line": "-",
-      "core": [
-        "Core 3"
-      ],
+      "core": "Dwi",
       "non_core": [],
       "longshift": [],
       "total_manpower": 1,
-      "total_machines": 1,
-      "machines": [
-        "AST 22-16L"
+      "total_machines": 4,
+      "personnel_allocations": [
+        {
+          "role": "Core",
+          "name": "Dwi",
+          "machines": [
+            "AST 68-16L",
+            "AST 69-16L",
+            "AST 70-16L",
+            "K2"
+          ],
+          "machines_summary": "2A (3), K2"
+        }
       ],
-      "machines_formatted": "AST 22-16L"
+      "machines": [
+        "AST 68-16L",
+        "AST 69-16L",
+        "AST 70-16L",
+        "K2"
+      ]
+    },
+    {
+      "no": 3,
+      "cqi": "CQI 5",
+      "cqi_line": "-",
+      "core": "Dini",
+      "non_core": [
+        "Wulan",
+        "Syifa"
+      ],
+      "longshift": [],
+      "total_manpower": 3,
+      "total_machines": 8,
+      "personnel_allocations": [
+        {
+          "role": "Non-Core",
+          "name": "Wulan",
+          "machines": [
+            "AST 22-16L",
+            "AST 54-16L",
+            "AST 55-16L",
+            "AST 26-16L"
+          ],
+          "machines_summary": "3A (3), AST 26-16L"
+        },
+        {
+          "role": "Non-Core",
+          "name": "Syifa",
+          "machines": [
+            "AST 27-16L",
+            "AST 28-16L",
+            "AST 65-16L",
+            "APK 45"
+          ],
+          "machines_summary": "AST 27-16L, AST 28-16L, AST 65-16L, APK 45"
+        }
+      ],
+      "machines": [
+        "AST 22-16L",
+        "AST 54-16L",
+        "AST 55-16L",
+        "APK 45",
+        "AST 26-16L",
+        "AST 65-16L",
+        "AST 28-16L",
+        "AST 27-16L"
+      ]
     },
     {
       "no": 4,
-      "cqi": "CQI 4",
+      "cqi": "CQI 6",
       "cqi_line": "-",
-      "core": [
-        "Core 4"
+      "core": "Mia",
+      "non_core": [
+        "Allen"
       ],
-      "non_core": [],
       "longshift": [
-        "(LS)"
+        "LS-1"
       ],
-      "total_manpower": 2,
-      "total_machines": 3,
+      "total_manpower": 3,
+      "total_machines": 8,
+      "personnel_allocations": [
+        {
+          "role": "Non-Core",
+          "name": "Allen",
+          "machines": [
+            "AST 8-16L",
+            "AST 10-16L",
+            "AST 12-16L",
+            "AST 29-16L"
+          ],
+          "machines_summary": "5A (4)"
+        },
+        {
+          "role": "Longshift",
+          "name": "(LS)",
+          "machines": [
+            "AST 7-16L",
+            "AST 9-16L",
+            "AST 11-16L",
+            "AST 30-16L"
+          ],
+          "machines_summary": "6A (4)"
+        }
+      ],
       "machines": [
-        "AST 26-16L",
-        "AST 27-16L",
-        "AST 65-16L"
-      ],
-      "machines_formatted": "AST 26-16L, AST 27-16L, AST 65-16L"
+        "AST 30-16L",
+        "AST 7-16L",
+        "AST 9-16L",
+        "AST 11-16L",
+        "AST 8-16L",
+        "AST 12-16L",
+        "AST 29-16L",
+        "AST 10-16L"
+      ]
     },
     {
       "no": 5,
-      "cqi": "CQI 5",
-      "cqi_line": "-",
-      "core": [
-        "Core 5"
-      ],
-      "non_core": [],
-      "longshift": [
-        "(LS)"
-      ],
-      "total_manpower": 2,
-      "total_machines": 4,
-      "machines": [
-        "AST 29-16L",
-        "AST 8-16L",
-        "AST 10-16L",
-        "AST 12-16L"
-      ],
-      "machines_formatted": "AST 29-16L, AST 8-16L, AST 10-16L, AST 12-16L"
-    },
-    {
-      "no": 6,
-      "cqi": "CQI 6",
-      "cqi_line": "-",
-      "core": [
-        "Core 6"
-      ],
-      "non_core": [],
-      "longshift": [
-        "(LS)"
-      ],
-      "total_manpower": 2,
-      "total_machines": 3,
-      "machines": [
-        "AST 30-16L",
-        "AST 9-16L",
-        "AST 11-16L"
-      ],
-      "machines_formatted": "AST 30-16L, AST 9-16L, AST 11-16L"
-    },
-    {
-      "no": 7,
       "cqi": "CQI 7",
       "cqi_line": "-",
-      "core": [
-        "Core 7"
+      "core": "Nurul",
+      "non_core": [
+        "Kirana"
       ],
-      "non_core": [],
       "longshift": [
-        "(LS)"
+        "LS-1"
       ],
-      "total_manpower": 2,
-      "total_machines": 4,
+      "total_manpower": 3,
+      "total_machines": 8,
+      "personnel_allocations": [
+        {
+          "role": "Non-Core",
+          "name": "Kirana",
+          "machines": [
+            "AST 3-16L",
+            "AST 4-16L",
+            "AST 5-16L",
+            "AST 71-16L"
+          ],
+          "machines_summary": "7A (4)"
+        },
+        {
+          "role": "Longshift",
+          "name": "(LS)",
+          "machines": [
+            "AST 2-16L",
+            "AST 6-16L",
+            "AST 18-16L",
+            "AST 72-16L"
+          ],
+          "machines_summary": "8A (4)"
+        }
+      ],
       "machines": [
         "AST 71-16L",
         "AST 3-16L",
         "AST 5-16L",
-        "AST 4-16L"
-      ],
-      "machines_formatted": "AST 71-16L, AST 3-16L, AST 5-16L, AST 4-16L"
-    },
-    {
-      "no": 8,
-      "cqi": "CQI 8",
-      "cqi_line": "-",
-      "core": [
-        "Core 8"
-      ],
-      "non_core": [],
-      "longshift": [
-        "(LS)"
-      ],
-      "total_manpower": 2,
-      "total_machines": 3,
-      "machines": [
+        "AST 4-16L",
+        "AST 72-16L",
         "AST 18-16L",
         "AST 6-16L",
         "AST 2-16L"
-      ],
-      "machines_formatted": "AST 18-16L, AST 6-16L, AST 2-16L"
+      ]
     },
     {
-      "no": 9,
-      "cqi": "CQI 9",
+      "no": 6,
+      "cqi": "CQI 10",
       "cqi_line": "-",
-      "core": [
-        "Core 9"
+      "core": "Thazkia",
+      "non_core": [
+        "Dinda",
+        "Litha"
       ],
-      "non_core": [],
       "longshift": [],
-      "total_manpower": 1,
-      "total_machines": 3,
+      "total_manpower": 3,
+      "total_machines": 8,
+      "personnel_allocations": [
+        {
+          "role": "Non-Core",
+          "name": "Dinda",
+          "machines": [
+            "AST 19-16L",
+            "AST 20-16L",
+            "AST 21-16L",
+            "AST 33-16L"
+          ],
+          "machines_summary": "10A (4)"
+        },
+        {
+          "role": "Non-Core",
+          "name": "Litha",
+          "machines": [
+            "AST 15-16L",
+            "AST 16-16L",
+            "AST 17-16L",
+            "AST 63-16L"
+          ],
+          "machines_summary": "9A (4)"
+        }
+      ],
       "machines": [
         "AST 63-16L",
         "AST 15-16L",
-        "AST 16-16L"
+        "AST 16-16L",
+        "AST 17-16L",
+        "AST 19-16L",
+        "AST 20-16L",
+        "AST 21-16L",
+        "AST 33-16L"
+      ]
+    },
+    {
+      "no": 7,
+      "cqi": "CQI 13",
+      "cqi_line": "-",
+      "core": "Riri",
+      "non_core": [],
+      "longshift": [],
+      "total_manpower": 1,
+      "total_machines": 4,
+      "personnel_allocations": [
+        {
+          "role": "Core",
+          "name": "Riri",
+          "machines": [
+            "AST 41-16L",
+            "AST 47-16L",
+            "AST 51-16L",
+            "AST 50-16L"
+          ],
+          "machines_summary": "1B (4)"
+        }
       ],
-      "machines_formatted": "AST 63-16L, AST 15-16L, AST 16-16L"
+      "machines": [
+        "AST 41-16L",
+        "AST 47-16L",
+        "AST 51-16L",
+        "AST 50-16L"
+      ]
+    },
+    {
+      "no": 8,
+      "cqi": "CQI 14",
+      "cqi_line": "-",
+      "core": "Amanda",
+      "non_core": [],
+      "longshift": [],
+      "total_manpower": 1,
+      "total_machines": 4,
+      "personnel_allocations": [
+        {
+          "role": "Core",
+          "name": "Amanda",
+          "machines": [
+            "APK 15",
+            "APK 12",
+            "AST 13-12L",
+            "AST 35-16L"
+          ],
+          "machines_summary": "8B (2), AST 13-12L, AST 35-16L"
+        }
+      ],
+      "machines": [
+        "APK 15",
+        "APK 12",
+        "AST 13-12L",
+        "AST 35-16L"
+      ]
+    },
+    {
+      "no": 9,
+      "cqi": "CQI 21",
+      "cqi_line": "-",
+      "core": "Angel",
+      "non_core": [],
+      "longshift": [],
+      "total_manpower": 1,
+      "total_machines": 4,
+      "personnel_allocations": [
+        {
+          "role": "Core",
+          "name": "Angel",
+          "machines": [
+            "AST 46-16L",
+            "AST 45-16L",
+            "AST 42-16L",
+            "AST 43-16L"
+          ],
+          "machines_summary": "2B (4)"
+        }
+      ],
+      "machines": [
+        "AST 46-16L",
+        "AST 45-16L",
+        "AST 42-16L",
+        "AST 43-16L"
+      ]
     },
     {
       "no": 10,
-      "cqi": "CQI 10",
+      "cqi": "CQI 25",
       "cqi_line": "-",
-      "core": [
-        "Core 10"
-      ],
+      "core": "Fira",
       "non_core": [],
       "longshift": [],
       "total_manpower": 1,
-      "total_machines": 3,
-      "machines": [
-        "AST 19-16L",
-        "AST 20-16L",
-        "AST 21-16L"
+      "total_machines": 4,
+      "personnel_allocations": [
+        {
+          "role": "Core",
+          "name": "Fira",
+          "machines": [
+            "AST 39-12L",
+            "AST 38-12L",
+            "AST 37-12L",
+            "AST 40-12L"
+          ],
+          "machines_summary": "7B (4)"
+        }
       ],
-      "machines_formatted": "AST 19-16L, AST 20-16L, AST 21-16L"
+      "machines": [
+        "AST 39-12L",
+        "AST 38-12L",
+        "AST 37-12L",
+        "AST 40-12L"
+      ]
     },
     {
       "no": 11,
-      "cqi": "CQI 24",
+      "cqi": "CQI 20",
       "cqi_line": "-",
-      "core": [
-        "Core 24"
-      ],
+      "core": "Allyssa",
       "non_core": [],
       "longshift": [],
       "total_manpower": 1,
-      "total_machines": 1,
-      "machines": [
-        "C1"
+      "total_machines": 4,
+      "personnel_allocations": [
+        {
+          "role": "Core",
+          "name": "Allyssa",
+          "machines": [
+            "AST 53-16L",
+            "AST 52-16L",
+            "AST 49-16L",
+            "AST 48-16L"
+          ],
+          "machines_summary": "3B (4)"
+        }
       ],
-      "machines_formatted": "C1"
+      "machines": [
+        "AST 53-16L",
+        "AST 52-16L",
+        "AST 49-16L",
+        "AST 48-16L"
+      ]
     },
     {
       "no": 12,
+      "cqi": "CQI 24",
+      "cqi_line": "-",
+      "core": "Jiddan",
+      "non_core": [
+        "Siska"
+      ],
+      "longshift": [],
+      "total_manpower": 2,
+      "total_machines": 5,
+      "personnel_allocations": [
+        {
+          "role": "Non-Core",
+          "name": "Siska",
+          "machines": [
+            "C1",
+            "APK 19",
+            "APK 26",
+            "K5",
+            "K6"
+          ],
+          "machines_summary": "C1, 2C (2), 6C (2)"
+        }
+      ],
+      "machines": [
+        "C1",
+        "APK 19",
+        "APK 26",
+        "K5",
+        "K6"
+      ]
+    },
+    {
+      "no": 13,
       "cqi": "CQI 19",
       "cqi_line": "-",
-      "core": [
-        "Core 19"
-      ],
+      "core": "Farhan",
       "non_core": [],
       "longshift": [],
       "total_manpower": 1,
-      "total_machines": 1,
-      "machines": [
-        "M3"
+      "total_machines": 2,
+      "personnel_allocations": [
+        {
+          "role": "Core",
+          "name": "Farhan",
+          "machines": [
+            "M2",
+            "M3"
+          ],
+          "machines_summary": "OT (2)"
+        }
       ],
-      "machines_formatted": "M3"
+      "machines": [
+        "M2",
+        "M3"
+      ]
+    }
+  ],
+  "unassigned_machines": [],
+  "raw_slots": [
+    {
+      "id": "CQI-1",
+      "name": "CQI 1",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "ws": "1A",
+      "position": {
+        "row": 3,
+        "col": 8
+      },
+      "row": 3,
+      "col": 8,
+      "cqi": {
+        "id": "CQI-1",
+        "name": "CQI 1",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "ws": "1A",
+        "position": {
+          "row": 3,
+          "col": 8
+        },
+        "row": 3,
+        "col": 8
+      },
+      "cqiNum": 1,
+      "line": "LINE A",
+      "machines": [
+        {
+          "id": "M-0A-1",
+          "name": "AST 14-12L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "12Ljumbo",
+          "ws": "0A",
+          "position": {
+            "row": 8,
+            "col": 6
+          },
+          "row": 8,
+          "col": 6
+        },
+        {
+          "id": "M-1A-2",
+          "name": "AST 36-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "1A",
+          "position": {
+            "row": 7,
+            "col": 8
+          },
+          "row": 7,
+          "col": 8
+        },
+        {
+          "id": "M-1A-3",
+          "name": "AST 44-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "1A",
+          "position": {
+            "row": 6,
+            "col": 8
+          },
+          "row": 6,
+          "col": 8
+        },
+        {
+          "id": "M-1A-4",
+          "name": "AST 61-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "1A",
+          "position": {
+            "row": 5,
+            "col": 8
+          },
+          "row": 5,
+          "col": 8
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Chalista"
+      ],
+      "nonCore": [],
+      "longshift": [],
+      "workstations": [
+        "0A",
+        "1A",
+        "2A"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-3",
+      "name": "CQI 3",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "ws": "3A",
+      "position": {
+        "row": 3,
+        "col": 12
+      },
+      "row": 3,
+      "col": 12,
+      "cqi": {
+        "id": "CQI-3",
+        "name": "CQI 3",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "ws": "3A",
+        "position": {
+          "row": 3,
+          "col": 12
+        },
+        "row": 3,
+        "col": 12
+      },
+      "cqiNum": 3,
+      "line": "LINE A",
+      "machines": [
+        {
+          "id": "M-2A-4",
+          "name": "AST 68-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "2A",
+          "position": {
+            "row": 5,
+            "col": 10
+          },
+          "row": 5,
+          "col": 10
+        },
+        {
+          "id": "M-2A-2",
+          "name": "AST 69-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "2A",
+          "position": {
+            "row": 7,
+            "col": 10
+          },
+          "row": 7,
+          "col": 10
+        },
+        {
+          "id": "M-2A-1",
+          "name": "AST 70-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "2A",
+          "position": {
+            "row": 8,
+            "col": 10
+          },
+          "row": 8,
+          "col": 10
+        },
+        {
+          "id": "M-0B-2",
+          "name": "K2",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Botol",
+          "ws": "0B",
+          "position": {
+            "row": 12,
+            "col": 6
+          },
+          "row": 12,
+          "col": 6
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Dwi"
+      ],
+      "nonCore": [],
+      "longshift": [],
+      "workstations": [
+        "3A",
+        "4A"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-5",
+      "name": "CQI 5",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "ws": "5A",
+      "position": {
+        "row": 3,
+        "col": 16
+      },
+      "row": 3,
+      "col": 16,
+      "cqi": {
+        "id": "CQI-5",
+        "name": "CQI 5",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "ws": "5A",
+        "position": {
+          "row": 3,
+          "col": 16
+        },
+        "row": 3,
+        "col": 16
+      },
+      "cqiNum": 5,
+      "line": "LINE A",
+      "machines": [
+        {
+          "id": "M-3A-3",
+          "name": "AST 22-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "3A",
+          "position": {
+            "row": 5,
+            "col": 12
+          },
+          "row": 5,
+          "col": 12
+        },
+        {
+          "id": "M-3A-1",
+          "name": "AST 54-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "3A",
+          "position": {
+            "row": 7,
+            "col": 12
+          },
+          "row": 7,
+          "col": 12
+        },
+        {
+          "id": "M-3A-2",
+          "name": "AST 55-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "3A",
+          "position": {
+            "row": 6,
+            "col": 12
+          },
+          "row": 6,
+          "col": 12
+        },
+        {
+          "id": "M-4B-1",
+          "name": "APK 45",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Pouch",
+          "ws": "4B",
+          "position": {
+            "row": 12,
+            "col": 14
+          },
+          "row": 12,
+          "col": 14
+        },
+        {
+          "id": "M-4A-1",
+          "name": "AST 26-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "4A",
+          "position": {
+            "row": 8,
+            "col": 14
+          },
+          "row": 8,
+          "col": 14
+        },
+        {
+          "id": "M-4A-4",
+          "name": "AST 65-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "4A",
+          "position": {
+            "row": 5,
+            "col": 14
+          },
+          "row": 5,
+          "col": 14
+        },
+        {
+          "id": "M-4A-3",
+          "name": "AST 28-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "4A",
+          "position": {
+            "row": 6,
+            "col": 14
+          },
+          "row": 6,
+          "col": 14
+        },
+        {
+          "id": "M-4A-2",
+          "name": "AST 27-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "4A",
+          "position": {
+            "row": 7,
+            "col": 14
+          },
+          "row": 7,
+          "col": 14
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Dini"
+      ],
+      "nonCore": [
+        "Wulan",
+        "Syifa"
+      ],
+      "longshift": [],
+      "workstations": [
+        "5A"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-6",
+      "name": "CQI 6",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "ws": "6A",
+      "position": {
+        "row": 3,
+        "col": 18
+      },
+      "row": 3,
+      "col": 18,
+      "cqi": {
+        "id": "CQI-6",
+        "name": "CQI 6",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "ws": "6A",
+        "position": {
+          "row": 3,
+          "col": 18
+        },
+        "row": 3,
+        "col": 18
+      },
+      "cqiNum": 6,
+      "line": "LINE A",
+      "machines": [
+        {
+          "id": "M-6A-1",
+          "name": "AST 30-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "6A",
+          "position": {
+            "row": 8,
+            "col": 18
+          },
+          "row": 8,
+          "col": 18
+        },
+        {
+          "id": "M-6A-2",
+          "name": "AST 7-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "6A",
+          "position": {
+            "row": 7,
+            "col": 18
+          },
+          "row": 7,
+          "col": 18
+        },
+        {
+          "id": "M-6A-3",
+          "name": "AST 9-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "6A",
+          "position": {
+            "row": 6,
+            "col": 18
+          },
+          "row": 6,
+          "col": 18
+        },
+        {
+          "id": "M-6A-4",
+          "name": "AST 11-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "6A",
+          "position": {
+            "row": 5,
+            "col": 18
+          },
+          "row": 5,
+          "col": 18
+        },
+        {
+          "id": "M-5A-2",
+          "name": "AST 8-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "5A",
+          "position": {
+            "row": 7,
+            "col": 16
+          },
+          "row": 7,
+          "col": 16
+        },
+        {
+          "id": "M-5A-4",
+          "name": "AST 12-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "5A",
+          "position": {
+            "row": 5,
+            "col": 16
+          },
+          "row": 5,
+          "col": 16
+        },
+        {
+          "id": "M-5A-1",
+          "name": "AST 29-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "5A",
+          "position": {
+            "row": 8,
+            "col": 16
+          },
+          "row": 8,
+          "col": 16
+        },
+        {
+          "id": "M-5A-3",
+          "name": "AST 10-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "5A",
+          "position": {
+            "row": 6,
+            "col": 16
+          },
+          "row": 6,
+          "col": 16
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Mia"
+      ],
+      "nonCore": [
+        "Allen"
+      ],
+      "longshift": [
+        "LS-1"
+      ],
+      "workstations": [
+        "6A"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-7",
+      "name": "CQI 7",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "ws": "7A",
+      "position": {
+        "row": 3,
+        "col": 20
+      },
+      "row": 3,
+      "col": 20,
+      "cqi": {
+        "id": "CQI-7",
+        "name": "CQI 7",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "ws": "7A",
+        "position": {
+          "row": 3,
+          "col": 20
+        },
+        "row": 3,
+        "col": 20
+      },
+      "cqiNum": 7,
+      "line": "LINE A",
+      "machines": [
+        {
+          "id": "M-7A-1",
+          "name": "AST 71-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "7A",
+          "position": {
+            "row": 8,
+            "col": 20
+          },
+          "row": 8,
+          "col": 20
+        },
+        {
+          "id": "M-7A-2",
+          "name": "AST 3-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "7A",
+          "position": {
+            "row": 7,
+            "col": 20
+          },
+          "row": 7,
+          "col": 20
+        },
+        {
+          "id": "M-7A-3",
+          "name": "AST 5-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "7A",
+          "position": {
+            "row": 6,
+            "col": 20
+          },
+          "row": 6,
+          "col": 20
+        },
+        {
+          "id": "M-7A-4",
+          "name": "AST 4-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "7A",
+          "position": {
+            "row": 5,
+            "col": 20
+          },
+          "row": 5,
+          "col": 20
+        },
+        {
+          "id": "M-8A-1",
+          "name": "AST 72-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "8A",
+          "position": {
+            "row": 8,
+            "col": 22
+          },
+          "row": 8,
+          "col": 22
+        },
+        {
+          "id": "M-8A-2",
+          "name": "AST 18-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "8A",
+          "position": {
+            "row": 7,
+            "col": 22
+          },
+          "row": 7,
+          "col": 22
+        },
+        {
+          "id": "M-8A-3",
+          "name": "AST 6-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "8A",
+          "position": {
+            "row": 6,
+            "col": 22
+          },
+          "row": 6,
+          "col": 22
+        },
+        {
+          "id": "M-8A-4",
+          "name": "AST 2-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "8A",
+          "position": {
+            "row": 5,
+            "col": 22
+          },
+          "row": 5,
+          "col": 22
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Nurul"
+      ],
+      "nonCore": [
+        "Kirana"
+      ],
+      "longshift": [
+        "LS-1"
+      ],
+      "workstations": [
+        "7A",
+        "8A"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-10",
+      "name": "CQI 10",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "ws": "10A",
+      "position": {
+        "row": 3,
+        "col": 26
+      },
+      "row": 3,
+      "col": 26,
+      "cqi": {
+        "id": "CQI-10",
+        "name": "CQI 10",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "ws": "10A",
+        "position": {
+          "row": 3,
+          "col": 26
+        },
+        "row": 3,
+        "col": 26
+      },
+      "cqiNum": 10,
+      "line": "LINE A",
+      "machines": [
+        {
+          "id": "M-9A-1",
+          "name": "AST 63-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "9A",
+          "position": {
+            "row": 8,
+            "col": 24
+          },
+          "row": 8,
+          "col": 24
+        },
+        {
+          "id": "M-9A-2",
+          "name": "AST 15-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "9A",
+          "position": {
+            "row": 7,
+            "col": 24
+          },
+          "row": 7,
+          "col": 24
+        },
+        {
+          "id": "M-9A-3",
+          "name": "AST 16-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "9A",
+          "position": {
+            "row": 6,
+            "col": 24
+          },
+          "row": 6,
+          "col": 24
+        },
+        {
+          "id": "M-9A-4",
+          "name": "AST 17-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "9A",
+          "position": {
+            "row": 5,
+            "col": 24
+          },
+          "row": 5,
+          "col": 24
+        },
+        {
+          "id": "M-10A-1",
+          "name": "AST 19-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "10A",
+          "position": {
+            "row": 8,
+            "col": 26
+          },
+          "row": 8,
+          "col": 26
+        },
+        {
+          "id": "M-10A-2",
+          "name": "AST 20-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "10A",
+          "position": {
+            "row": 7,
+            "col": 26
+          },
+          "row": 7,
+          "col": 26
+        },
+        {
+          "id": "M-10A-3",
+          "name": "AST 21-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "10A",
+          "position": {
+            "row": 6,
+            "col": 26
+          },
+          "row": 6,
+          "col": 26
+        },
+        {
+          "id": "M-10A-4",
+          "name": "AST 33-16L",
+          "line": "LINE A",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "10A",
+          "position": {
+            "row": 5,
+            "col": 26
+          },
+          "row": 5,
+          "col": 26
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Thazkia"
+      ],
+      "nonCore": [
+        "Dinda",
+        "Litha"
+      ],
+      "longshift": [],
+      "workstations": [
+        "9A",
+        "10A"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-13",
+      "name": "CQI 13",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 14,
+        "col": 9
+      },
+      "row": 14,
+      "col": 9,
+      "cqi": {
+        "id": "CQI-13",
+        "name": "CQI 13",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "position": {
+          "row": 14,
+          "col": 9
+        },
+        "row": 14,
+        "col": 9
+      },
+      "cqiNum": 13,
+      "line": "LINE B",
+      "machines": [
+        {
+          "id": "M-1B-1",
+          "name": "AST 41-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "1B",
+          "position": {
+            "row": 12,
+            "col": 8
+          },
+          "row": 12,
+          "col": 8
+        },
+        {
+          "id": "M-1B-2",
+          "name": "AST 47-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "1B",
+          "position": {
+            "row": 13,
+            "col": 8
+          },
+          "row": 13,
+          "col": 8
+        },
+        {
+          "id": "M-1B-3",
+          "name": "AST 51-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "1B",
+          "position": {
+            "row": 14,
+            "col": 8
+          },
+          "row": 14,
+          "col": 8
+        },
+        {
+          "id": "M-1B-4",
+          "name": "AST 50-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "1B",
+          "position": {
+            "row": 15,
+            "col": 8
+          },
+          "row": 15,
+          "col": 8
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Riri"
+      ],
+      "nonCore": [],
+      "longshift": [],
+      "workstations": [
+        "1B"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-14",
+      "name": "CQI 14",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 12,
+        "col": 19
+      },
+      "row": 12,
+      "col": 19,
+      "cqi": {
+        "id": "CQI-14",
+        "name": "CQI 14",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "position": {
+          "row": 12,
+          "col": 19
+        },
+        "row": 12,
+        "col": 19
+      },
+      "cqiNum": 14,
+      "line": "LINE B",
+      "machines": [
+        {
+          "id": "M-8B-1",
+          "name": "APK 15",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Pouch",
+          "ws": "8B",
+          "position": {
+            "row": 12,
+            "col": 22
+          },
+          "row": 12,
+          "col": 22
+        },
+        {
+          "id": "M-8B-2",
+          "name": "APK 12",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Pouch",
+          "ws": "8B",
+          "position": {
+            "row": 13,
+            "col": 22
+          },
+          "row": 13,
+          "col": 22
+        },
+        {
+          "id": "M-10B-2",
+          "name": "AST 13-12L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "12Ljumbo",
+          "ws": "10B",
+          "position": {
+            "row": 13,
+            "col": 26
+          },
+          "row": 13,
+          "col": 26
+        },
+        {
+          "id": "M-9B-2",
+          "name": "AST 35-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "SKLsct",
+          "ws": "9B",
+          "position": {
+            "row": 13,
+            "col": 24
+          },
+          "row": 13,
+          "col": 24
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Amanda"
+      ],
+      "nonCore": [],
+      "longshift": [],
+      "workstations": [
+        "0B",
+        "4B",
+        "8B"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-21",
+      "name": "CQI 21",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 14,
+        "col": 13
+      },
+      "row": 14,
+      "col": 13,
+      "cqi": {
+        "id": "CQI-21",
+        "name": "CQI 21",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "position": {
+          "row": 14,
+          "col": 13
+        },
+        "row": 14,
+        "col": 13
+      },
+      "cqiNum": 21,
+      "line": "LINE B",
+      "machines": [
+        {
+          "id": "M-2B-1",
+          "name": "AST 46-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "2B",
+          "position": {
+            "row": 12,
+            "col": 10
+          },
+          "row": 12,
+          "col": 10
+        },
+        {
+          "id": "M-2B-2",
+          "name": "AST 45-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "2B",
+          "position": {
+            "row": 13,
+            "col": 10
+          },
+          "row": 13,
+          "col": 10
+        },
+        {
+          "id": "M-2B-3",
+          "name": "AST 42-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "2B",
+          "position": {
+            "row": 14,
+            "col": 10
+          },
+          "row": 14,
+          "col": 10
+        },
+        {
+          "id": "M-2B-4",
+          "name": "AST 43-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "2B",
+          "position": {
+            "row": 15,
+            "col": 10
+          },
+          "row": 15,
+          "col": 10
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Angel"
+      ],
+      "nonCore": [],
+      "longshift": [],
+      "workstations": [
+        "2B",
+        "3B"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-25",
+      "name": "CQI 25",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 13,
+        "col": 21
+      },
+      "row": 13,
+      "col": 21,
+      "cqi": {
+        "id": "CQI-25",
+        "name": "CQI 25",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "position": {
+          "row": 13,
+          "col": 21
+        },
+        "row": 13,
+        "col": 21
+      },
+      "cqiNum": 25,
+      "line": "LINE B",
+      "machines": [
+        {
+          "id": "M-7B-1",
+          "name": "AST 39-12L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "12Ljumbo",
+          "ws": "7B",
+          "position": {
+            "row": 12,
+            "col": 20
+          },
+          "row": 12,
+          "col": 20
+        },
+        {
+          "id": "M-7B-2",
+          "name": "AST 38-12L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "12Ljumbo",
+          "ws": "7B",
+          "position": {
+            "row": 13,
+            "col": 20
+          },
+          "row": 13,
+          "col": 20
+        },
+        {
+          "id": "M-7B-3",
+          "name": "AST 37-12L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "12Ljumbo",
+          "ws": "7B",
+          "position": {
+            "row": 14,
+            "col": 20
+          },
+          "row": 14,
+          "col": 20
+        },
+        {
+          "id": "M-7B-4",
+          "name": "AST 40-12L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "12Ljumbo",
+          "ws": "7B",
+          "position": {
+            "row": 15,
+            "col": 20
+          },
+          "row": 15,
+          "col": 20
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Fira"
+      ],
+      "nonCore": [],
+      "longshift": [],
+      "workstations": [
+        "7B",
+        "9B",
+        "10B"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-20",
+      "name": "CQI 20",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 15,
+        "col": 36
+      },
+      "row": 15,
+      "col": 36,
+      "cqi": {
+        "id": "CQI-20",
+        "name": "CQI 20",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "position": {
+          "row": 15,
+          "col": 36
+        },
+        "row": 15,
+        "col": 36
+      },
+      "cqiNum": 20,
+      "line": "LINE C",
+      "machines": [
+        {
+          "id": "M-3B-1",
+          "name": "AST 53-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "3B",
+          "position": {
+            "row": 12,
+            "col": 12
+          },
+          "row": 12,
+          "col": 12
+        },
+        {
+          "id": "M-3B-2",
+          "name": "AST 52-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "3B",
+          "position": {
+            "row": 13,
+            "col": 12
+          },
+          "row": 13,
+          "col": 12
+        },
+        {
+          "id": "M-3B-4",
+          "name": "AST 49-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "3B",
+          "position": {
+            "row": 15,
+            "col": 12
+          },
+          "row": 15,
+          "col": 12
+        },
+        {
+          "id": "M-3B-3",
+          "name": "AST 48-16L",
+          "line": "LINE B",
+          "status": "RUNNING",
+          "cluster": "Sosoft",
+          "ws": "3B",
+          "position": {
+            "row": 14,
+            "col": 12
+          },
+          "row": 14,
+          "col": 12
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Allyssa"
+      ],
+      "nonCore": [],
+      "longshift": [],
+      "workstations": [
+        "2C",
+        "6C"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-24",
+      "name": "CQI 24",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 8,
+        "col": 34
+      },
+      "row": 8,
+      "col": 34,
+      "cqi": {
+        "id": "CQI-24",
+        "name": "CQI 24",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "position": {
+          "row": 8,
+          "col": 34
+        },
+        "row": 8,
+        "col": 34
+      },
+      "cqiNum": 24,
+      "line": "LINE WW",
+      "machines": [
+        {
+          "id": "M-WW-1",
+          "name": "C1",
+          "line": "WW",
+          "status": "RUNNING",
+          "cluster": "",
+          "ws": "WW",
+          "position": {
+            "row": 8,
+            "col": 33
+          },
+          "row": 8,
+          "col": 33
+        },
+        {
+          "id": "M-2C-1",
+          "name": "APK 19",
+          "line": "LINE C",
+          "status": "RUNNING",
+          "cluster": "Pouch",
+          "ws": "2C",
+          "position": {
+            "row": 14,
+            "col": 35
+          },
+          "row": 14,
+          "col": 35
+        },
+        {
+          "id": "M-2C-2",
+          "name": "APK 26",
+          "line": "LINE C",
+          "status": "RUNNING",
+          "cluster": "Pouch",
+          "ws": "2C",
+          "position": {
+            "row": 15,
+            "col": 35
+          },
+          "row": 15,
+          "col": 35
+        },
+        {
+          "id": "M-6C-1",
+          "name": "K5",
+          "line": "LINE C",
+          "status": "RUNNING",
+          "cluster": "Botol",
+          "ws": "6C",
+          "position": {
+            "row": 14,
+            "col": 43
+          },
+          "row": 14,
+          "col": 43
+        },
+        {
+          "id": "M-6C-2",
+          "name": "K6",
+          "line": "LINE C",
+          "status": "RUNNING",
+          "cluster": "Botol",
+          "ws": "6C",
+          "position": {
+            "row": 14,
+            "col": 44
+          },
+          "row": 14,
+          "col": 44
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Jiddan"
+      ],
+      "nonCore": [
+        "Siska"
+      ],
+      "longshift": [],
+      "workstations": [
+        "WW"
+      ],
+      "totalDistance": 0
+    },
+    {
+      "id": "CQI-19",
+      "name": "CQI 19",
+      "status": "READY",
+      "priority": [],
+      "corePriority": [],
+      "position": {
+        "row": 3,
+        "col": 34
+      },
+      "row": 3,
+      "col": 34,
+      "cqi": {
+        "id": "CQI-19",
+        "name": "CQI 19",
+        "status": "READY",
+        "priority": [],
+        "corePriority": [],
+        "position": {
+          "row": 3,
+          "col": 34
+        },
+        "row": 3,
+        "col": 34
+      },
+      "cqiNum": 19,
+      "line": "LINE OT",
+      "machines": [
+        {
+          "id": "M-OT-1",
+          "name": "M2",
+          "line": "OT",
+          "status": "RUNNING",
+          "cluster": "",
+          "ws": "OT",
+          "position": {
+            "row": 3,
+            "col": 33
+          },
+          "row": 3,
+          "col": 33
+        },
+        {
+          "id": "M-OT-2",
+          "name": "M3",
+          "line": "OT",
+          "status": "RUNNING",
+          "cluster": "",
+          "ws": "OT",
+          "position": {
+            "row": 4,
+            "col": 33
+          },
+          "row": 4,
+          "col": 33
+        }
+      ],
+      "core": 1,
+      "coreNames": [
+        "Farhan"
+      ],
+      "nonCore": [],
+      "longshift": [],
+      "workstations": [
+        "OT"
+      ],
+      "totalDistance": 0
     }
   ]
 }

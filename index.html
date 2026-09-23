@@ -106,63 +106,6 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- EDIT MODE TOOLBAR WITH SNAP-TO-GRID CONTROLS -->
-    <div class="edit-mode-toolbar" id="editModeToolbar">
-      <div class="edit-toolbar-left">
-        <div class="edit-toolbar-title">
-          <span class="edit-dot"></span>
-          <span>MODE EDIT MAP</span>
-        </div>
-        <button
-          id="btnToggleSnap"
-          class="btn-snap-toggle active"
-          onclick="toggleSnapToGrid()"
-          title="Aktifkan / Nonaktifkan Snap-to-Grid Magnetik"
-        >
-          <span style="display:inline-flex; align-items:center;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-          </span>
-          <span id="snapToggleText">Snap-to-Grid: AKTIF</span>
-        </button>
-      </div>
-
-      <div class="edit-toolbar-center">
-        <button class="btn" style="font-size:0.75rem; padding:4px 8px;" onclick="openNodeModal('machine')">+ Mesin</button>
-        <button class="btn" style="font-size:0.75rem; padding:4px 8px;" onclick="openNodeModal('cqi')">+ CQI</button>
-        <button class="btn" style="font-size:0.75rem; padding:4px 8px;" onclick="openNodeModal('label')">+ Label</button>
-        <button class="btn" style="font-size:0.75rem; padding:4px 8px;" onclick="openNodeModal('line')">+ Batas Line</button>
-        <div class="edit-hud-pill" id="editCoordHud">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="2" x2="12" y2="6"></line>
-            <line x1="12" y1="18" x2="12" y2="22"></line>
-            <line x1="2" y1="12" x2="6" y2="12"></line>
-            <line x1="18" y1="12" x2="22" y2="12"></line>
-          </svg>
-          <span id="hudCoordsText">Snap Grid: Siap</span>
-        </div>
-      </div>
-
-      <div class="edit-toolbar-right">
-        <button class="btn btn-success" style="font-size:0.75rem; padding:5px 12px;" onclick="exportMapJson()">Simpan Map</button>
-        <button class="btn" style="font-size:0.75rem; padding:5px 12px; background:#e2e8f0; color:#1e293b; font-weight:700;" onclick="handleSettingsClick()">Selesai Edit</button>
-      </div>
-    </div>
-
-    <!-- Floating Snap-to-Grid Tooltip HUD -->
-    <div id="snapDragBadge" class="snap-drag-badge">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2v20M2 12h20"/>
-      </svg>
-      <span id="snapBadgeText">Snap:</span>
-      <span id="snapBadgeCoord" class="snap-badge-coord">R1 : C1</span>
-    </div>
-
     <div class="main-layout">
       <div class="side-panel closed control-landing" id="sidePanel">
         <div class="panel-header"><h3>Filter & Status</h3></div>
@@ -171,6 +114,7 @@
             <div class="ws-group-title" style="margin-bottom: 6px">KONTROL MESIN</div>
             <div style="display: flex; gap: 8px">
               <button
+                type="button"
                 class="btn btn-success"
                 style="flex: 1; font-size: 0.75rem"
                 onclick="setAllMachinesRunning()"
@@ -178,6 +122,7 @@
                 Run All
               </button>
               <button
+                type="button"
                 class="btn btn-danger"
                 style="flex: 1; font-size: 0.75rem"
                 onclick="setAllMachinesOff()"
@@ -191,6 +136,7 @@
             <div class="ws-group-title" style="margin-bottom: 6px">KONTROL CQI</div>
             <div style="display: flex; gap: 8px">
               <button
+                type="button"
                 class="btn btn-primary"
                 style="flex: 1; font-size: 0.75rem"
                 onclick="setAllCqiReady()"
@@ -198,6 +144,7 @@
                 Ready All
               </button>
               <button
+                type="button"
                 class="btn btn-danger"
                 style="flex: 1; font-size: 0.75rem"
                 onclick="setAllCqiOff()"
@@ -228,13 +175,14 @@
           <div class="edit-toolbar-left">
             <span class="edit-toolbar-title">
               <span class="edit-dot"></span>
-              <span>MODE EDIT</span>
+              <span>MODE EDIT MAP</span>
             </span>
             <button
               id="snapToggleBtn"
               class="btn-snap-toggle active"
               onclick="toggleSnapToGrid()"
               title="Aktifkan / Nonaktifkan Snap to Grid saat Drag & Drop"
+              type="button"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -245,19 +193,26 @@
               </svg>
               <span id="snapToggleLabel">Snap-to-Grid: AKTIF</span>
             </button>
-            <div class="edit-hud-pill">
-              <span>Target:</span>
-              <span class="hud-val" id="snapHudCoords">-</span>
+            <div class="edit-hud-pill" id="editCoordHud">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="2" x2="12" y2="6"></line>
+                <line x1="12" y1="18" x2="12" y2="22"></line>
+                <line x1="2" y1="12" x2="6" y2="12"></line>
+                <line x1="18" y1="12" x2="22" y2="12"></line>
+              </svg>
+              <span class="hud-val" id="snapHudCoords">Snap Grid: Siap</span>
             </div>
           </div>
           <div class="edit-toolbar-center">
-            <button class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('machine')" title="Tambah Node Mesin Baru">+ Mesin</button>
-            <button class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('cqi')" title="Tambah Node CQI Baru">+ CQI</button>
-            <button class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('label')" title="Tambah Label Workstation">+ Label</button>
-            <button class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('line')" title="Tambah Batas Line">+ Batas Line</button>
+            <button type="button" class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('machine')" title="Tambah Node Mesin Baru">+ Mesin</button>
+            <button type="button" class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('cqi')" title="Tambah Node CQI Baru">+ CQI</button>
+            <button type="button" class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('label')" title="Tambah Label Workstation">+ Label</button>
+            <button type="button" class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('line')" title="Tambah Batas Line">+ Batas Line</button>
           </div>
           <div class="edit-toolbar-right">
-            <button class="btn btn-success" style="font-size:0.75rem; padding:5px 12px;" onclick="handleSettingsClick()" title="Selesai Mengedit dan Terapkan">Selesai Edit</button>
+            <button type="button" class="btn btn-success" style="font-size:0.75rem; padding:5px 12px;" onclick="exportMapJson()" title="Simpan file konfigurasi map.json">Simpan Map</button>
+            <button type="button" class="btn" style="font-size:0.75rem; padding:5px 12px; background:#e2e8f0; color:#1e293b; font-weight:700;" onclick="handleSettingsClick()" title="Selesai Mengedit dan Terapkan">Selesai Edit</button>
           </div>
         </div>
 
@@ -268,8 +223,8 @@
         <!-- Floating Snap Drag Badge & Line Resize Badge -->
         <div class="snap-drag-badge" id="snapDragBadge">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
-          <span id="snapDragNodeName">Object</span>
-          <span class="snap-badge-coord" id="snapDragBadgeCoord">R1, C1</span>
+          <span id="snapBadgeText">Snap:</span>
+          <span class="snap-badge-coord" id="snapBadgeCoord">R1 : C1</span>
         </div>
         <div class="line-resize-badge" id="lineResizeBadge"></div>
       </div>
@@ -308,29 +263,29 @@
       <div class="modal-card">
         <h3>Pengaturan Map</h3>
         <div class="menu-list">
-          <button class="btn" onclick="toggleAppTheme()" id="modalThemeToggleBtn" style="display:flex; align-items:center; justify-content:space-between;">
+          <button class="btn" onclick="toggleAppTheme()" id="modalThemeToggleBtn" style="display:flex; align-items:center; justify-content:space-between;" type="button">
             <span id="modalThemeText">Tema (Gelap / Terang)</span>
             <span id="modalThemeIcon" style="display:inline-flex; align-items:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
           </button>
-          <button class="btn" onclick="activateEditMode()">Edit Map</button>
-          <button class="btn" onclick="openNodeModal('machine')">
+          <button class="btn" onclick="activateEditMode()" type="button">Mode Edit Map</button>
+          <button class="btn" onclick="openNodeModal('machine')" type="button">
             Tambah Mesin
           </button>
-          <button class="btn" onclick="openNodeModal('cqi')">
+          <button class="btn" onclick="openNodeModal('cqi')" type="button">
             Tambah CQI
           </button>
-          <button class="btn" onclick="openNodeModal('label')">
+          <button class="btn" onclick="openNodeModal('label')" type="button">
             Tambah Label
           </button>
-          <button class="btn" onclick="openNodeModal('line')">
+          <button class="btn" onclick="openNodeModal('line')" type="button">
             Tambah Batas Line
           </button>
-          <button class="btn btn-success" onclick="exportMapJson()">
-            Simpan Map
+          <button class="btn btn-success" onclick="exportMapJson()" type="button">
+            Simpan &amp; Ekspor Map (.json)
           </button>
         </div>
         <div class="modal-actions">
-          <button class="btn" onclick="closeSettingsModal()">Tutup</button>
+          <button class="btn" onclick="closeSettingsModal()" type="button">Tutup</button>
         </div>
       </div>
     </div>
@@ -341,11 +296,12 @@
         <h3 id="modalTitle">Kustomisasi Object</h3>
         <div id="modalFormContainer"></div>
         <div class="modal-actions">
-          <button class="btn" onclick="closeNodeModal()">Batal</button>
+          <button class="btn" onclick="closeNodeModal()" type="button">Batal</button>
           <button
             id="modalSaveBtn"
             class="btn btn-primary"
             onclick="submitNodeModal()"
+            type="button"
           >
             Simpan
           </button>
@@ -365,7 +321,7 @@
         </div>
         <h3 style="margin: 0 0 8px; font-size: 17px; font-weight: 700; color: var(--text-main);">Peringatan Reset Planning</h3>
         <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.5; color: var(--text-muted);">
-          Hal ini dapat menyebabkan planing ter-reset.
+          Tindakan ini akan mengatur ulang status mesin/CQI dan mereset hasil alokasi perencanaan saat ini. Lanjutkan?
         </p>
         <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center;">
           <button type="button" class="btn" style="flex: 1; padding: 9px 16px;" onclick="closePlanResetWarningModal()">
@@ -373,6 +329,32 @@
           </button>
           <button type="button" class="btn btn-danger" style="flex: 1; padding: 9px 16px;" onclick="executePendingPlanReset()">
             Lanjutkan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI HAPUS NODE (Tanpa Native window.confirm) -->
+    <div class="modal-overlay" id="deleteConfirmModal" style="z-index: 2600;">
+      <div class="modal-card" style="max-width: 400px; text-align: center; padding: 24px;">
+        <div style="width: 48px; height: 48px; margin: 0 auto 14px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #dc2626; display: flex; align-items: center; justify-content: center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </div>
+        <h3 id="deleteConfirmTitle" style="margin: 0 0 8px; font-size: 17px; font-weight: 700; color: var(--text-main);">Hapus Objek</h3>
+        <p id="deleteConfirmMessage" style="margin: 0 0 20px; font-size: 14px; line-height: 1.5; color: var(--text-muted);">
+          Apakah Anda yakin ingin menghapus objek ini dari peta?
+        </p>
+        <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center;">
+          <button type="button" class="btn" style="flex: 1; padding: 9px 16px;" onclick="closeDeleteConfirmModal()">
+            Batal
+          </button>
+          <button type="button" class="btn btn-danger" style="flex: 1; padding: 9px 16px;" id="btnExecuteDelete" onclick="executeDeleteConfirm()">
+            Hapus
           </button>
         </div>
       </div>
@@ -562,17 +544,6 @@
         totalCols = maxC + buffer;
       }
 
-      const PLANNING_72_MACHINE_IDS = [
-        'M-10A-4', 'M-2A-3', 'M-2A-4', 'M-2A-2', 'M-2A-1', 'M-3A-3', 'M-4A-1', 'M-4A-2', 'M-4A-3', 'M-4A-4',
-        'M-5A-1', 'M-5A-2', 'M-5A-3', 'M-5A-4', 'M-6A-1', 'M-6A-2', 'M-6A-3', 'M-6A-4', 'M-7A-1', 'M-7A-2',
-        'M-7A-3', 'M-7A-4', 'M-8A-1', 'M-8A-2', 'M-8A-3', 'M-8A-4', 'M-9A-1', 'M-9A-2', 'M-9A-3', 'M-9A-4',
-        'M-10A-1', 'M-10A-2', 'M-10A-3', 'M-1B-1', 'M-1B-4', 'M-1B-3', 'M-2B-1', 'M-2B-2', 'M-2B-4', 'M-2B-3',
-        'M-3B-1', 'M-3B-2', 'M-3B-3', 'M-3B-4', 'M-5B-3', 'M-5B-4', 'M-5B-2', 'M-7B-1', 'M-7B-2', 'M-7B-3',
-        'M-7B-4', 'M-9B-1', 'M-9B-2', 'M-9B-3', 'M-10B-3', 'M-10B-2', 'M-10B-1', 'M-2C-1', 'M-2C-2', 'M-3C-3',
-        'M-5C-1', 'M-5C-2', 'M-9C-1', 'M-8C-2', 'M-6C-1', 'M-6C-2', 'M-OT-1', 'M-OT-2', 'M-4B-1', 'M-0B-1',
-        'M-0B-2', 'M-WW-1'
-      ];
-
       let pendingResetAction = null;
 
       function hasActivePlanning() {
@@ -643,27 +614,6 @@
         if (typeof renderGrid === "function") {
           renderGrid();
         }
-      }
-
-      function applyShiftPlanning() {
-        confirmPlanResetIfNeeded(() => {
-          clearActivePlanning();
-          const idSet = new Set(PLANNING_72_MACHINE_IDS);
-          mapData.machines.forEach((m) => {
-            m.status = idSet.has(m.id) ? "RUNNING" : "OFF";
-          });
-          const readyCqiNames = [
-            "CQI 1", "CQI 2", "CQI 3", "CQI 4", "CQI 5", "CQI 6", "CQI 7", "CQI 8", "CQI 9", "CQI 10",
-            "CQI 11", "CQI 12", "CQI 13", "CQI 14", "CQI 15", "CQI 16", "CQI 17", "CQI 18",
-            "CQI 19", "CQI 20", "CQI 24"
-          ];
-          mapData.cqis.forEach((c) => {
-            c.status = readyCqiNames.includes(c.name) ? "READY" : "OFF";
-          });
-          renderGrid();
-          saveInternalStorage();
-          showToast("72 Mesin diatur RUNNING sesuai Planning Shift 2!", "success");
-        });
       }
 
       function getActivePlanningSlots() {
@@ -754,7 +704,7 @@
           },
           {
             title: "LINE C",
-            keys: ["0C", "1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C"],
+            keys: ["1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C"],
           },
           { title: "LAINNYA", keys: ["WW", "OT"] },
         ];
@@ -780,7 +730,7 @@
           titleDiv.className = "ws-group-title";
           titleDiv.innerHTML = `
             <span>${g.title}</span>
-            <button class="ws-group-toggle-btn" onclick="toggleGroupWorkstations('${g.title}')" title="Sakelar status untuk semua mesin di ${g.title}">All</button>
+            <button class="ws-group-toggle-btn" type="button" onclick="toggleGroupWorkstations('${g.title}')" title="Sakelar status untuk semua mesin di ${g.title}">Semua</button>
           `;
           box.appendChild(titleDiv);
 
@@ -1021,16 +971,16 @@
 
       function toggleSnapToGrid() {
         snapToGrid = !snapToGrid;
-        const btn = document.getElementById("btnToggleSnap");
-        const txt = document.getElementById("snapToggleText");
-        if (btn && txt) {
+        const btn = document.getElementById("snapToggleBtn") || document.getElementById("btnToggleSnap");
+        const txt = document.getElementById("snapToggleLabel") || document.getElementById("snapToggleText");
+        if (btn) {
           if (snapToGrid) {
             btn.classList.add("active");
-            txt.innerText = "Snap-to-Grid: AKTIF";
+            if (txt) txt.innerText = "Snap-to-Grid: AKTIF";
             showToast("Snap-to-Grid Aktif: Objek otomatis terkunci ke sel grid presisi", "success");
           } else {
             btn.classList.remove("active");
-            txt.innerText = "Snap-to-Grid: NONAKTIF";
+            if (txt) txt.innerText = "Snap-to-Grid: NONAKTIF";
             showToast("Snap-to-Grid Nonaktif: Mode bebas", "info");
           }
         }
@@ -1053,8 +1003,8 @@
 
       function updateSnapBadge(e, r, c, name = "") {
         const badge = document.getElementById("snapDragBadge");
-        const coordEl = document.getElementById("snapBadgeCoord");
-        const textEl = document.getElementById("snapBadgeText");
+        const coordEl = document.getElementById("snapBadgeCoord") || document.getElementById("snapDragBadgeCoord");
+        const textEl = document.getElementById("snapBadgeText") || document.getElementById("snapDragNodeName");
         if (!badge || !coordEl) return;
 
         badge.classList.add("visible");
@@ -1065,7 +1015,7 @@
           textEl.innerText = name ? `Snap [${name}]:` : "Snap:";
         }
 
-        const hud = document.getElementById("hudCoordsText");
+        const hud = document.getElementById("snapHudCoords") || document.getElementById("hudCoordsText");
         if (hud) {
           hud.innerText = `Snap: Row ${r}, Col ${c} ${name ? '(' + name + ')' : ''}`;
         }
@@ -1073,7 +1023,7 @@
 
       function updateCursorHud(r, c) {
         if (editMode && !draggedNode) {
-          const hud = document.getElementById("hudCoordsText");
+          const hud = document.getElementById("snapHudCoords") || document.getElementById("hudCoordsText");
           if (hud) hud.innerText = `Kursor: Row ${r}, Col ${c}`;
         }
       }
@@ -1186,7 +1136,7 @@
           .querySelectorAll(".control-landing")
           .forEach((el) => (el.style.display = "none"));
 
-        const hud = document.getElementById("hudCoordsText");
+        const hud = document.getElementById("snapHudCoords") || document.getElementById("hudCoordsText");
         if (hud) hud.innerText = "Snap Grid: Siap";
 
         calculateGridBounds();
@@ -1948,6 +1898,34 @@
         document.addEventListener("mouseup", onMouseUp);
       }
 
+      let pendingDeleteAction = null;
+
+      function openDeleteConfirmModal(title, msg, onConfirm) {
+        const modal = document.getElementById("deleteConfirmModal");
+        const titleEl = document.getElementById("deleteConfirmTitle");
+        const msgEl = document.getElementById("deleteConfirmMessage");
+        if (titleEl) titleEl.innerText = title;
+        if (msgEl) msgEl.innerText = msg;
+        pendingDeleteAction = onConfirm;
+        if (modal) modal.classList.add("active");
+      }
+
+      function closeDeleteConfirmModal() {
+        const modal = document.getElementById("deleteConfirmModal");
+        if (modal) modal.classList.remove("active");
+        pendingDeleteAction = null;
+      }
+      window.closeDeleteConfirmModal = closeDeleteConfirmModal;
+
+      function executeDeleteConfirm() {
+        const action = pendingDeleteAction;
+        closeDeleteConfirmModal();
+        if (typeof action === "function") {
+          action();
+        }
+      }
+      window.executeDeleteConfirm = executeDeleteConfirm;
+
       function deleteNode(id, type) {
         let typeLabel =
           type === "line"
@@ -1957,16 +1935,28 @@
               : type === "cqi"
                 ? "CQI"
                 : "Label";
-        if (!confirm(`Hapus ${typeLabel} ini?`)) return;
+
+        let objName = id;
         let key = type + "s";
         if (Array.isArray(mapData[key])) {
-          mapData[key] = mapData[key].filter((x) => x.id !== id);
+          const item = mapData[key].find((x) => x.id === id);
+          if (item && item.name) objName = item.name;
         }
-        clearActivePlanning();
-        calculateGridBounds();
-        renderGrid();
-        saveInternalStorage();
-        showToast(`${typeLabel} berhasil dihapus`, "info");
+
+        openDeleteConfirmModal(
+          `Hapus ${typeLabel}`,
+          `Apakah Anda yakin ingin menghapus ${typeLabel} "${objName}" dari tata letak peta?`,
+          () => {
+            if (Array.isArray(mapData[key])) {
+              mapData[key] = mapData[key].filter((x) => x.id !== id);
+            }
+            clearActivePlanning();
+            calculateGridBounds();
+            renderGrid();
+            saveInternalStorage();
+            showToast(`${typeLabel} "${objName}" berhasil dihapus`, "info");
+          }
+        );
       }
 
       function openNodeModal(type) {
@@ -2053,7 +2043,8 @@
         const nameEl = document.getElementById("nName");
         let name = nameEl ? nameEl.value.trim() : "";
         if (!name) {
-          alert("Nama wajib diisi");
+          showToast("Nama wajib diisi!", "info");
+          if (nameEl) nameEl.focus();
           return;
         }
 
@@ -2145,10 +2136,6 @@
 
         if (!isFinite(fillZoom) || fillZoom <= 0) fillZoom = 0.75;
         return Math.max(0.35, Math.min(1.15, fillZoom));
-      }
-
-      function calculateFitZoom() {
-        return calculateAutoFillZoom();
       }
 
       function applyZoom(init = false) {
@@ -2336,12 +2323,88 @@
         setTimeout(() => resetZoom(false), 80);
       });
 
+      // Indikator status jaringan offline / online
+      function updateOnlineStatus() {
+        const ind = document.getElementById("offlineIndicator");
+        if (ind) {
+          if (!navigator.onLine) {
+            ind.style.display = "inline-block";
+          } else {
+            ind.style.display = "none";
+          }
+        }
+      }
+      window.addEventListener("online", updateOnlineStatus);
+      window.addEventListener("offline", updateOnlineStatus);
+      updateOnlineStatus();
+
+      // Keyboard shortcuts untuk pengalaman desktop efisien
+      window.addEventListener("keydown", (e) => {
+        const isInput = e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA");
+        if (e.key === "Escape") {
+          if (document.getElementById("deleteConfirmModal")?.classList.contains("active")) {
+            closeDeleteConfirmModal();
+            return;
+          }
+          if (document.getElementById("planResetWarningModal")?.classList.contains("active")) {
+            closePlanResetWarningModal();
+            return;
+          }
+          if (document.getElementById("nodeModal")?.classList.contains("active")) {
+            closeNodeModal();
+            return;
+          }
+          if (document.getElementById("settingsModal")?.classList.contains("active")) {
+            closeSettingsModal();
+            return;
+          }
+          if (editMode) {
+            handleSettingsClick(); // Selesai edit mode
+            return;
+          }
+        }
+        if (!isInput) {
+          if (e.key === "+" || e.key === "=") {
+            zoomIn();
+          } else if (e.key === "-" || e.key === "_") {
+            zoomOut();
+          } else if (e.key === "0") {
+            resetZoom();
+          }
+        }
+      });
+
       loadMap();
 
+      // Ekspor fungsi global untuk event onclick di HTML & interoperabilitas
+      window.updateStats = updateStatsAndButtons;
+      window.updateStatsAndButtons = updateStatsAndButtons;
       window.goToConfig = goToConfig;
       window.zoomIn = zoomIn;
       window.zoomOut = zoomOut;
       window.resetZoom = resetZoom;
+      window.toggleSnapToGrid = toggleSnapToGrid;
+      window.openNodeModal = openNodeModal;
+      window.openEditModal = openEditModal;
+      window.closeNodeModal = closeNodeModal;
+      window.submitNodeModal = submitNodeModal;
+      window.deleteNode = deleteNode;
+      window.openDeleteConfirmModal = openDeleteConfirmModal;
+      window.closeDeleteConfirmModal = closeDeleteConfirmModal;
+      window.executeDeleteConfirm = executeDeleteConfirm;
+      window.exportMapJson = exportMapJson;
+      window.handleSettingsClick = handleSettingsClick;
+      window.closeSettingsModal = closeSettingsModal;
+      window.activateEditMode = activateEditMode;
+      window.toggleSidePanel = toggleSidePanel;
+      window.toggleHeatmap = toggleHeatmap;
+      window.setAllMachinesRunning = setAllMachinesRunning;
+      window.setAllMachinesOff = setAllMachinesOff;
+      window.setAllCqiReady = setAllCqiReady;
+      window.setAllCqiOff = setAllCqiOff;
+      window.toggleGroupWorkstations = toggleGroupWorkstations;
+      window.toggleWorkstation = toggleWorkstation;
+      window.showToast = showToast;
     </script>
   </body>
 </html>

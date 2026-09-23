@@ -116,13 +116,13 @@
           <span class="theme-text" id="themeText">Gelap</span>
         </button>
         <button class="btn btn-primary" id="headerBtnNext1" onclick="handleStep1Lanjut()" title="Lanjut ke Dashboard Alokasi">
-          <span>Lanjut ke Dashboard</span>
+          <span><span class="btn-text-full">Lanjut ke </span>Dashboard</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </button>
         <button class="btn btn-primary" id="headerBtnNext2" style="display:none;" onclick="handleStep2Lanjut()" title="Lanjut ke Output Planning Final">
-          <span>Lanjut ke Output</span>
+          <span><span class="btn-text-full">Lanjut ke </span>Output</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
@@ -131,7 +131,7 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          <span>Validasi dan Salin</span>
+          <span>Validasi <span class="btn-text-full">&amp; Salin</span></span>
         </button>
       </div>
       <span id="statusBadge" style="display:none"></span>
@@ -370,9 +370,6 @@
         </section>
       </div>
 
-      <!-- TOAST NOTIFICATION CONTAINER -->
-      <div class="toast-container" id="toastContainer"></div>
-
       <!-- LANGKAH 3: OUTPUT PLANNING FINAL FULL SCREEN -->
       <div id="stepSection3" class="step-content" style="display: none;">
         <section class="card full-screen-output-card">
@@ -384,30 +381,49 @@
             <span class="meta" id="lineMeta">Belum digenerate</span>
           </div>
 
-          <!-- Bar Pemilihan Tanggal Planning -->
+          <!-- Bar Pemilihan Tanggal & Shift Planning -->
           <div class="planning-date-bar" id="planningDateBar">
-            <div class="planning-date-field">
-              <label for="planningDatePicker" class="planning-date-label">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                <span>Pilih Tanggal Planning:</span>
-              </label>
-              <input 
-                type="date" 
-                id="planningDatePicker" 
-                class="planning-date-input" 
-                onchange="handlePlanningDateChange(this.value)"
-                title="Pilih tanggal pelaksanaan planning"
-              />
-              <div class="planning-date-quick-btns">
-                <button type="button" class="btn btn-date-quick" onclick="setPlanningDateQuick('today')" title="Set tanggal ke hari ini">Hari Ini</button>
-                <button type="button" class="btn btn-date-quick" onclick="setPlanningDateQuick('tomorrow')" title="Set tanggal ke besok">Besok</button>
+            <div class="planning-bar-left">
+              <div class="planning-date-field">
+                <label for="planningDatePicker" class="planning-date-label">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span>Pilih Tanggal Planning:</span>
+                </label>
+                <input 
+                  type="date" 
+                  id="planningDatePicker" 
+                  class="planning-date-input" 
+                  onchange="handlePlanningDateChange(this.value)"
+                  title="Pilih tanggal pelaksanaan planning"
+                />
+                <div class="planning-date-quick-btns">
+                  <button type="button" class="btn btn-date-quick" onclick="setPlanningDateQuick('today')" title="Set tanggal ke hari ini">Hari Ini</button>
+                  <button type="button" class="btn btn-date-quick" onclick="setPlanningDateQuick('tomorrow')" title="Set tanggal ke besok">Besok</button>
+                </div>
+                <span class="planning-date-badge" id="planningDateBadgeText"></span>
               </div>
-              <span class="planning-date-badge" id="planningDateBadgeText"></span>
+            </div>
+
+            <div class="planning-bar-right">
+              <div class="planning-shift-field">
+                <label class="planning-date-label">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>Pilih Shift:</span>
+                </label>
+                <div class="shift-pill-group" id="planningShiftGroup">
+                  <button type="button" class="btn-shift-pill active" data-shift="1" onclick="handleShiftChange(1)" title="Pilih Shift 1">Shift 1</button>
+                  <button type="button" class="btn-shift-pill" data-shift="2" onclick="handleShiftChange(2)" title="Pilih Shift 2">Shift 2</button>
+                  <button type="button" class="btn-shift-pill" data-shift="3" onclick="handleShiftChange(3)" title="Pilih Shift 3">Shift 3</button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -416,7 +432,7 @@
             class="text-output-fullscreen"
             spellcheck="false"
             placeholder="Planning output akan muncul di sini..."
-            oninput="updateMeta()"
+            oninput="updateMeta(); autoResizeTextOutput();"
           ></textarea>
           <div class="actions">
             <button
@@ -1083,21 +1099,6 @@
           JSON.stringify(manpowerData.qcPassed),
         );
       }
-
-      function rotateCore(direction = 1) {
-        if (!manpowerData.core || manpowerData.core.length <= 1) return;
-        if (direction === 1) {
-          // Rotasi maju 1 posisi (personil atas bergeser ke bawah)
-          manpowerData.core.push(manpowerData.core.shift());
-        } else if (direction === -1) {
-          // Rotasi mundur 1 posisi
-          manpowerData.core.unshift(manpowerData.core.pop());
-        }
-        persistManpower();
-        renderAllLists();
-        updateActivePlanningManpower();
-      }
-      window.rotateCore = rotateCore;
 
       function renderAllLists() {
         renderList("coreListContainer", manpowerData.core, "core");
@@ -3041,6 +3042,71 @@
         return `${yyyy}-${mm}-${dd}`;
       }
 
+      function getSelectedShift(cfg = {}) {
+        if (cfg && cfg.shift) {
+          const s = parseInt(cfg.shift, 10);
+          if (s >= 1 && s <= 3) return s;
+        }
+        const saved = localStorage.getItem("planning_selected_shift");
+        const parsed = parseInt(saved, 10);
+        return (parsed >= 1 && parsed <= 3) ? parsed : 1;
+      }
+
+      function initPlanningShiftUI(cfg = {}) {
+        const shift = getSelectedShift(cfg);
+        if (cfg) cfg.shift = shift;
+        if (lastFinalConfig) lastFinalConfig.shift = shift;
+
+        const group = document.getElementById("planningShiftGroup");
+        if (group) {
+          const pills = group.querySelectorAll(".btn-shift-pill");
+          pills.forEach((p) => {
+            const pShift = parseInt(p.getAttribute("data-shift"), 10);
+            if (pShift === shift) {
+              p.classList.add("active");
+            } else {
+              p.classList.remove("active");
+            }
+          });
+        }
+        return shift;
+      }
+
+      function handleShiftChange(shiftNum) {
+        const num = parseInt(shiftNum, 10) || 1;
+        localStorage.setItem("planning_selected_shift", num);
+        if (!lastFinalConfig) lastFinalConfig = {};
+        lastFinalConfig.shift = num;
+
+        const group = document.getElementById("planningShiftGroup");
+        if (group) {
+          const pills = group.querySelectorAll(".btn-shift-pill");
+          pills.forEach((p) => {
+            const pShift = parseInt(p.getAttribute("data-shift"), 10);
+            if (pShift === num) {
+              p.classList.add("active");
+            } else {
+              p.classList.remove("active");
+            }
+          });
+        }
+
+        generateTextOutput(lastFinalConfig);
+        savePlanningCache();
+        showToast("Shift planning diatur: Shift " + num, "info");
+      }
+      window.handleShiftChange = handleShiftChange;
+      window.getSelectedShift = getSelectedShift;
+
+      function autoResizeTextOutput() {
+        const ta = document.getElementById("textOutput");
+        if (!ta) return;
+        ta.style.height = "auto";
+        const targetHeight = Math.max(480, ta.scrollHeight + 20);
+        ta.style.height = targetHeight + "px";
+      }
+      window.autoResizeTextOutput = autoResizeTextOutput;
+
       function initPlanningDatePicker(cfg = {}) {
         const picker = document.getElementById("planningDatePicker");
         const badge = document.getElementById("planningDateBadgeText");
@@ -3054,6 +3120,7 @@
         }
         if (cfg) cfg.tanggal = dateIso;
         if (lastFinalConfig) lastFinalConfig.tanggal = dateIso;
+        initPlanningShiftUI(cfg);
         return dateIso;
       }
 
@@ -3098,13 +3165,16 @@
 
         const finalCfg = config || lastFinalConfig || {};
         const chosenDate = initPlanningDatePicker(finalCfg);
+        const chosenShift = initPlanningShiftUI(finalCfg);
         finalCfg.tanggal = chosenDate;
+        finalCfg.shift = chosenShift;
 
         document.getElementById("textOutput").value = brain.formatText(
           currentPlan,
           finalCfg,
         );
         updateMeta();
+        autoResizeTextOutput();
       }
 
       function updateMeta() {
@@ -3153,9 +3223,9 @@
             );
           }
 
-          const now = new Date();
-          const dateStr = `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`;
-          const fileName = `planning-${dateStr}.json`;
+          const chosenDateIso = getSelectedPlanningDate(lastFinalConfig);
+          const currentShiftNum = (lastFinalConfig && lastFinalConfig.shift) || getSelectedShift() || 1;
+          const fileName = `planning-${chosenDateIso}-shift${currentShiftNum}.json`;
 
           const unassignedList = (activeSlots && (activeSlots.unassignedMachines || activeSlots.uncoveredMachines)) || (currentPlan && (currentPlan.unassignedMachines || currentPlan.uncoveredMachines)) || [];
 
@@ -3274,8 +3344,9 @@
           const exportPayload = {
             meta: {
               app: "MAP LIQUID 3 - Production View",
-              date: dateStr,
-              generated_at: now.toISOString(),
+              date: chosenDateIso,
+              shift: currentShiftNum,
+              generated_at: new Date().toISOString(),
               total_cqi: structuredPlanning.length,
               total_machines_running: totalMachines,
               total_core: totalCoreCombined,
@@ -3318,8 +3389,13 @@
       }
 
       function showToast(msg, type = "info") {
-        const container = document.getElementById("toastContainer");
-        if (!container) return;
+        let container = document.getElementById("toastContainer");
+        if (!container) {
+          container = document.createElement("div");
+          container.id = "toastContainer";
+          container.className = "toast-container";
+          document.body.appendChild(container);
+        }
         const t = document.createElement("div");
         t.className = `toast ${type}`;
         const iconSvg =
@@ -3638,7 +3714,8 @@
         const dateObj = new Date();
         const dateFormatted = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
         const planDateStr = getSelectedPlanningDate(lastFinalConfig);
-        const stampText = `Tanggal Planning : ${formatIndonesianDateStr(planDateStr)}   |   Dibuat : ${dateFormatted}   |   Total CQI: ${totalCQI}   |   Total Mesin Teralokasi: ${totalMesin}${unassignedList.length > 0 ? `   |   Unassigned: ${unassignedList.length}` : ""}`;
+        const currentShiftVal = (lastFinalConfig && lastFinalConfig.shift) || getSelectedShift() || 1;
+        const stampText = `Tanggal Planning : ${formatIndonesianDateStr(planDateStr)}   |   Shift : ${currentShiftVal}   |   Dibuat : ${dateFormatted}   |   Total CQI: ${totalCQI}   |   Total Mesin Teralokasi: ${totalMesin}${unassignedList.length > 0 ? `   |   Unassigned: ${unassignedList.length}` : ""}`;
 
         const stampRow = ws.addRow([stampText]);
         ws.mergeCells(stampRow.number, 1, stampRow.number, lastCol);
@@ -3826,7 +3903,7 @@
             type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
           }),
         );
-        a.download = "Planning_Liquid_3.xlsx";
+        a.download = `Planning_Liquid_3_${planDateStr}_Shift${currentShiftVal}.xlsx`;
         a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 2000);
       }
@@ -3869,153 +3946,6 @@
           { passive: false },
         );
       });
-
-      // ==========================================
-      // FITUR PUSH MANUAL HASIL PLANNING KE HISTORY
-      // ==========================================
-      async function pushPlanningToHistory() {
-        let activeSlots = currentPlan;
-        if (!activeSlots || activeSlots.length === 0) {
-          const stored =
-            sessionStorage.getItem("active_planning") ||
-            localStorage.getItem("last_active_planning");
-          if (stored) {
-            try {
-              const parsed = JSON.parse(stored);
-              activeSlots = parsed.slots || parsed;
-            } catch (e) {}
-          }
-        }
-
-        if (!activeSlots || activeSlots.length === 0) {
-          return alert(
-            "Silakan klik 'Generate Planning' terlebih dahulu sebelum melakukan push ke history!",
-          );
-        }
-
-        const report = BrainAI.validate(
-          activeSlots,
-          state.machines,
-          lastFinalConfig || planningMode,
-        );
-        if (!report.valid) {
-          renderAlerts(report.info, report.violations);
-          return alert(
-            "VALIDASI GAGAL! Perbaiki pelanggaran aturan alokasi sebelum menyimpan ke history resmi.",
-          );
-        }
-
-        const btn = document.getElementById("btnPushHistory");
-        const origHtml = btn ? btn.innerHTML : "";
-        if (btn) {
-          btn.disabled = true;
-          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px; vertical-align:middle; animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Menyimpan ke History...`;
-        }
-
-        try {
-          const now = new Date();
-          const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-          const timeStr = `${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
-          const fileName = `planning-${dateStr}-${timeStr}.json`;
-
-          const pairsList = [];
-          activeSlots.forEach((slot) => {
-            const cqiName = slot.cqi ? (slot.cqi.name || slot.cqi.id) : "";
-            (slot.machines || []).forEach((m) => {
-              const mId = m.id || m.name || m;
-              BrainAI.recordHistory(mId, slot.cqi.id, true);
-              pairsList.push({
-                machineId: mId,
-                machineName: m.name || mId,
-                cqiId: slot.cqi ? (slot.cqi.id || slot.cqi.name) : cqiName,
-                cqiName: cqiName,
-                cqiNum: String(BrainAI.getCqiNumber(cqiName) || "").trim(),
-                timestamp: now.toISOString(),
-                date: dateStr,
-              });
-            });
-          });
-
-          const allRunning = activeSlots.flatMap((s) => s.machines || []);
-          const structuredPlanning = activeSlots.map((slot, idx) => ({
-            no: idx + 1,
-            cqi: slot.cqi ? (slot.cqi.name || slot.cqi.id) : `CQI-${idx + 1}`,
-            cqi_line: slot.cqi ? slot.cqi.line || "-" : "-",
-            core: slot.coreNames || [],
-            non_core: slot.nonCore || [],
-            longshift: slot.longshift || [],
-            total_manpower:
-              (slot.coreNames || []).length +
-              (slot.nonCore || []).length +
-              (slot.longshift || []).length,
-            total_machines: (slot.machines || []).length,
-            machines: (slot.machines || []).map((m) => m.name || m.id || m),
-          }));
-
-          const totalCoreCombined =
-            (manpowerData.core ? manpowerData.core.length : 0) +
-            (manpowerData.ot ? manpowerData.ot.length : 0) +
-            (manpowerData.ww ? manpowerData.ww.length : 0);
-
-          const exportPayload = {
-            meta: {
-              app: "PLANING-MAKER",
-              type: "manual_push",
-              date: dateStr,
-              timestamp: now.toISOString(),
-              total_cqi: structuredPlanning.length,
-              total_machines_running: allRunning.length,
-              total_core: totalCoreCombined,
-              total_non_core: manpowerData.nonCore
-                ? manpowerData.nonCore.length
-                : 0,
-              total_longshift:
-                parseInt(
-                  document.getElementById("ncLongshiftCount")
-                    ? document.getElementById("ncLongshiftCount").value
-                    : (localStorage.getItem("ncls_count") || 0),
-                  10,
-                ) || 0,
-              mode: planningMode || 1,
-            },
-            planning: structuredPlanning,
-            pairs: pairsList,
-          };
-
-          const resp = await fetch("/api/history/save", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payload: exportPayload, fileName }),
-          });
-
-          if (!resp.ok) {
-            throw new Error(`HTTP ${resp.status}`);
-          }
-
-          const res = await resp.json();
-          if (res.success) {
-            if (typeof BrainAI.loadAllHistory === "function") {
-              await BrainAI.loadAllHistory();
-            }
-            showToast(`Hasil perencanaan resmi (${allRunning.length} mesin) berhasil di-push ke folder history: ${res.fileName}`, "success");
-            alert(
-              `SUKSES! Hasil perencanaan resmi (${allRunning.length} mesin) berhasil di-push ke folder history: ${res.fileName}\nData riwayat resmi ini langsung dipelajari oleh model cerdas Brain AI.`,
-            );
-          } else {
-            throw new Error(res.error || "Gagal menyimpan");
-          }
-        } catch (err) {
-          console.error("Gagal push planning ke history:", err);
-          alert(
-            `Gagal push ke server: ${err.message}. Data tetap tersimpan di memori pembelajaran lokal browser.`,
-          );
-        } finally {
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = origHtml || `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px; vertical-align:middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>Push ke History`;
-          }
-        }
-      }
 
       // ==========================================
       // FITUR INTERACTIVE DRAG-AND-DROP BOARD & STEPPER LOCK
@@ -4706,27 +4636,6 @@
         if (btnRedo) btnRedo.disabled = planRedoStack.length === 0;
       }
 
-      function showToast(msg, type = "info") {
-        let container = document.getElementById("toastContainer");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toastContainer";
-          container.className = "toast-container";
-          document.body.appendChild(container);
-        }
-        const t = document.createElement("div");
-        t.className = `toast ${type}`;
-        const iconSvg =
-          type === "success"
-            ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
-            : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
-        t.innerHTML = `<span style="display:inline-flex; align-items:center;">${iconSvg}</span> <span>${msg}</span>`;
-        container.appendChild(t);
-        setTimeout(() => {
-          if (t.parentNode) t.remove();
-        }, 2400);
-      }
-
       // Keyboard Shortcut listener for Undo (Ctrl+Z / Cmd+Z) and Redo (Ctrl+Y / Ctrl+Shift+Z)
       window.addEventListener("keydown", (e) => {
         const tag = (e.target && e.target.tagName ? e.target.tagName.toLowerCase() : "");
@@ -5216,34 +5125,6 @@
         handleBoardDrop(e, targetSlotIdx, targetColIdx);
       }
 
-      function shiftWorkstationColumn(slotIdx, wsKey, currentColIdx, event) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        if (!currentPlan || !currentPlan[slotIdx]) return;
-        const slot = currentPlan[slotIdx];
-        pushPlanHistory();
-
-        const targetCol = currentColIdx === 0 ? 1 : 0;
-        slot.machineColAssignments = slot.machineColAssignments || {};
-
-        const b = getBrain() || window.BrainAI;
-        const getWsKey = (m) => ((b && b.getWorkstationKey ? b.getWorkstationKey(m) : m.workstation) || "");
-
-        (slot.machines || []).forEach((m) => {
-          if (getWsKey(m) === wsKey) {
-            slot.machineColAssignments[m.id || m.name] = targetCol;
-          }
-        });
-
-        showToast(`LINE ${wsKey} dipindahkan ke kolom ${targetCol === 0 ? 'NC 1' : 'NC 2 / LS'}`, "info");
-        recalculatePlanDistance();
-        syncUpdatedPlanState();
-        updateUndoRedoButtons();
-      }
-      window.shiftWorkstationColumn = shiftWorkstationColumn;
-
       function handleBoardDragOver(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -5606,6 +5487,11 @@
         } else if (stepNum === 3) {
           if (lastFinalConfig && typeof generateTextOutput === "function") {
             generateTextOutput(lastFinalConfig);
+          } else if (typeof generateTextOutput === "function") {
+            generateTextOutput();
+          }
+          if (typeof autoResizeTextOutput === "function") {
+            setTimeout(autoResizeTextOutput, 60);
           }
         }
 
@@ -5723,7 +5609,6 @@
       window.addQcItem = addQcItem;
       window.shiftList = shiftList;
       window.downloadPlanningJson = downloadPlanningJson;
-      window.pushPlanningToHistory = pushPlanningToHistory;
       window.validateAndExport = validateAndExport;
       window.shareWA = shareWA;
       window.exportExcel = exportExcel;
