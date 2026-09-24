@@ -2657,34 +2657,6 @@ body.modal-open {
 }
 
 /* Step Footer Actions (Fixed sticky bottom bar) */
-.step-footer-actions {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background: var(--surface, #ffffff);
-  border-top: 1px solid var(--border, #cbd5e1);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 24px;
-  gap: 12px;
-  box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.08);
-}
-@media (max-width: 768px) {
-  .step-footer-actions {
-    padding: 10px 16px;
-    gap: 8px;
-  }
-}
-.btn-lg {
-  padding: 12px 24px !important;
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-  border-radius: 8px !important;
-}
-
 /* Red Map Button */
 .btn-map-danger {
   background: #dc2626 !important;

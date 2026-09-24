@@ -478,6 +478,27 @@ export const rule = {
         giveLongshiftFallback(s);
       }
     });
+
+    // Pass 5 (Longshift Extended): Tambah bantuan lanjutan untuk slot dengan beban sangat tinggi (> max2Nc) selama kuota LS tersedia
+    slotsByUrgency.forEach(s => {
+      const cap = this.getClusterCapacityRule(s);
+      const machineCount = (s.machines || []).length;
+      let reqSupport = 0;
+      if (machineCount <= cap.maxCoreOnly) {
+        reqSupport = 0;
+      } else if (machineCount <= cap.max1Nc) {
+        reqSupport = 1;
+      } else if (machineCount <= cap.max2Nc) {
+        reqSupport = 2;
+      } else {
+        const excess = machineCount - cap.max2Nc;
+        reqSupport = 2 + Math.ceil(excess / 2);
+      }
+
+      while ((s.nonCore.length + s.longshift.length) < reqSupport && lsAvailable > 0) {
+        if (!giveLongshiftFallback(s)) break;
+      }
+    });
   },
 
   // =========================================================================
