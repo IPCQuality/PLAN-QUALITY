@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MAP LIQUID 3</title>
+    <title>PLAN LIQUID 3</title>
     <meta name="description" content="AI Assisted CQI Machine Planning and Shift Allocation System" />
-    <meta property="og:title" content="MAP LIQUID 3" />
+    <meta property="og:title" content="PLAN LIQUID 3" />
     <meta property="og:description" content="AI Assisted CQI Machine Planning and Shift Allocation System" />
     <link rel="manifest" href="/pwa/manifest.json" />
     <meta name="theme-color" content="#0f172a" />
@@ -22,6 +22,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/history.css" />
     <script>
       (function() {
         try {
@@ -54,6 +55,12 @@
       })();
     </script>
     <script type="module" src="./src/theme.js"></script>
+    <script type="module">
+      import BrainAIModule from './src/brain.js';
+      window.BrainAI = BrainAIModule;
+      window.brain = BrainAIModule;
+    </script>
+    <script type="module" src="./src/history.js"></script>
   </head>
   <body class="mode-landing">
     <header>
@@ -68,23 +75,46 @@
         </button>
       </div>
       <div class="brand brand-center">
-        MAP LIQUID 3
+        PLAN LIQUID 3
       </div>
       <div class="controls">
         <span id="offlineIndicator" style="display:none; font-size:11px; padding:4px 8px; background:#d97706; color:#fff; border-radius:4px; font-weight:700;">Offline</span>
         <div class="header-action-group">
           <button
+            id="historyBtn"
+            class="btn btn-header-action btn-history-header"
+            onclick="window.openHistoryModal && window.openHistoryModal()"
+            title="Buka Riwayat Perencanaan Shift"
+            aria-label="Riwayat Perencanaan"
+          >
+            <svg class="header-action-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span class="btn-text">Riwayat</span>
+          </button>
+          <button
             id="themeToggleBtn"
-            class="btn btn-theme-toggle"
+            class="btn btn-header-action btn-theme-toggle"
             onclick="toggleAppTheme()"
             title="Beralih ke Tema Gelap"
             aria-label="Toggle Dark/Light Mode"
           >
-            <span class="theme-icon" id="themeIcon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
-            <span class="theme-text" id="themeText">Gelap</span>
+            <span class="theme-icon header-action-svg" id="themeIcon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+            <span class="theme-text btn-text" id="themeText">Gelap</span>
           </button>
-          <button id="settingsBtn" class="btn" onclick="handleSettingsClick()" title="Pengaturan dan Menu Map">
-            Setelan
+          <button
+            id="settingsBtn"
+            class="btn btn-header-action btn-settings-header"
+            onclick="handleSettingsClick()"
+            title="Pengaturan dan Menu Map"
+            aria-label="Setelan dan Menu Map"
+          >
+            <svg class="header-action-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span class="btn-text">Setelan</span>
           </button>
         </div>
         <button
@@ -175,7 +205,7 @@
           <div class="edit-toolbar-left">
             <span class="edit-toolbar-title">
               <span class="edit-dot"></span>
-              <span>MODE EDIT MAP</span>
+              <span>Edit Mode</span>
             </span>
             <button
               id="snapToggleBtn"
@@ -191,9 +221,9 @@
                 <line x1="9" y1="3" x2="9" y2="21"/>
                 <line x1="15" y1="3" x2="15" y2="21"/>
               </svg>
-              <span id="snapToggleLabel">Snap-to-Grid: AKTIF</span>
+              <span id="snapToggleLabel">Snap: Aktif</span>
             </button>
-            <div class="edit-hud-pill" id="editCoordHud">
+            <div class="edit-hud-pill" id="editCoordHud" title="Koordinat Grid">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="2" x2="12" y2="6"></line>
@@ -201,18 +231,38 @@
                 <line x1="2" y1="12" x2="6" y2="12"></line>
                 <line x1="18" y1="12" x2="22" y2="12"></line>
               </svg>
-              <span class="hud-val" id="snapHudCoords">Snap Grid: Siap</span>
+              <span class="hud-val" id="snapHudCoords">Grid: Siap</span>
             </div>
           </div>
           <div class="edit-toolbar-center">
-            <button type="button" class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('machine')" title="Tambah Node Mesin Baru">+ Mesin</button>
-            <button type="button" class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('cqi')" title="Tambah Node CQI Baru">+ CQI</button>
-            <button type="button" class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('label')" title="Tambah Label Workstation">+ Label</button>
-            <button type="button" class="btn" style="font-size:0.75rem; padding:4px 10px;" onclick="openNodeModal('line')" title="Tambah Batas Line">+ Batas Line</button>
+            <div class="edit-btn-group">
+              <button type="button" class="btn btn-edit-tool" onclick="openNodeModal('machine')" title="Tambah Node Mesin Baru">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <span>+ Mesin</span>
+              </button>
+              <button type="button" class="btn btn-edit-tool" onclick="openNodeModal('cqi')" title="Tambah Node CQI Baru">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <span>+ CQI</span>
+              </button>
+              <button type="button" class="btn btn-edit-tool" onclick="openNodeModal('label')" title="Tambah Label Workstation">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Label</span>
+              </button>
+              <button type="button" class="btn btn-edit-tool" onclick="openNodeModal('line')" title="Tambah Batas Line">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <span>+ Batas Line</span>
+              </button>
+            </div>
           </div>
           <div class="edit-toolbar-right">
-            <button type="button" class="btn btn-success" style="font-size:0.75rem; padding:5px 12px;" onclick="exportMapJson()" title="Simpan file konfigurasi map.json">Simpan Map</button>
-            <button type="button" class="btn" style="font-size:0.75rem; padding:5px 12px; background:#e2e8f0; color:#1e293b; font-weight:700;" onclick="handleSettingsClick()" title="Selesai Mengedit dan Terapkan">Selesai Edit</button>
+            <button type="button" class="btn btn-success btn-edit-action" onclick="exportMapJson()" title="Simpan file konfigurasi map.json">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>Simpan</span>
+            </button>
+            <button type="button" class="btn btn-edit-done" onclick="handleSettingsClick()" title="Selesai Mengedit dan Terapkan">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Selesai</span>
+            </button>
           </div>
         </div>
 
@@ -263,23 +313,15 @@
       <div class="modal-card">
         <h3>Pengaturan Map</h3>
         <div class="menu-list">
+          <button class="btn btn-primary" onclick="closeSettingsModal(); window.openHistoryModal && window.openHistoryModal();" type="button" style="display:flex; align-items:center; justify-content:space-between;">
+            <span>Riwayat Perencanaan Shift</span>
+            <span style="display:inline-flex; align-items:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+          </button>
           <button class="btn" onclick="toggleAppTheme()" id="modalThemeToggleBtn" style="display:flex; align-items:center; justify-content:space-between;" type="button">
             <span id="modalThemeText">Tema (Gelap / Terang)</span>
             <span id="modalThemeIcon" style="display:inline-flex; align-items:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
           </button>
           <button class="btn" onclick="activateEditMode()" type="button">Mode Edit Map</button>
-          <button class="btn" onclick="openNodeModal('machine')" type="button">
-            Tambah Mesin
-          </button>
-          <button class="btn" onclick="openNodeModal('cqi')" type="button">
-            Tambah CQI
-          </button>
-          <button class="btn" onclick="openNodeModal('label')" type="button">
-            Tambah Label
-          </button>
-          <button class="btn" onclick="openNodeModal('line')" type="button">
-            Tambah Batas Line
-          </button>
           <button class="btn btn-success" onclick="exportMapJson()" type="button">
             Simpan &amp; Ekspor Map (.json)
           </button>
@@ -414,15 +456,40 @@
         }, 2500);
       }
 
+      // =========================================================================
+      // MAP VIEWPORT: WHEEL, ZOOM, & GRAB-TO-PAN CONTROLS
+      // =========================================================================
       let isWheelTicking = false;
+
       mapViewport.addEventListener(
         "wheel",
         function (e) {
-          if (e.deltaY === 0) return;
+          // 1. Dukungan Zoom & Trackpad Presisi: Ctrl + Scroll / pinch-to-zoom
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const zoomDelta = e.deltaY < 0 ? 0.08 : -0.08;
+            const prevZoom = currentZoom || 1;
+            const newZoom = Math.max(0.2, Math.min(2.5, prevZoom + zoomDelta));
+            if (newZoom !== prevZoom) {
+              currentZoom = newZoom;
+              applyZoom();
+            }
+            return;
+          }
+
+          // 2. Shift + Scroll: Scroll horizontal cepat
+          if (e.shiftKey) {
+            e.preventDefault();
+            mapViewport.scrollLeft += (e.deltaY || e.deltaX) * 2;
+            return;
+          }
+
+          // 3. Scroll standar index.html (horizontal map layout)
+          if (e.deltaY === 0 && e.deltaX === 0) return;
           e.preventDefault();
           if (!isWheelTicking) {
             window.requestAnimationFrame(() => {
-              mapViewport.scrollLeft += e.deltaY;
+              mapViewport.scrollLeft += (e.deltaY !== 0 ? e.deltaY : e.deltaX);
               isWheelTicking = false;
             });
             isWheelTicking = true;
@@ -430,6 +497,119 @@
         },
         { passive: false },
       );
+
+      // Grab-to-Pan (Mouse Drag Navigasi Canvas)
+      let isPanning = false;
+      let panStartX = 0;
+      let panStartY = 0;
+      let panScrollLeft = 0;
+      let panScrollTop = 0;
+      let hasMovedDuringPan = false;
+
+      mapViewport.addEventListener("mousedown", function (e) {
+        // Jangan aktifkan grab pan jika sedang klik tombol, link, input, atau saat drag node di editMode
+        if (e.button !== 0 && e.button !== 1) return; // Hanya klik kiri atau tombol tengah
+        const target = e.target;
+        if (!target) return;
+        
+        // Pengecekan elemen interaktif
+        if (target.closest("button, a, input, select, textarea, .btn, .icon-btn, .modal-card, .edit-mode-toolbar, .toast-container, .side-panel")) {
+          return;
+        }
+
+        // Jika dalam edit mode dan klik node draggable, biarkan drag node berjalan
+        if (editMode && target.closest(".machine-node, .cqi-node, .label-node, .line-box")) {
+          return;
+        }
+
+        isPanning = true;
+        hasMovedDuringPan = false;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        panScrollLeft = mapViewport.scrollLeft;
+        panScrollTop = mapViewport.scrollTop;
+        mapViewport.classList.add("is-panning");
+      });
+
+      window.addEventListener("mousemove", function (e) {
+        if (!isPanning) return;
+        const dx = e.clientX - panStartX;
+        const dy = e.clientY - panStartY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+          hasMovedDuringPan = true;
+        }
+        mapViewport.scrollLeft = panScrollLeft - dx;
+        mapViewport.scrollTop = panScrollTop - dy;
+      });
+
+      window.addEventListener("mouseup", function (e) {
+        if (isPanning) {
+          isPanning = false;
+          mapViewport.classList.remove("is-panning");
+        }
+      });
+
+      // Cegah klik yang tidak disengaja pada node setelah melakukan panning drag
+      mapViewport.addEventListener("click", function (e) {
+        if (hasMovedDuringPan) {
+          e.stopPropagation();
+          hasMovedDuringPan = false;
+        }
+      }, true);
+
+      // Touch Panning & Pinch to Zoom untuk Tablet & Smartphone
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchStartDist = 0;
+      let touchStartZoom = 1;
+      let isTouchPanning = false;
+
+      mapViewport.addEventListener("touchstart", function (e) {
+        if (e.touches.length === 1) {
+          const t = e.touches[0];
+          const target = t.target;
+          if (target && target.closest("button, a, input, select, textarea, .modal-card, .edit-mode-toolbar")) return;
+          isTouchPanning = true;
+          touchStartX = t.clientX;
+          touchStartY = t.clientY;
+          panScrollLeft = mapViewport.scrollLeft;
+          panScrollTop = mapViewport.scrollTop;
+        } else if (e.touches.length === 2) {
+          isTouchPanning = false;
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          touchStartDist = Math.hypot(dx, dy);
+          touchStartZoom = currentZoom || 1;
+        }
+      }, { passive: true });
+
+      mapViewport.addEventListener("touchmove", function (e) {
+        if (isTouchPanning && e.touches.length === 1) {
+          const t = e.touches[0];
+          const dx = t.clientX - touchStartX;
+          const dy = t.clientY - touchStartY;
+          mapViewport.scrollLeft = panScrollLeft - dx;
+          mapViewport.scrollTop = panScrollTop - dy;
+        } else if (e.touches.length === 2 && touchStartDist > 0) {
+          e.preventDefault();
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          const dist = Math.hypot(dx, dy);
+          const factor = dist / touchStartDist;
+          const newZoom = Math.max(0.2, Math.min(2.5, touchStartZoom * factor));
+          if (Math.abs(newZoom - (currentZoom || 1)) > 0.02) {
+            currentZoom = newZoom;
+            applyZoom();
+          }
+        }
+      }, { passive: false });
+
+      mapViewport.addEventListener("touchend", function (e) {
+        if (e.touches.length === 0) {
+          isTouchPanning = false;
+          touchStartDist = 0;
+        }
+      }, { passive: true });
 
       async function loadMap() {
         try {
@@ -1024,12 +1204,12 @@
         if (btn) {
           if (snapToGrid) {
             btn.classList.add("active");
-            if (txt) txt.innerText = "Snap-to-Grid: AKTIF";
-            showToast("Snap-to-Grid Aktif: Objek otomatis terkunci ke sel grid presisi", "success");
+            if (txt) txt.innerText = "Snap: Aktif";
+            showToast("Snap-to-Grid Aktif", "success");
           } else {
             btn.classList.remove("active");
-            if (txt) txt.innerText = "Snap-to-Grid: NONAKTIF";
-            showToast("Snap-to-Grid Nonaktif: Mode bebas", "info");
+            if (txt) txt.innerText = "Snap: Nonaktif";
+            showToast("Snap-to-Grid Nonaktif", "info");
           }
         }
       }
@@ -1058,21 +1238,21 @@
         badge.classList.add("visible");
         badge.style.left = `${e.clientX}px`;
         badge.style.top = `${e.clientY}px`;
-        coordEl.innerText = `Row ${r} : Col ${c}`;
+        coordEl.innerText = `R${r} : C${c}`;
         if (textEl) {
           textEl.innerText = name ? `Snap [${name}]:` : "Snap:";
         }
 
         const hud = document.getElementById("snapHudCoords") || document.getElementById("hudCoordsText");
         if (hud) {
-          hud.innerText = `Snap: Row ${r}, Col ${c} ${name ? '(' + name + ')' : ''}`;
+          hud.innerText = `Snap: R${r} : C${c}${name ? ' (' + name + ')' : ''}`;
         }
       }
 
       function updateCursorHud(r, c) {
         if (editMode && !draggedNode) {
           const hud = document.getElementById("snapHudCoords") || document.getElementById("hudCoordsText");
-          if (hud) hud.innerText = `Kursor: Row ${r}, Col ${c}`;
+          if (hud) hud.innerText = `Posisi: R${r} : C${c}`;
         }
       }
 
@@ -1185,14 +1365,11 @@
           .forEach((el) => (el.style.display = "none"));
 
         const hud = document.getElementById("snapHudCoords") || document.getElementById("hudCoordsText");
-        if (hud) hud.innerText = "Snap Grid: Siap";
+        if (hud) hud.innerText = "Grid: Siap";
 
         calculateGridBounds();
         renderGrid();
-        showToast(
-          "Mode Edit Aktif: Snap-to-Grid presisi aktif saat drag/drop atau resize",
-          "info",
-        );
+        showToast("Mode Edit Aktif", "info");
       }
 
       function cycleStatus(node, type) {
@@ -1373,16 +1550,18 @@
         }
 
         if (activeSlots.length > 0) {
-          if (typeof BrainAI !== "undefined" && typeof BrainAI.getCqiShortage === "function") {
+          const b = (typeof window !== "undefined" && window.BrainAI) ? window.BrainAI : ((typeof BrainAI !== "undefined" && BrainAI) ? BrainAI : null);
+          if (b && typeof b.getCqiShortage === "function") {
             activeSlots.forEach((s) => {
-              const shortage = BrainAI.getCqiShortage(s);
+              if (!s) return;
+              const shortage = b.getCqiShortage(s);
               if (shortage) {
                 const cqiObj = s.cqi || (s.name ? { id: s.name, name: s.name } : null);
                 if (cqiObj) {
                   if (cqiObj.id) cqiShortageMap.set(String(cqiObj.id).trim(), shortage);
                   if (cqiObj.name) cqiShortageMap.set(String(cqiObj.name).trim(), shortage);
                 }
-                const cqiNum = BrainAI.getCqiNumber(s);
+                const cqiNum = (typeof b.getCqiNumber === "function") ? b.getCqiNumber(s) : 0;
                 if (cqiNum) {
                   cqiShortageMap.set(`CQI ${cqiNum}`, shortage);
                   cqiShortageMap.set(`CQI-${cqiNum}`, shortage);

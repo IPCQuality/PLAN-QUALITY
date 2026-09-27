@@ -1,5 +1,5 @@
 {
-  "name": "MAP LIQUID 3",
+  "name": "PLAN LIQUID 3",
   "description": "AI Assisted CQI Machine Planning and Shift Allocation System",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

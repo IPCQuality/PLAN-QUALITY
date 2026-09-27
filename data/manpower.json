@@ -83,6 +83,12 @@
       "name": "Farhan",
       "cqi_priority": "ot",
       "job_priority": ""
+    },
+    {
+      "id": "C15",
+      "name": "Gita",
+      "cqi_priority": "",
+      "job_priority": ""
     }
   ],
   "nonCore": [
