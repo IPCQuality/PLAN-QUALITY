@@ -67,7 +67,7 @@ app.get('/api/history/list', async (req, res) => {
           const shift = meta.shift !== undefined ? meta.shift : (match ? parseInt(match[2], 10) : 1);
           const totalCqi = meta.total_cqi || (Array.isArray(json.planning) ? json.planning.length : 0);
           const totalMachines = meta.total_machines_running || (Array.isArray(json.planning) ? json.planning.reduce((acc, slot) => acc + ((slot.machines || []).length), 0) : 0);
-          const totalCore = meta.total_core !== undefined ? meta.total_core : (Array.isArray(json.planning) ? json.planning.filter(s => s.core && s.core !== '-').length : 0);
+          const totalCore = meta.total_core !== undefined ? meta.total_core : (Array.isArray(json.planning) ? json.planning.filter(s => (Array.isArray(s.core) ? s.core.length > 0 : (s.core && s.core !== '-'))).length : 0);
           const totalNonCore = meta.total_non_core !== undefined ? meta.total_non_core : (Array.isArray(json.planning) ? json.planning.reduce((acc, s) => acc + ((s.non_core || []).length), 0) : 0);
           const totalLongshift = meta.total_longshift !== undefined ? meta.total_longshift : (Array.isArray(json.planning) ? json.planning.reduce((acc, s) => acc + ((s.longshift || []).length), 0) : 0);
 
@@ -87,7 +87,7 @@ app.get('/api/history/list', async (req, res) => {
               milStd: special.mil_std || '',
               supportFg: special.support_fg || ''
             },
-            generatedAt: meta.generated_at || null
+            generatedAt: meta.timestamp || meta.generated_at || null
           };
         } catch (err) {
           return {
