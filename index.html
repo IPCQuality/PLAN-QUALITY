@@ -442,17 +442,31 @@
       const mapViewport = document.getElementById("mapViewport");
 
       function showToast(msg, type = "info") {
-        const container = document.getElementById("toastContainer");
+        let container = document.getElementById("toastContainer");
+        if (!container) {
+          container = document.createElement("div");
+          container.id = "toastContainer";
+          container.className = "toast-container";
+          document.body.appendChild(container);
+        }
         const t = document.createElement("div");
-        t.className = `toast ${type}`;
+        const normalizedType = (type === "error") ? "danger" : type;
+        t.className = `toast ${normalizedType}`;
         const iconSvg =
-          type === "success"
-            ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
-            : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
-        t.innerHTML = `<span style="display:inline-flex; align-items:center;">${iconSvg}</span> <span>${msg}</span>`;
+          normalizedType === "success"
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+            : normalizedType === "warning"
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`
+            : normalizedType === "danger"
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`
+            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+        t.innerHTML = `<span style="display:inline-flex; align-items:center; flex-shrink:0;">${iconSvg}</span> <span>${msg}</span>`;
         container.appendChild(t);
         setTimeout(() => {
-          if (t.parentNode) t.remove();
+          t.classList.add("toast-hiding");
+          setTimeout(() => {
+            if (t.parentNode) t.remove();
+          }, 180);
         }, 2500);
       }
 
@@ -1757,9 +1771,94 @@
             cqiMachineGroups.get(cqiKey).machines.push(mac);
           });
 
-          // Function to generate sequential Manhattan waypoints with mandatory label traversal when crossing workstations
-          function generateSequentialWaypoints(tgt, rawMachines) {
-            if (!rawMachines || rawMachines.length === 0) return [];
+          // Multi-Lane Parallel Corridor Assignment:
+          // Groups sharing the same front transit aisle (Row 9 for Line A, Row 11 for Line B/C/WW)
+          // receive a dedicated parallel lane offset (offsetY) so different colors run side-by-side
+          // without colliding or covering each other.
+          const getCqiNum = (node) => {
+            const str = String((node && (node.id || node.name)) || "");
+            const m = str.match(/(\d+)/);
+            return m ? parseInt(m[1], 10) : 999;
+          };
+
+          const corridorAGroups = [];
+          const corridorBCGroups = [];
+          const directWwOtGroups = [];
+
+          cqiMachineGroups.forEach((group, key) => {
+            const tgt = group.cqi;
+            const rawMachines = group.machines;
+            if (!rawMachines || rawMachines.length === 0) return;
+
+            const isDirectWwOt = () => {
+              const tgtStr = String(tgt.id || tgt.name || "").toUpperCase();
+              const isCqi19 = tgtStr.includes("19") || tgtStr.includes("OT");
+              const isCqi24 = tgtStr.includes("24") || tgtStr.includes("WW");
+              if (!isCqi19 && !isCqi24) return false;
+              return rawMachines.every((m) => {
+                const ws = String(m.ws || "").toUpperCase();
+                const line = String(m.line || "").toUpperCase();
+                const id = String(m.id || "").toUpperCase();
+                const name = String(m.name || "").toUpperCase();
+                return ws === "OT" || line === "OT" || id.startsWith("M-OT") || name === "M2" || name === "M3" ||
+                       ws === "WW" || line === "WW" || id.startsWith("M-WW") || name === "C1" || name === "C2";
+              });
+            };
+
+            if (isDirectWwOt()) {
+              directWwOtGroups.push({ key, group });
+              return;
+            }
+
+            const tgtStr = String(tgt.id || tgt.name || "").toUpperCase();
+            const match = tgtStr.match(/CQI[- ]*(\d+)/i);
+            const num = match ? parseInt(match[1], 10) : 0;
+            const isLineA = (num >= 1 && num <= 10) || rawMachines.some((m) => {
+              const ws = String(m.ws || "").toUpperCase();
+              const line = String(m.line || "").toUpperCase();
+              return ws.endsWith("A") || line.includes("LINE A");
+            });
+
+            if (isLineA) {
+              corridorAGroups.push({ key, group });
+            } else {
+              corridorBCGroups.push({ key, group });
+            }
+          });
+
+          // Sort groups deterministically by CQI number or target column
+          const sortFn = (a, b) => {
+            const numA = getCqiNum(a.group.cqi);
+            const numB = getCqiNum(b.group.cqi);
+            if (numA !== numB) return numA - numB;
+            const colA = Number(a.group.cqi.col !== undefined ? a.group.cqi.col : (a.group.cqi.position ? a.group.cqi.position.col : 0));
+            const colB = Number(b.group.cqi.col !== undefined ? b.group.cqi.col : (b.group.cqi.position ? b.group.cqi.position.col : 0));
+            return colA - colB;
+          };
+
+          corridorAGroups.sort(sortFn);
+          corridorBCGroups.sort(sortFn);
+          directWwOtGroups.sort(sortFn);
+
+          const laneOffsetMap = new Map();
+          const LANE_SPACING = 4.5; // pixel spacing between parallel colored tracks
+
+          const assignLanes = (list) => {
+            const total = list.length;
+            list.forEach((item, idx) => {
+              const offset = total > 1 ? (idx - (total - 1) / 2) * LANE_SPACING : 0;
+              laneOffsetMap.set(item.key, offset);
+            });
+          };
+
+          assignLanes(corridorAGroups);
+          assignLanes(corridorBCGroups);
+          assignLanes(directWwOtGroups);
+
+          // Clean Branched Manhattan Path Generator with Multi-Lane Offset:
+          // Semua Mesin Teralokasi -> Titik Berkumpul (Depan / Label Workstation) -> Belok ke Meja CQI Tujuan
+          function generateBranchedHeatmapPaths(tgt, rawMachines, laneOffset = 0) {
+            if (!rawMachines || rawMachines.length === 0) return { paths: [], gatheringPoints: [] };
 
             const getNodeCoords = (node) => ({
               row: Number(node.row !== undefined ? node.row : (node.position ? node.position.row : 0)),
@@ -1792,110 +1891,223 @@
               return "";
             };
 
-            const isWwOrOt = (ws) => {
-              if (!ws) return false;
-              const u = String(ws).trim().toUpperCase();
-              return u === "WW" || u === "OT" || u.includes("WW") || u.includes("OT");
-            };
+            const tgtCoords = getNodeCoords(tgt);
 
-            const getLabelNodeForWs = (ws, nodeCoords) => {
-              if (!ws || isWwOrOt(ws)) return null;
-              const wsUpper = String(ws).trim().toUpperCase();
-              const l = mapData.labels.find(x => 
-                String(x.name || "").trim().toUpperCase() === wsUpper ||
-                String(x.id || "").trim().toUpperCase() === ("L-" + wsUpper) ||
-                String(x.id || "").trim().toUpperCase() === wsUpper
-              );
-              if (l) return l;
-              if (mapData.labels.length > 0 && nodeCoords) {
-                let best = null, minDist = Infinity;
-                mapData.labels.forEach(lbl => {
-                  const lc = getNodeCoords(lbl);
-                  const d = Math.hypot(lc.row - nodeCoords.row, lc.col - nodeCoords.col);
-                  if (d < minDist) { minDist = d; best = lbl; }
-                });
-                if (minDist < 15) return best;
+            // Cek apakah Line A atau Line B/C/WW
+            const isLineA = () => {
+              const tgtStr = String(tgt.id || tgt.name || "").toUpperCase();
+              const match = tgtStr.match(/CQI[- ]*(\d+)/i);
+              if (match) {
+                const num = parseInt(match[1], 10);
+                if (num >= 1 && num <= 10) return true;
               }
-              return null;
+              return rawMachines.some((m) => {
+                const ws = String(m.ws || "").toUpperCase();
+                const line = String(m.line || "").toUpperCase();
+                return ws.endsWith("A") || line.includes("LINE A");
+              });
             };
 
-            const cqiCoords = getNodeCoords(tgt);
+            const lineA = isLineA();
+            // Tentukan baris lorong depan (front transit aisle):
+            // Line A: row 9 (depan mesin rows 5-8)
+            // Line B, C, WW: row 11 (depan mesin rows 12-16)
+            const frontAisleRow = lineA ? 9 : 11;
 
-            // Group machines by workstation
-            const wsGroups = {};
-            rawMachines.forEach(mc => {
-              const ws = getWs(mc) || "DEFAULT";
-              if (!wsGroups[ws]) wsGroups[ws] = [];
-              wsGroups[ws].push(mc);
-            });
+            // Convert node or route point to pixel coordinates, applying laneOffset along shared corridors
+            const toPixel = (pt) => {
+              const base = getCenter(pt);
+              let px = base.x;
+              let py = base.y;
 
-            // Sequence of nodes in 1 single path:
-            // [ (furthest machine -> ... -> nearest machine -> WS label if not WW/OT), ..., CQI ]
-            const seqNodes = [];
+              // If point is on the front transit aisle, offset perpendicularly in Y
+              if (pt.isFrontAisle || pt.row === frontAisleRow) {
+                py += laneOffset;
+              }
 
-            Object.keys(wsGroups).forEach(ws => {
-              const groupMcs = wsGroups[ws];
-              if (groupMcs.length === 0) return;
+              // If point is on a direct lane, offset in X
+              if (pt.isDirectLane) {
+                px += laneOffset * 0.75;
+              }
 
-              const labelNode = isWwOrOt(ws) ? null : getLabelNodeForWs(ws, getNodeCoords(groupMcs[0]));
-              const refPoint = labelNode ? getNodeCoords(labelNode) : cqiCoords;
+              return { x: px, y: py };
+            };
 
-              // Sort machines furthest to nearest relative to refPoint
-              groupMcs.sort((a, b) => {
+            // 1. Cek apakah WW & OT murni (hanya mengecek mesin WW & OT murni tanpa pouch lain)
+            const isDirectWwOt = () => {
+              const tgtStr = String(tgt.id || tgt.name || "").toUpperCase();
+              const isCqi19 = tgtStr.includes("19") || tgtStr.includes("OT");
+              const isCqi24 = tgtStr.includes("24") || tgtStr.includes("WW");
+
+              if (!isCqi19 && !isCqi24) return false;
+
+              return rawMachines.every((m) => {
+                const ws = String(m.ws || "").toUpperCase();
+                const line = String(m.line || "").toUpperCase();
+                const id = String(m.id || "").toUpperCase();
+                const name = String(m.name || "").toUpperCase();
+
+                const isOtMac = ws === "OT" || line === "OT" || id.startsWith("M-OT") || name === "M2" || name === "M3";
+                const isWwMac = ws === "WW" || line === "WW" || id.startsWith("M-WW") || name === "C1" || name === "C2";
+
+                return isOtMac || isWwMac;
+              });
+            };
+
+            const paths = [];
+            const gatheringPoints = [];
+
+            // ATURAN 1: WW dan OT jika HANYA mengecek mesin WW&OT maka langsung ke meja CQI (tetap Manhattan & rounded)
+            if (isDirectWwOt()) {
+              const sortedMcs = [...rawMachines].sort((a, b) => {
                 const ca = getNodeCoords(a);
                 const cb = getNodeCoords(b);
-                const da = Math.hypot(ca.row - refPoint.row, ca.col - refPoint.col);
-                const db = Math.hypot(cb.row - refPoint.row, cb.col - refPoint.col);
-                return db - da; // Descending: furthest first
+                const da = Math.abs(ca.row - tgtCoords.row) + Math.abs(ca.col - tgtCoords.col);
+                const db = Math.abs(cb.row - tgtCoords.row) + Math.abs(cb.col - tgtCoords.col);
+                return db - da; // Terjauh pertama, terdekat terakhir
               });
 
-              seqNodes.push(...groupMcs);
+              // Hubungkan mesin-mesin secara berurutan langsung menuju meja CQI
+              const directPoints = sortedMcs.map((m) => ({ ...getNodeCoords(m), isDirectLane: true }));
+              directPoints.push({ ...tgtCoords, isDirectLane: true });
 
-              if (labelNode) {
-                seqNodes.push(labelNode);
+              const cleanDirect = simplifyCollinear(directPoints);
+              if (cleanDirect.length >= 2) {
+                paths.push({ type: 'direct-ww-ot', points: cleanDirect });
+              }
+
+              return { paths, gatheringPoints: [], toPixel };
+            }
+
+            // ATURAN 2: Jalur Reguler (Line A, Line B, Line C, dan CQI 24 jika mengecek pouch lain)
+            // Semua mesin teralokasi -> titik berkumpul sebelum belok ke meja CQI -> meja CQI tujuan
+
+            // Group mesin berdasarkan workstation / kolom
+            const wsGroups = new Map();
+            rawMachines.forEach((mc) => {
+              const ws = getWs(mc) || `COL_${getNodeCoords(mc).col}`;
+              if (!wsGroups.has(ws)) wsGroups.set(ws, []);
+              wsGroups.get(ws).push(mc);
+            });
+
+            const turnPoint = { row: frontAisleRow, col: tgtCoords.col, isFrontAisle: true };
+
+            // Pisahkan workstation yang berbeda kolom (off-column) dari workstation yang segaris dengan meja CQI (same-column)
+            const offColWs = [];
+            const sameColWs = [];
+
+            wsGroups.forEach((groupMcs, ws) => {
+              if (groupMcs.length === 0) return;
+              const sampleCol = getNodeCoords(groupMcs[0]).col;
+              if (sampleCol === tgtCoords.col) {
+                sameColWs.push({ ws, mcs: groupMcs, col: sampleCol });
+              } else {
+                offColWs.push({ ws, mcs: groupMcs, col: sampleCol });
               }
             });
 
-            // Finally, add target CQI at end of single path
-            seqNodes.push(tgt);
+            // Urutkan workstation off-column berdasarkan jarak terjauh ke turnPoint agar menjadi trunk utama
+            offColWs.sort((a, b) => Math.abs(b.col - tgtCoords.col) - Math.abs(a.col - tgtCoords.col));
 
-            // Construct orthogonal path with rounded corners
-            const waypoints = [getNodeCoords(seqNodes[0])];
+            if (offColWs.length > 0) {
+              // Workstation pertama (terjauh) membentuk jalur utama berkesinambungan:
+              // Mesin-mesin -> Lorong Depan (di lajur paralel) -> Belok Melengkung di turnPoint -> Meja CQI Tujuan
+              const primary = offColWs[0];
+              const spinePoints = [...primary.mcs].sort((a, b) => {
+                const ca = getNodeCoords(a);
+                const cb = getNodeCoords(b);
+                return Math.abs(cb.row - frontAisleRow) - Math.abs(ca.row - frontAisleRow);
+              }).map(m => getNodeCoords(m));
 
-            for (let i = 0; i < seqNodes.length - 1; i++) {
-              const u = seqNodes[i];
-              const v = seqNodes[i + 1];
-              const p1 = getNodeCoords(u);
-              const p2 = getNodeCoords(v);
+              const exitCol = spinePoints[spinePoints.length - 1].col;
+              const frontExitPoint = { row: frontAisleRow, col: exitCol, isFrontAisle: true };
 
-              if (p1.row === p2.row || p1.col === p2.col) {
-                waypoints.push(p2);
-              } else {
-                waypoints.push({ row: p1.row, col: p2.col });
-                waypoints.push(p2);
+              const mainRoutePts = [
+                ...spinePoints,
+                frontExitPoint,
+                turnPoint,
+                tgtCoords
+              ];
+              const cleanMainRoute = simplifyCollinear(mainRoutePts);
+              if (cleanMainRoute.length >= 2) {
+                paths.push({ type: 'main-trunk', ws: primary.ws, points: cleanMainRoute });
+              }
+
+              // Workstation off-column sekunder belok melengkung ke lorong depan dan menyatu berbelok ke meja CQI
+              for (let i = 1; i < offColWs.length; i++) {
+                const sec = offColWs[i];
+                const secSpine = [...sec.mcs].sort((a, b) => {
+                  const ca = getNodeCoords(a);
+                  const cb = getNodeCoords(b);
+                  return Math.abs(cb.row - frontAisleRow) - Math.abs(ca.row - frontAisleRow);
+                }).map(m => getNodeCoords(m));
+
+                const secExitCol = secSpine[secSpine.length - 1].col;
+                const secExit = { row: frontAisleRow, col: secExitCol, isFrontAisle: true };
+                const secRoute = simplifyCollinear([...secSpine, secExit, turnPoint, tgtCoords]);
+                if (secRoute.length >= 2) {
+                  paths.push({ type: 'ws-branch', ws: sec.ws, points: secRoute });
+                }
+              }
+
+              // Jika ada mesin dalam group yang memiliki kolom lateral berbeda:
+              [...offColWs, ...sameColWs].forEach(({ mcs }) => {
+                const primaryExitCol = getNodeCoords(mcs[0]).col;
+                mcs.forEach(m => {
+                  const mc = getNodeCoords(m);
+                  if (mc.col !== primaryExitCol) {
+                    const lateralRoute = simplifyCollinear([
+                      mc,
+                      { row: frontAisleRow, col: mc.col, isFrontAisle: true },
+                      turnPoint,
+                      tgtCoords
+                    ]);
+                    if (lateralRoute.length >= 2) {
+                      paths.push({ type: 'branch', points: lateralRoute });
+                    }
+                  }
+                });
+              });
+            } else if (sameColWs.length > 0) {
+              // Jika HANYA ada mesin yang segaris kolom dengan meja CQI:
+              // Langsung sambungkan mesin-mesin ke meja CQI (tidak perlu turun ke lorong depan dan tidak ada garis sisa)
+              const allMcs = sameColWs.flatMap(w => w.mcs);
+              allMcs.sort((a, b) => {
+                const ca = getNodeCoords(a);
+                const cb = getNodeCoords(b);
+                return Math.abs(cb.row - tgtCoords.row) - Math.abs(ca.row - tgtCoords.row);
+              });
+              const directColPts = simplifyCollinear([
+                ...allMcs.map(m => getNodeCoords(m)),
+                tgtCoords
+              ]);
+              if (directColPts.length >= 2) {
+                paths.push({ type: 'direct-vertical-trunk', points: directColPts });
               }
             }
 
-            // Remove duplicate adjacent points
-            const unique = [];
-            waypoints.forEach(pt => {
-              if (unique.length === 0) {
-                unique.push(pt);
-              } else {
-                const last = unique[unique.length - 1];
-                if (Math.abs(last.row - pt.row) > 0.01 || Math.abs(last.col - pt.col) > 0.01) {
-                  unique.push(pt);
-                }
-              }
-            });
+            // Titik berkumpul di depan sebelum belok ke meja CQI
+            gatheringPoints.push(turnPoint);
 
-            // Simplify collinear points so rounded corners apply cleanly at every bend
-            if (unique.length <= 2) return unique;
-            const simplified = [unique[0]];
-            for (let i = 1; i < unique.length - 1; i++) {
-              const prev = simplified[simplified.length - 1];
-              const curr = unique[i];
-              const next = unique[i + 1];
+            return { paths, gatheringPoints, toPixel };
+          }
+
+          function simplifyCollinear(pts) {
+            if (!pts || pts.length <= 1) return pts || [];
+            const dedup = [pts[0]];
+            for (let i = 1; i < pts.length; i++) {
+              const last = dedup[dedup.length - 1];
+              const p = pts[i];
+              if (Math.abs(last.row - p.row) > 0.01 || Math.abs(last.col - p.col) > 0.01) {
+                dedup.push(p);
+              }
+            }
+            if (dedup.length <= 2) return dedup;
+            const res = [dedup[0]];
+            for (let i = 1; i < dedup.length - 1; i++) {
+              const prev = res[res.length - 1];
+              const curr = dedup[i];
+              const next = dedup[i + 1];
 
               const d1R = Math.sign(curr.row - prev.row);
               const d1C = Math.sign(curr.col - prev.col);
@@ -1903,14 +2115,14 @@
               const d2C = Math.sign(next.col - curr.col);
 
               if (d1R !== d2R || d1C !== d2C) {
-                simplified.push(curr);
+                res.push(curr);
               }
             }
-            simplified.push(unique[unique.length - 1]);
-            return simplified;
+            res.push(dedup[dedup.length - 1]);
+            return res;
           }
 
-          function buildRoundedPath(pts, radius = 14) {
+          function buildRoundedPath(pts, radius = 10) {
             if (!pts || pts.length === 0) return "";
             if (pts.length === 1) return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
             if (pts.length === 2) return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)} L ${pts[1].x.toFixed(1)} ${pts[1].y.toFixed(1)}`;
@@ -1952,52 +2164,63 @@
             return d;
           }
 
-          // Draw sequential chain for each CQI group: CQI -> mc1 -> mc2 -> ...
-          cqiMachineGroups.forEach((group) => {
+          // Draw multi-lane branched tree paths for each CQI group:
+          // Mesin -> Titik Berkumpul Depan (Label) -> Belok -> Meja CQI Tujuan
+          cqiMachineGroups.forEach((group, cqiKey) => {
             const tgt = group.cqi;
             const rawMachines = group.machines;
             if (rawMachines.length === 0) return;
 
             let pathColor = cqiColorMap[tgt.id] || cqiColorMap[tgt.name] || "#16a34a";
+            const laneOffset = laneOffsetMap.get(cqiKey) || 0;
 
-            const waypoints = generateSequentialWaypoints(tgt, rawMachines);
-            if (!waypoints || waypoints.length === 0) return;
+            const result = generateBranchedHeatmapPaths(tgt, rawMachines, laneOffset);
+            if (!result || !result.paths || result.paths.length === 0) return;
 
-            let pixelPoints = waypoints.map((pt) => getCenter(pt));
-            let dPath = buildRoundedPath(pixelPoints, 14);
+            const toPixel = result.toPixel || ((pt) => getCenter(pt));
 
-            let path = document.createElementNS(svgNS, "path");
-            path.setAttribute("d", dPath);
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke", pathColor);
-            path.setAttribute("stroke-width", "3");
-            path.setAttribute("stroke-linejoin", "round");
-            path.setAttribute("stroke-linecap", "round");
-            path.setAttribute("class", "heatmap-flow-line");
-            svg.appendChild(path);
+            // 1. Draw SVG path segments with parallel lane offset
+            result.paths.forEach((pathObj) => {
+              const pixelPoints = pathObj.points.map((pt) => toPixel(pt));
+              const dPath = buildRoundedPath(pixelPoints, 10);
+              if (!dPath) return;
 
-            // Node marker at start (furthest machine)
-            let startCircle = document.createElementNS(svgNS, "circle");
-            startCircle.setAttribute("cx", pixelPoints[0].x.toFixed(1));
-            startCircle.setAttribute("cy", pixelPoints[0].y.toFixed(1));
-            startCircle.setAttribute("r", "5");
-            startCircle.setAttribute("fill", pathColor);
-            startCircle.setAttribute("stroke", "#ffffff");
-            startCircle.setAttribute("stroke-width", "1.5");
-            svg.appendChild(startCircle);
+              let path = document.createElementNS(svgNS, "path");
+              path.setAttribute("d", dPath);
+              path.setAttribute("fill", "none");
+              path.setAttribute("stroke", pathColor);
+              path.setAttribute("stroke-width", "2.6");
+              path.setAttribute("stroke-linejoin", "round");
+              path.setAttribute("stroke-linecap", "round");
+              path.setAttribute("class", "heatmap-flow-line");
+              svg.appendChild(path);
+            });
 
-            // Node marker at end (target CQI)
-            if (pixelPoints.length > 1) {
-              const lastPt = pixelPoints[pixelPoints.length - 1];
-              let endCircle = document.createElementNS(svgNS, "circle");
-              endCircle.setAttribute("cx", lastPt.x.toFixed(1));
-              endCircle.setAttribute("cy", lastPt.y.toFixed(1));
-              endCircle.setAttribute("r", "4");
-              endCircle.setAttribute("fill", "#ffffff");
-              endCircle.setAttribute("stroke", pathColor);
-              endCircle.setAttribute("stroke-width", "2");
-              svg.appendChild(endCircle);
-            }
+            // 2. Node markers at each allocated machine
+            rawMachines.forEach((mc) => {
+              const mcCenter = getCenter(mc);
+              let startCircle = document.createElementNS(svgNS, "circle");
+              startCircle.setAttribute("cx", mcCenter.x.toFixed(1));
+              startCircle.setAttribute("cy", mcCenter.y.toFixed(1));
+              startCircle.setAttribute("r", "4.2");
+              startCircle.setAttribute("fill", pathColor);
+              startCircle.setAttribute("stroke", "#ffffff");
+              startCircle.setAttribute("stroke-width", "1.5");
+              startCircle.setAttribute("class", "heatmap-node-dot");
+              svg.appendChild(startCircle);
+            });
+
+            // 4. Node marker at target CQI table (destination)
+            const tgtCenter = getCenter(tgt);
+            let endCircle = document.createElementNS(svgNS, "circle");
+            endCircle.setAttribute("cx", tgtCenter.x.toFixed(1));
+            endCircle.setAttribute("cy", tgtCenter.y.toFixed(1));
+            endCircle.setAttribute("r", "5.5");
+            endCircle.setAttribute("fill", "#ffffff");
+            endCircle.setAttribute("stroke", pathColor);
+            endCircle.setAttribute("stroke-width", "2.5");
+            endCircle.setAttribute("class", "heatmap-node-dot");
+            svg.appendChild(endCircle);
           });
           fragment.appendChild(svg);
         }

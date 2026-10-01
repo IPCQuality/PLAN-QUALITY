@@ -475,7 +475,7 @@ class HistoryManager {
         const cqiName = s.cqi?.name || s.cqi?.id || s.cqi || (s.name ? s.name : `CQI ${idx + 1}`);
         const coreNames = Array.isArray(s.coreNames)
           ? s.coreNames
-          : (s.core && s.core !== '-' ? [s.core] : []);
+          : (Array.isArray(s.core) ? s.core.filter(c => c && c !== '-') : (s.core && s.core !== '-' ? [s.core] : []));
         const nonCore = Array.isArray(s.non_core)
           ? s.non_core
           : (Array.isArray(s.nonCore) ? s.nonCore : []);
@@ -539,37 +539,183 @@ class HistoryManager {
         console.warn('Storage sync issue:', e);
       }
 
+      // Reconstruct complete manpower data from slots and special assignments
+      const corePool = [];
+      const otPool = [];
+      const wwPool = [];
+      const nonCorePool = [];
+      const qcPassedPool = Array.isArray(json.special_assignments?.qc_passed)
+        ? json.special_assignments.qc_passed
+        : [];
+
+      const CANONICAL_MP = {
+        'angel': { id: 'C1', name: 'Angel' },
+        'allyssa': { id: 'C2', name: 'Allyssa' },
+        'amanda': { id: 'C3', name: 'Amanda' },
+        'fira': { id: 'C4', name: 'Fira' },
+        'chalista': { id: 'C5', name: 'Chalista' },
+        'dwi': { id: 'C6', name: 'Dwi' },
+        'dini': { id: 'C7', name: 'Dini', cqi_priority: 'ot', job_priority: 'ot' },
+        'mia': { id: 'C8', name: 'Mia', cqi_priority: 'ww', job_priority: 'ww' },
+        'jiddan': { id: 'C9', name: 'Jiddan', cqi_priority: 'ww', job_priority: 'ww' },
+        'jidan': { id: 'C9', name: 'Jiddan', cqi_priority: 'ww', job_priority: 'ww' },
+        'ninda': { id: 'C10', name: 'Ninda' },
+        'nurul': { id: 'C11', name: 'Nurul' },
+        'thazkia': { id: 'C12', name: 'Thazkia' },
+        'riri': { id: 'C13', name: 'Riri' },
+        'farhan': { id: 'C14', name: 'Farhan', cqi_priority: 'ot', job_priority: 'ot' },
+        'gita': { id: 'C15', name: 'Gita' },
+        'allen': { id: 'NC1', name: 'Allen' },
+        'dinda': { id: 'NC2', name: 'Dinda' },
+        'litha': { id: 'NC3', name: 'Litha' },
+        'siska': { id: 'NC4', name: 'Siska' },
+        'wulan': { id: 'NC5', name: 'Wulan' },
+        'syifa': { id: 'NC6', name: 'Syifa' },
+        'm. udin': { id: 'NC7', name: 'M. Udin', job_priority: 'qc-passed' },
+        'udin': { id: 'NC7', name: 'M. Udin', job_priority: 'qc-passed' },
+        'alief': { id: 'NC8', name: 'Alief', job_priority: 'qc-passed' },
+        'jalu': { id: 'NC9', name: 'Jalu', job_priority: 'qc-passed' },
+        'andi': { id: 'NC10', name: 'Andi', job_priority: 'qc-passed' },
+        'yaya': { id: 'NC11', name: 'Yaya', job_priority: 'qc-passed' },
+        'yadi': { id: 'NC12', name: 'Yadi', job_priority: 'milstd,qc-passed' },
+        'kirana': { id: 'NC13', name: 'Kirana' },
+        'priyya': { id: 'NC14', name: 'Priyya', job_priority: 'supportfg' }
+      };
+
+      const getMpCanonical = (rawName, fallbackPrefix, idx) => {
+        const clean = String(rawName || '').trim().toLowerCase();
+        if (CANONICAL_MP[clean]) return { ...CANONICAL_MP[clean] };
+        return { id: `${fallbackPrefix}${idx}`, name: String(rawName).trim() };
+      };
+
+      convertedSlots.forEach((slot) => {
+        const cqiNum = parseInt(String(slot.cqi?.name || slot.cqi?.id || slot.name || '').replace(/\D/g, '') || '0', 10);
+        (slot.coreNames || []).forEach((name) => {
+          if (!name || name === '-') return;
+          const trimmed = String(name).trim();
+          if (cqiNum === 19 || trimmed.toLowerCase() === 'dini' || trimmed.toLowerCase() === 'farhan') {
+            if (!otPool.some(x => (typeof x === 'object' ? x.name : x).toLowerCase() === trimmed.toLowerCase())) {
+              const info = getMpCanonical(trimmed, 'C', otPool.length + 1);
+              otPool.push({ ...info, cqi_priority: 'ot', job_priority: 'ot' });
+            }
+          } else if (cqiNum === 24 || trimmed.toLowerCase() === 'jiddan' || trimmed.toLowerCase() === 'mia') {
+            if (!wwPool.some(x => (typeof x === 'object' ? x.name : x).toLowerCase() === trimmed.toLowerCase())) {
+              const info = getMpCanonical(trimmed, 'C', wwPool.length + 1);
+              wwPool.push({ ...info, cqi_priority: 'ww', job_priority: 'ww' });
+            }
+          } else {
+            if (!corePool.some(x => (typeof x === 'object' ? x.name : x).toLowerCase() === trimmed.toLowerCase())) {
+              corePool.push(getMpCanonical(trimmed, 'C', corePool.length + 1));
+            }
+          }
+        });
+
+        (slot.nonCore || []).forEach((name) => {
+          if (!name || name === '-') return;
+          const trimmed = String(name).trim();
+          if (!nonCorePool.some(x => (typeof x === 'object' ? x.name : x).toLowerCase() === trimmed.toLowerCase())) {
+            nonCorePool.push(getMpCanonical(trimmed, 'NC', nonCorePool.length + 1));
+          }
+        });
+      });
+
+      const numSort = (a, b) => {
+        const numA = parseInt(String(a.id || '').replace(/\D/g, '') || '0', 10);
+        const numB = parseInt(String(b.id || '').replace(/\D/g, '') || '0', 10);
+        return numA - numB;
+      };
+      corePool.sort(numSort);
+      nonCorePool.sort(numSort);
+
+      // Count longshift tokens
+      let totalLs = 0;
+      convertedSlots.forEach(s => {
+        (s.longshift || []).forEach(ls => {
+          if (ls) totalLs++;
+        });
+      });
+      if (meta.total_longshift !== undefined && !isNaN(meta.total_longshift)) {
+        totalLs = parseInt(meta.total_longshift, 10);
+      }
+
+      // Persist reconstructed manpower datasets for config.html
+      localStorage.setItem('manpower_core', JSON.stringify(corePool));
+      localStorage.setItem('manpower_ot', JSON.stringify(otPool));
+      localStorage.setItem('manpower_ww', JSON.stringify(wwPool));
+      localStorage.setItem('manpower_noncore', JSON.stringify(nonCorePool));
+      localStorage.setItem('manpower_qc', JSON.stringify(qcPassedPool));
+      localStorage.setItem('manpower_data_v2', JSON.stringify({
+        core: corePool,
+        ot: otPool,
+        ww: wwPool,
+        nonCore: nonCorePool,
+        qcPassed: qcPassedPool
+      }));
+      localStorage.setItem('ncls_count', String(totalLs));
+      if (meta.date) {
+        localStorage.setItem('planning_date', meta.date);
+        sessionStorage.setItem('planning_date', meta.date);
+      }
+      if (meta.shift) {
+        localStorage.setItem('selected_shift', String(meta.shift));
+        sessionStorage.setItem('selected_shift', String(meta.shift));
+      }
+      if (json.special_assignments?.mil_std) {
+        localStorage.setItem('milStd_val', json.special_assignments.mil_std);
+      }
+      if (json.special_assignments?.support_fg) {
+        localStorage.setItem('supportFg_val', json.special_assignments.support_fg);
+      }
+
+      const finalConfigObj = {
+        coreData: corePool,
+        coreNames: corePool.map(c => c.name),
+        otData: otPool,
+        otNames: otPool.map(c => c.name),
+        wwData: wwPool,
+        wwNames: wwPool.map(c => c.name),
+        nonCoreData: nonCorePool,
+        nonCoreNames: nonCorePool.map(c => c.name),
+        longshift: totalLs,
+        milStd: json.special_assignments?.mil_std || '',
+        supportFg: json.special_assignments?.support_fg || '',
+        shift: meta.shift || 1,
+        date: meta.date || '',
+        tanggal: meta.date || ''
+      };
+
       // Persist active planning across session and local storage
       const planPayloadToSave = {
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        mode: meta.mode || 'standard',
         slots: convertedSlots,
         currentPlan: convertedSlots,
         planning: json.planning || convertedSlots,
         meta: meta,
-        special_assignments: json.special_assignments || {}
+        special_assignments: json.special_assignments || {},
+        lastFinalConfig: finalConfigObj,
+        isFromHistory: true,
+        historyFile: fileName
+      };
+
+      const cacheFull = {
+        timestamp: Date.now(),
+        currentPlan: convertedSlots,
+        slots: convertedSlots,
+        lastFinalConfig: finalConfigObj,
+        canNavigateSteps: true,
+        machineIdsHash: Array.from(runningMacIds).sort().join(','),
+        cqiIdsHash: Array.from(readyCqiNames).sort().join(','),
+        unassignedMachines: [],
+        isFromHistory: true,
+        historyFile: fileName
       };
 
       sessionStorage.setItem('active_planning', JSON.stringify(planPayloadToSave));
       localStorage.setItem('last_active_planning', JSON.stringify(planPayloadToSave));
       sessionStorage.setItem('planning_state', JSON.stringify({ slots: convertedSlots }));
-      localStorage.setItem('plan_maker_cache_full_v2', JSON.stringify({ slots: convertedSlots }));
-
-      // If special assignments are present, update them
-      if (json.special_assignments) {
-        if (Array.isArray(json.special_assignments.qc_passed)) {
-          try {
-            const rawMp = localStorage.getItem('manpower_data_v2');
-            let mp = rawMp ? JSON.parse(rawMp) : { core: [], nonCore: [], ot: [], ww: [], qcPassed: [] };
-            mp.qcPassed = json.special_assignments.qc_passed;
-            localStorage.setItem('manpower_data_v2', JSON.stringify(mp));
-          } catch(e) {}
-        }
-        if (json.special_assignments.mil_std) {
-          localStorage.setItem('milStd_val', json.special_assignments.mil_std);
-        }
-        if (json.special_assignments.support_fg) {
-          localStorage.setItem('supportFg_val', json.special_assignments.support_fg);
-        }
-      }
+      localStorage.setItem('plan_maker_cache_full_v2', JSON.stringify(cacheFull));
 
       this.closeModal();
 
@@ -582,11 +728,12 @@ class HistoryManager {
           window.initializeStatuses(true);
         }
         if (typeof window.showToast === 'function') {
-          window.showToast(`Riwayat ${meta.date || fileName} berhasil diterapkan ke Live Map!`, 'success');
+          window.showToast(`Riwayat ${meta.date || fileName} berhasil diterapkan ke Live Map & Konfigurasi!`, 'success');
         }
       } else if (isConfigPage) {
         window.currentPlan = convertedSlots;
         window.activePlanning = planPayloadToSave;
+        window.lastFinalConfig = finalConfigObj;
 
         // Populate date and shift
         if (meta.date && typeof window.initPlanningDatePicker === 'function') {
@@ -602,11 +749,11 @@ class HistoryManager {
         if (typeof window.recalculatePlanDistance === 'function') {
           window.recalculatePlanDistance();
         }
-        if (typeof window.syncManpowerToExistingPlan === 'function') {
-          window.syncManpowerToExistingPlan(false);
-        }
         if (typeof window.renderInteractiveBoard === 'function') {
           window.renderInteractiveBoard();
+        }
+        if (typeof window.generateTextOutput === 'function') {
+          window.generateTextOutput(finalConfigObj);
         }
         if (typeof window.goToStep === 'function') {
           window.canNavigateSteps = true;
@@ -616,8 +763,7 @@ class HistoryManager {
           window.showToast(`Riwayat ${meta.date || fileName} berhasil dimuat ke Board Alokasi!`, 'success');
         }
       } else {
-        // Redirect to config or map
-        window.location.href = 'config.html';
+        window.location.href = 'index.html';
       }
     } catch (err) {
       console.error('Gagal memuat file riwayat:', err);

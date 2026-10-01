@@ -1819,10 +1819,30 @@ export const BrainAI = {
         const centerCol = totalWeight > 0 ? weightedCol / totalWeight : zone[0].col;
         const centerRow = totalWeight > 0 ? weightedRow / totalWeight : zone[0].row;
 
-        // Anchor Matching Khusus Line A: Cari CQI yang workstation ID-nya beririsan
+        // 1. Memori Pembelajaran Mesin (Historical Brain Learning Vote)
         let chosenCqiNum = null;
-        if (isl.line === "LINE A") {
-          // Cari CQI Line A yang memiliki ws yang sama dengan salah satu WS di zona
+        if (Array.isArray(this.historyData) && this.historyData.length > 0) {
+          const voteCounts = {};
+          zone.forEach(w => {
+            w.machines.forEach(m => {
+              const learned = this.getLearnedCqiForMachine(m);
+              if (learned && availableLineCqis.includes(learned)) {
+                voteCounts[learned] = (voteCounts[learned] || 0) + 1;
+              }
+            });
+          });
+          let maxVotes = 0;
+          for (const [cNumStr, vCount] of Object.entries(voteCounts)) {
+            const cNum = parseInt(cNumStr, 10);
+            if (vCount > maxVotes) {
+              maxVotes = vCount;
+              chosenCqiNum = cNum;
+            }
+          }
+        }
+
+        // 2. Anchor Matching Khusus Line A: Cari CQI yang workstation ID-nya beririsan
+        if (!chosenCqiNum && isl.line === "LINE A") {
           const exactWsMatch = availableLineCqis.find(num => {
             const cObj = readyCqiMap.get(num);
             const cWs = cObj.ws || (num + "A");
@@ -1831,7 +1851,7 @@ export const BrainAI = {
           if (exactWsMatch) chosenCqiNum = exactWsMatch;
         }
 
-        // Jika belum terpilih, cari CQI dengan jarak fisik terdekat ke pusat zona
+        // 3. Jika belum terpilih, cari CQI dengan jarak fisik terdekat ke pusat zona
         if (!chosenCqiNum) {
           let minDistance = Infinity;
           for (const cNum of availableLineCqis) {

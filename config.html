@@ -22,7 +22,6 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/config.css" />
-    <link rel="stylesheet" href="css/history.css" />
     <script>
       (function() {
         try {
@@ -55,7 +54,6 @@
       })();
     </script>
     <script type="module" src="./src/theme.js"></script>
-    <script type="module" src="./src/history.js"></script>
   </head>
   <body>
     <div class="toast-container" id="toastContainer"></div>
@@ -106,20 +104,8 @@
         </div>
       </div>
 
+
       <div class="topbar-action-right" id="topbarRight">
-        <button
-          id="historyBtn"
-          class="btn btn-history-header btn-header-action"
-          onclick="window.openHistoryModal && window.openHistoryModal()"
-          title="Buka Riwayat Perencanaan Shift"
-          aria-label="Riwayat"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-          <span class="btn-text">Riwayat</span>
-        </button>
         <button
           id="themeToggleBtn"
           class="btn btn-theme-toggle btn-header-action"
@@ -287,6 +273,12 @@
                         if (isNaN(v) || v < 0) v = 0;
                         localStorage.setItem('ncls_count', v);
                         updateDashboardStats();
+                        if (typeof currentPlan !== 'undefined' && currentPlan && currentPlan.length > 0) {
+                          updateActivePlanningManpower();
+                        }
+                        if (typeof renderInteractiveAlerts === 'function') {
+                          renderInteractiveAlerts();
+                        }
                       "
                     />
                   </div>
@@ -342,6 +334,12 @@
                         localStorage.setItem('supportFg_val', this.value);
                         renderQcList();
                         updateDashboardStats();
+                        if (typeof currentPlan !== 'undefined' && currentPlan && currentPlan.length > 0) {
+                          updateActivePlanningManpower();
+                        }
+                        if (typeof renderInteractiveAlerts === 'function') {
+                          renderInteractiveAlerts();
+                        }
                       "
                     >
                       <option value="">Tidak Ada / Kosong</option>
@@ -944,6 +942,88 @@
       let lastFinalConfig = null;
       let currentAddType = "core";
 
+      const CANONICAL_MANPOWER = {
+        "angel": { id: "C1", name: "Angel", type: "core", cqi_priority: "", job_priority: "" },
+        "allyssa": { id: "C2", name: "Allyssa", type: "core", cqi_priority: "", job_priority: "" },
+        "amanda": { id: "C3", name: "Amanda", type: "core", cqi_priority: "", job_priority: "" },
+        "fira": { id: "C4", name: "Fira", type: "core", cqi_priority: "", job_priority: "" },
+        "chalista": { id: "C5", name: "Chalista", type: "core", cqi_priority: "", job_priority: "" },
+        "dwi": { id: "C6", name: "Dwi", type: "core", cqi_priority: "", job_priority: "" },
+        "dini": { id: "C7", name: "Dini", type: "core", cqi_priority: "ot", job_priority: "ot" },
+        "mia": { id: "C8", name: "Mia", type: "core", cqi_priority: "ww", job_priority: "ww" },
+        "jiddan": { id: "C9", name: "Jiddan", type: "core", cqi_priority: "ww", job_priority: "ww" },
+        "jidan": { id: "C9", name: "Jiddan", type: "core", cqi_priority: "ww", job_priority: "ww" },
+        "ninda": { id: "C10", name: "Ninda", type: "core", cqi_priority: "", job_priority: "" },
+        "nurul": { id: "C11", name: "Nurul", type: "core", cqi_priority: "", job_priority: "" },
+        "thazkia": { id: "C12", name: "Thazkia", type: "core", cqi_priority: "", job_priority: "" },
+        "riri": { id: "C13", name: "Riri", type: "core", cqi_priority: "", job_priority: "" },
+        "farhan": { id: "C14", name: "Farhan", type: "core", cqi_priority: "ot", job_priority: "ot" },
+        "gita": { id: "C15", name: "Gita", type: "core", cqi_priority: "", job_priority: "" },
+
+        "allen": { id: "NC1", name: "Allen", type: "nonCore", cqi_priority: "", job_priority: "" },
+        "dinda": { id: "NC2", name: "Dinda", type: "nonCore", cqi_priority: "", job_priority: "" },
+        "litha": { id: "NC3", name: "Litha", type: "nonCore", cqi_priority: "", job_priority: "" },
+        "siska": { id: "NC4", name: "Siska", type: "nonCore", cqi_priority: "", job_priority: "" },
+        "wulan": { id: "NC5", name: "Wulan", type: "nonCore", cqi_priority: "", job_priority: "" },
+        "syifa": { id: "NC6", name: "Syifa", type: "nonCore", cqi_priority: "", job_priority: "" },
+        "m. udin": { id: "NC7", name: "M. Udin", type: "nonCore", cqi_priority: "", job_priority: "qc-passed" },
+        "udin": { id: "NC7", name: "M. Udin", type: "nonCore", cqi_priority: "", job_priority: "qc-passed" },
+        "alief": { id: "NC8", name: "Alief", type: "nonCore", cqi_priority: "", job_priority: "qc-passed" },
+        "jalu": { id: "NC9", name: "Jalu", type: "nonCore", cqi_priority: "", job_priority: "qc-passed" },
+        "andi": { id: "NC10", name: "Andi", type: "nonCore", cqi_priority: "", job_priority: "qc-passed" },
+        "yaya": { id: "NC11", name: "Yaya", type: "nonCore", cqi_priority: "", job_priority: "qc-passed" },
+        "yadi": { id: "NC12", name: "Yadi", type: "nonCore", cqi_priority: "", job_priority: "milstd,qc-passed" },
+        "kirana": { id: "NC13", name: "Kirana", type: "nonCore", cqi_priority: "", job_priority: "" },
+        "priyya": { id: "NC14", name: "Priyya", type: "nonCore", cqi_priority: "", job_priority: "supportfg" }
+      };
+
+      function getCanonicalManpowerInfo(nameOrId) {
+        if (!nameOrId) return null;
+        const s = String(nameOrId).trim().toLowerCase();
+        if (CANONICAL_MANPOWER[s]) return { ...CANONICAL_MANPOWER[s] };
+        for (const k in CANONICAL_MANPOWER) {
+          if (CANONICAL_MANPOWER[k].id.toLowerCase() === s) {
+            return { ...CANONICAL_MANPOWER[k] };
+          }
+        }
+        return null;
+      }
+
+      function sanitizeAllManpowerIds() {
+        const cleanItem = (item, defaultType) => {
+          if (!item) return null;
+          let name = typeof item === "object" ? item.name || "" : String(item || "");
+          let id = typeof item === "object" ? item.id || "" : "";
+          name = name.trim();
+          id = id.trim();
+          if (!name && !id) return null;
+
+          const canonical = getCanonicalManpowerInfo(name) || getCanonicalManpowerInfo(id);
+          if (canonical) {
+            return {
+              id: canonical.id,
+              name: canonical.name,
+              cqi_priority: canonical.cqi_priority || (typeof item === "object" ? item.cqi_priority || "" : ""),
+              job_priority: canonical.job_priority || (typeof item === "object" ? item.job_priority || "" : "")
+            };
+          }
+          return typeof item === "object" ? item : { id: id || getNextDynamicId(defaultType), name, cqi_priority: "", job_priority: "" };
+        };
+
+        if (Array.isArray(manpowerData.core)) {
+          manpowerData.core = manpowerData.core.map(i => cleanItem(i, "core")).filter(Boolean);
+        }
+        if (Array.isArray(manpowerData.ot)) {
+          manpowerData.ot = manpowerData.ot.map(i => cleanItem(i, "ot")).filter(Boolean);
+        }
+        if (Array.isArray(manpowerData.ww)) {
+          manpowerData.ww = manpowerData.ww.map(i => cleanItem(i, "ww")).filter(Boolean);
+        }
+        if (Array.isArray(manpowerData.nonCore)) {
+          manpowerData.nonCore = manpowerData.nonCore.map(i => cleanItem(i, "nonCore")).filter(Boolean);
+        }
+      }
+
       window.onload = async () => {
         try {
           const rawState = sessionStorage.getItem("planning_state");
@@ -1009,6 +1089,32 @@
           }
         }
       };
+
+      // Real-time synchronization saat terjadi perubahan di live map atau tab lain
+      window.addEventListener("storage", (e) => {
+        if (!e.key) return;
+        if (e.key === "factory_internal_storage" || e.key === "planning_state") {
+          try {
+            const raw = localStorage.getItem("factory_internal_storage") || sessionStorage.getItem("planning_state");
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (parsed && Array.isArray(parsed.machines)) {
+                state.machines = (parsed.machines || []).filter(m => m.status === "RUNNING");
+                state.cqis = (parsed.cqis || []).filter(c => c.status === "READY");
+                const dbRun = document.getElementById("db-running");
+                if (dbRun) dbRun.innerText = state.machines.length;
+                const dbCqi = document.getElementById("db-cqi-ready");
+                if (dbCqi) dbCqi.innerText = state.cqis.length;
+                renderInteractiveAlerts();
+              }
+            }
+          } catch(err) {}
+        } else if (e.key.startsWith("manpower_") || e.key === "ncls_count" || e.key === "milStd_val" || e.key === "supportFg_val") {
+          loadManpowerData().then(() => {
+            renderAllLists();
+          });
+        }
+      });
 
       async function loadManpowerData() {
         let savedCore = localStorage.getItem("manpower_core");
@@ -1193,6 +1299,7 @@
           renderMilStdOptions();
           renderSupportFgOptions();
 
+          sanitizeAllManpowerIds();
           persistManpower();
         } catch (err) {
           console.warn("Gagal fetch manpower.json, menggunakan data lokal.");
@@ -1200,6 +1307,9 @@
       }
 
       function persistManpower() {
+        if (typeof sanitizeAllManpowerIds === "function") {
+          sanitizeAllManpowerIds();
+        }
         localStorage.setItem(
           "manpower_core",
           JSON.stringify(manpowerData.core),
@@ -1232,6 +1342,12 @@
         renderSupportFgOptions();
         updateOtWwButtonUI();
         updateDashboardStats();
+        if (typeof currentPlan !== "undefined" && currentPlan && currentPlan.length > 0) {
+          updateActivePlanningManpower();
+        }
+        if (typeof renderInteractiveAlerts === "function") {
+          renderInteractiveAlerts();
+        }
       }
 
       function updateOtWwButtonUI() {
@@ -1271,7 +1387,8 @@
         if (!mp) return;
         const mpName = typeof mp === "object" ? (mp.name || "").trim() : String(mp || "").trim();
         if (!mpName) return;
-        const mpId = typeof mp === "object" ? (mp.id || "").trim() : "";
+        const canonical = getCanonicalManpowerInfo(mpName) || (typeof mp === "object" && mp.id ? getCanonicalManpowerInfo(mp.id) : null) || {};
+        const mpId = canonical.id || (typeof mp === "object" ? (mp.id || "").trim() : "");
 
         if (!manpowerData.core) manpowerData.core = [];
 
@@ -1283,75 +1400,17 @@
         });
         if (alreadyInCore) return;
 
-        // 1. Cari slot di Core dengan ID yang persis sama
-        let targetIdx = -1;
-        if (mpId) {
-          targetIdx = manpowerData.core.findIndex((c) => {
-            if (!c) return false;
-            const cId = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
-            return cId === mpId.toLowerCase();
-          });
-        }
+        // Tambahkan kembali ke Core dengan ID canonical permanen
+        manpowerData.core.push({
+          id: mpId || getNextDynamicId("core"),
+          name: canonical.name || mpName,
+          cqi_priority: canonical.cqi_priority || (typeof mp === "object" ? mp.cqi_priority || "" : ""),
+          job_priority: canonical.job_priority || (typeof mp === "object" ? mp.job_priority || "" : "")
+        });
 
-        if (targetIdx !== -1) {
-          const slotItem = manpowerData.core[targetIdx];
-          const slotName = (typeof slotItem === "object" ? slotItem.name || "" : String(slotItem || "")).trim();
-          if (slotName && slotName.toLowerCase() !== mpName.toLowerCase()) {
-            // Tempatkan MP lain yang menduduki slot ID ini ke slot asalnya atau slot kosong
-            const displacedMp = slotItem;
-            const displacedId = typeof displacedMp === "object" ? displacedMp.id || "" : "";
-            if (displacedId) {
-              const origIdx = manpowerData.core.findIndex((c) => {
-                if (!c) return false;
-                const cId = (typeof c === "object" ? c.id || "" : "").trim().toLowerCase();
-                return cId === displacedId.toLowerCase();
-              });
-              if (origIdx !== -1 && origIdx !== targetIdx) {
-                const origSlotName = (typeof manpowerData.core[origIdx] === "object" ? manpowerData.core[origIdx].name || "" : "").trim();
-                if (!origSlotName) {
-                  manpowerData.core[origIdx].name = typeof displacedMp === "object" ? displacedMp.name : displacedMp;
-                  manpowerData.core[targetIdx].name = "";
-                }
-              }
-            }
-          }
-        }
-
-        // Jika slot ID masih terisi nama lain, cari slot kosong di Core
-        if (targetIdx !== -1) {
-          const currentSlotName = (typeof manpowerData.core[targetIdx] === "object" ? manpowerData.core[targetIdx].name || "" : "").trim();
-          if (currentSlotName && currentSlotName.toLowerCase() !== mpName.toLowerCase()) {
-            targetIdx = -1;
-          }
-        }
-
-        if (targetIdx === -1) {
-          targetIdx = manpowerData.core.findIndex((c) => {
-            if (!c) return true;
-            const cName = (typeof c === "object" ? c.name || "" : String(c || "")).trim();
-            return !cName;
-          });
-        }
-
-        if (targetIdx !== -1) {
-          const existing = manpowerData.core[targetIdx];
-          if (typeof existing === "object") {
-            existing.name = mpName;
-            if (mpId) existing.id = mpId;
-          } else {
-            manpowerData.core[targetIdx] = {
-              id: mpId || `C${targetIdx + 1}`,
-              name: mpName,
-              cqi_priority: typeof mp === "object" ? mp.cqi_priority || "" : "",
-              job_priority: typeof mp === "object" ? mp.job_priority || "" : "",
-            };
-          }
-        } else {
-          manpowerData.core.push(
-            typeof mp === "object"
-              ? mp
-              : { id: mpId || getNextDynamicId("core"), name: mpName, cqi_priority: "", job_priority: "" }
-          );
+        // Urutkan kembali core berdasarkan ID agar posisinya presisi (C1..C15)
+        if (typeof sortListById === "function") {
+          sortListById("core");
         }
       }
       window.returnMpToCore = returnMpToCore;
@@ -1392,6 +1451,12 @@
               renderMilStdOptions();
               renderSupportFgOptions();
               renderQcList();
+              if (typeof currentPlan !== "undefined" && currentPlan && currentPlan.length > 0) {
+                updateActivePlanningManpower();
+              }
+              if (typeof renderInteractiveAlerts === "function") {
+                renderInteractiveAlerts();
+              }
             };
           }
 
@@ -1931,20 +1996,45 @@
       function swapManpowerSameCqiPriority(type) {
         const targetKey = type === "ot" ? "ot" : "ww";
         if (!manpowerData.core) manpowerData.core = [];
+        if (!manpowerData[targetKey]) manpowerData[targetKey] = [];
 
         const defaultCqi = type === "ot" ? "ot" : "ww";
         const defaultJob = type === "ot" ? "ot" : "ww";
-
-        if (!manpowerData[targetKey]) manpowerData[targetKey] = [];
 
         const currentSpecialPerson = manpowerData[targetKey][0];
         const currentName = (typeof currentSpecialPerson === "object" ? currentSpecialPerson.name || "" : currentSpecialPerson || "").trim().toLowerCase();
         const isOccupied = currentName.length > 0;
 
+        // Kumpulkan semua personil yang memenuhi kualifikasi OT atau WW (baik yang sedang di Core maupun di slot khusus)
+        const isEligiblePerson = (item) => {
+          if (!item) return false;
+          const name = (typeof item === "object" ? item.name || "" : item || "").trim().toLowerCase();
+          const id = (typeof item === "object" ? item.id || "" : "").trim().toLowerCase();
+          const cqi = typeof item === "object" ? String(item.cqi_priority || "").trim().toLowerCase() : "";
+          if (type === "ot") {
+            return id === "c14" || id === "c7" || name.includes("farhan") || name.includes("dini") || cqi === "ot" || cqi === "19";
+          } else {
+            return id === "c9" || id === "c8" || name.includes("jiddan") || name.includes("jidan") || name.includes("mia") || cqi === "ww" || cqi === "24";
+          }
+        };
+
+        const eligibleInCore = manpowerData.core.filter(isEligiblePerson);
+        const eligibleInSpecial = manpowerData[targetKey].filter(isEligiblePerson);
+        const totalEligibleCount = eligibleInCore.length + (isOccupied ? 1 : 0);
+
+        // Aturan: Jika personil core untuk OT/WW hanya ada 1 (atau total kandidat <= 1), rolling tidak menukar manpower
+        // "saat manpower core untuk OT/WW hanya ada 1, maka tombol rolling OT jika di klik tidak menukar manpower."
+        // Respon: Tampilkan pesan toast bahwa personil hanya 1 orang dan pertahankan alokasi
+        if (totalEligibleCount <= 1 || (isOccupied && eligibleInCore.length === 0)) {
+          const personName = (currentSpecialPerson ? (typeof currentSpecialPerson === "object" ? currentSpecialPerson.name : currentSpecialPerson) : (eligibleInCore[0] ? (typeof eligibleInCore[0] === "object" ? eligibleInCore[0].name : eligibleInCore[0]) : ""));
+          showToast(`Personil Core untuk posisi ${type.toUpperCase()} hanya tersedia 1 orang${personName ? ` (${personName})` : ""}. Rolling dibatalkan dan alokasi dipertahankan.`, "warning");
+          return;
+        }
+
         let targetCoreIdx = -1;
 
         if (type === "ot") {
-          // Prioritas OT: Farhan (C14) -> jika tidak ada / absen / sedang di OT -> Dini (C7)
+          // Prioritas OT: Farhan (C14) -> jika tidak ada / sedang di OT -> Dini (C7)
           const wantFarhanFirst = (!currentName || currentName.includes("dini"));
 
           if (wantFarhanFirst) {
@@ -1987,7 +2077,7 @@
             });
           }
         } else if (type === "ww") {
-          // Prioritas WW: Jiddan (C9) -> jika tidak ada / absen / sedang di WW -> Mia (C8)
+          // Prioritas WW: Jiddan (C9) -> jika tidak ada / sedang di WW -> Mia (C8)
           const wantJiddanFirst = (!currentName || currentName.includes("mia"));
 
           if (wantJiddanFirst) {
@@ -2031,46 +2121,54 @@
           }
         }
 
-        if (targetCoreIdx === -1 && manpowerData.core.length > 0) {
-          targetCoreIdx = 0;
-        }
-
         if (targetCoreIdx === -1 || targetCoreIdx >= manpowerData.core.length) {
+          const personName = (currentSpecialPerson ? (typeof currentSpecialPerson === "object" ? currentSpecialPerson.name : currentSpecialPerson) : "");
+          showToast(`Personil Core untuk posisi ${type.toUpperCase()} hanya tersedia 1 orang${personName ? ` (${personName})` : ""}. Rolling dibatalkan dan alokasi dipertahankan.`, "warning");
           return;
         }
 
         if (!isOccupied) {
           // MP OT/WW kosong: Pindahkan personil dari Core ke OT/WW tanpa meninggalkan nama/slot kosong di Core
           const [movedPerson] = manpowerData.core.splice(targetCoreIdx, 1);
-          const movedObj = typeof movedPerson === "object" ? movedPerson : { id: type === "ot" ? "C14" : "C9", name: String(movedPerson || "") };
-          manpowerData[targetKey] = [{
-            ...movedObj,
+          const pName = (typeof movedPerson === "object" ? movedPerson.name : String(movedPerson || "")).trim();
+          const canonical = getCanonicalManpowerInfo(pName) || {};
+          const movedObj = {
+            id: canonical.id || (typeof movedPerson === "object" ? movedPerson.id : "") || (type === "ot" ? "C14" : "C9"),
+            name: canonical.name || pName,
             cqi_priority: defaultCqi,
             job_priority: defaultJob,
-          }];
+          };
+          manpowerData[targetKey] = [movedObj];
+          showToast(`${movedObj.name} ditugaskan ke Manpower ${type.toUpperCase()}`, "success");
         } else {
           // MP OT/WW terisi (Rolling): Tukar personil Core dan OT/WW
           const corePerson = manpowerData.core[targetCoreIdx];
           const specialPerson = manpowerData[targetKey][0];
 
-          const coreObj = typeof corePerson === "object" ? corePerson : { id: `C${targetCoreIdx + 1}`, name: corePerson, cqi_priority: defaultCqi, job_priority: "" };
-          const specObj = specialPerson && typeof specialPerson === "object" ? specialPerson : { id: type === "ot" ? "C14" : "C9", name: specialPerson || "", cqi_priority: defaultCqi, job_priority: defaultJob };
+          const coreName = (typeof corePerson === "object" ? corePerson.name : String(corePerson || "")).trim();
+          const specName = (typeof specialPerson === "object" ? specialPerson.name : String(specialPerson || "")).trim();
 
+          const canonicalCore = getCanonicalManpowerInfo(coreName) || {};
+          const canonicalSpec = getCanonicalManpowerInfo(specName) || {};
+
+          // Personil yang tadinya di OT/WW sekarang masuk ke Core:
+          // ID-nya TETAP ID permanen miliknya (Farhan tetap C14, Jiddan tetap C9)
           manpowerData.core[targetCoreIdx] = {
-            ...coreObj,
-            id: specObj.id || coreObj.id,
-            name: specObj.name || "",
-            cqi_priority: specObj.cqi_priority || defaultCqi,
-            job_priority: specObj.job_priority || "",
+            id: canonicalSpec.id || (typeof specialPerson === "object" ? specialPerson.id : "") || (type === "ot" ? "C14" : "C9"),
+            name: canonicalSpec.name || specName,
+            cqi_priority: canonicalSpec.cqi_priority || defaultCqi,
+            job_priority: "",
           };
 
+          // Personil yang tadinya di Core sekarang masuk ke OT/WW:
+          // ID-nya TETAP ID permanen miliknya (Dini tetap C7, Mia tetap C8)
           manpowerData[targetKey][0] = {
-            ...specObj,
-            id: coreObj.id || specObj.id,
-            name: coreObj.name || "",
-            cqi_priority: coreObj.cqi_priority || defaultCqi,
-            job_priority: coreObj.job_priority || defaultJob,
+            id: canonicalCore.id || (typeof corePerson === "object" ? corePerson.id : "") || (type === "ot" ? "C7" : "C8"),
+            name: canonicalCore.name || coreName,
+            cqi_priority: canonicalCore.cqi_priority || defaultCqi,
+            job_priority: canonicalCore.job_priority || defaultJob,
           };
+          showToast(`Rolling ${type.toUpperCase()}: ${coreName} ⇆ ${specName}`, "success");
         }
 
         // Batasi maksimal 1 MP di kolom OT / WW
@@ -2092,6 +2190,7 @@
         renderAllLists();
         updateDashboardStats();
         updateActivePlanningManpower();
+        renderInteractiveAlerts();
       }
       window.swapManpowerSameCqiPriority = swapManpowerSameCqiPriority;
 
@@ -2576,6 +2675,12 @@
         renderSupportFgOptions();
         renderMilStdOptions();
         updateDashboardStats();
+        if (typeof currentPlan !== "undefined" && currentPlan && currentPlan.length > 0) {
+          updateActivePlanningManpower();
+        }
+        if (typeof renderInteractiveAlerts === "function") {
+          renderInteractiveAlerts();
+        }
       }
       window.onMilStdSelectChange = onMilStdSelectChange;
 
@@ -3491,18 +3596,24 @@
           document.body.appendChild(container);
         }
         const t = document.createElement("div");
-        t.className = `toast ${type}`;
+        const normalizedType = (type === "error") ? "danger" : type;
+        t.className = `toast ${normalizedType}`;
         const iconSvg =
-          type === "success"
-            ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
-            : type === "warning"
-            ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
-            : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
-        t.innerHTML = `<span style="display:inline-flex; align-items:center;">${iconSvg}</span> <span>${msg}</span>`;
+          normalizedType === "success"
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+            : normalizedType === "warning"
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`
+            : normalizedType === "danger"
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`
+            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+        t.innerHTML = `<span style="display:inline-flex; align-items:center; flex-shrink:0;">${iconSvg}</span> <span>${msg}</span>`;
         container.appendChild(t);
         setTimeout(() => {
-          if (t.parentNode) t.remove();
-        }, 3000);
+          t.classList.add("toast-hiding");
+          setTimeout(() => {
+            if (t.parentNode) t.remove();
+          }, 180);
+        }, 2500);
       }
 
       async function copyTextToClipboard(text) {
@@ -4087,10 +4198,55 @@
 
       function loadPlanningCache() {
         try {
-          const raw = localStorage.getItem("plan_maker_cache_full_v2");
-          if (!raw) return false;
-          const data = JSON.parse(raw);
+          let raw = localStorage.getItem("plan_maker_cache_full_v2");
+          let data = raw ? JSON.parse(raw) : null;
+
+          if (!data || !data.currentPlan || !Array.isArray(data.currentPlan) || data.currentPlan.length === 0) {
+            const actRaw = sessionStorage.getItem("active_planning") || localStorage.getItem("last_active_planning");
+            if (actRaw) {
+              const actParsed = JSON.parse(actRaw);
+              const slots = actParsed.currentPlan || actParsed.slots || actParsed.planning;
+              if (Array.isArray(slots) && slots.length > 0) {
+                data = {
+                  currentPlan: slots,
+                  slots: slots,
+                  lastFinalConfig: actParsed.lastFinalConfig,
+                  canNavigateSteps: true,
+                  unassignedMachines: actParsed.unassignedMachines || [],
+                  isFromHistory: !!actParsed.isFromHistory,
+                  historyFile: actParsed.historyFile
+                };
+              }
+            }
+          }
+
           if (data && data.currentPlan && Array.isArray(data.currentPlan) && data.currentPlan.length > 0) {
+            if (data.isFromHistory) {
+              currentPlan = data.currentPlan;
+              lastFinalConfig = data.lastFinalConfig;
+              canNavigateSteps = true;
+              currentPlan.unassignedMachines = data.unassignedMachines || [];
+              currentPlan.uncoveredMachines = currentPlan.unassignedMachines;
+
+              // Sinkronkan state mesin & cqi dengan riwayat agar UI sinkron sempurna
+              const histRunningMacs = [];
+              const histReadyCqis = [];
+              currentPlan.forEach(s => {
+                if (s.cqi) histReadyCqis.push(s.cqi);
+                (s.machines || []).forEach(m => histRunningMacs.push(m));
+              });
+              if (state) {
+                state.machines = histRunningMacs;
+                state.cqis = histReadyCqis;
+              }
+              const dbRun = document.getElementById("db-running");
+              if (dbRun) dbRun.innerText = histRunningMacs.length;
+              const dbCqi = document.getElementById("db-cqi-ready");
+              if (dbCqi) dbCqi.innerText = histReadyCqis.length;
+
+              return true;
+            }
+
             const currentMachineIds = (state && state.machines ? state.machines : []).map((m) => m.id || m.name).sort().join(",");
             const currentCqiIds = (state && state.cqis ? state.cqis : []).map((c) => c.id || c.name).sort().join(",");
 
@@ -4183,17 +4339,157 @@
         };
       }
 
+      function evaluateStep1Alerts() {
+        const violations = [];
+        const info = [];
+
+        const runningMacs = (state && Array.isArray(state.machines)) ? state.machines : [];
+        const readyCqis = (state && Array.isArray(state.cqis)) ? state.cqis : [];
+
+        const validCore = (manpowerData.core || []).filter(c => {
+          const name = typeof c === "object" ? (c.name || "") : String(c || "");
+          return name.trim().length > 0;
+        });
+        const validOt = (manpowerData.ot || []).filter(c => {
+          const name = typeof c === "object" ? (c.name || "") : String(c || "");
+          return name.trim().length > 0;
+        });
+        const validWw = (manpowerData.ww || []).filter(c => {
+          const name = typeof c === "object" ? (c.name || "") : String(c || "");
+          return name.trim().length > 0;
+        });
+        const totalCore = validCore.length + validOt.length + validWw.length;
+
+        const validNonCore = (manpowerData.nonCore || []).filter(c => {
+          const name = typeof c === "object" ? (c.name || "") : String(c || "");
+          return name.trim().length > 0;
+        });
+
+        const lsInput = document.getElementById("ncLongshiftCount");
+        const totalLs = parseInt(lsInput ? lsInput.value : (localStorage.getItem("ncls_count") || "0"), 10) || 0;
+
+        // 1. Validasi Mesin Running
+        if (runningMacs.length === 0) {
+          violations.push("Tidak ada mesin berstatus RUNNING yang terdeteksi untuk perencanaan shift.");
+        }
+
+        // 2. Validasi Meja CQI Ready
+        if (readyCqis.length === 0) {
+          violations.push("Tidak ada meja CQI berstatus READY / Aktif di layout pabrik.");
+        }
+
+        // 3. Validasi Kecukupan Core vs CQI Ready
+        if (totalCore === 0) {
+          violations.push("Belum ada personil Core aktif dalam konfigurasi manpower.");
+        } else if (readyCqis.length > 0 && totalCore < readyCqis.length) {
+          violations.push(`Jumlah personil Core (${totalCore} MP) kurang dari jumlah meja CQI aktif (${readyCqis.length} meja). Disarankan 1 meja CQI diawaki 1 personil Core.`);
+        } else if (readyCqis.length > 0 && totalCore > readyCqis.length) {
+          info.push(`Terdapat ${totalCore} personil Core untuk ${readyCqis.length} meja CQI aktif. Kelebihan personil (${totalCore - readyCqis.length} MP) akan ditempatkan di unassigned pool.`);
+        }
+
+        // 4. Validasi Tugas Khusus CQI 19 (OT) & CQI 24 (WW)
+        const b = getBrain() || window.BrainAI;
+        const hasCqi19 = readyCqis.some(c => (b && typeof b.getCqiNumber === "function" ? b.getCqiNumber(c) : 0) === 19);
+        const hasCqi24 = readyCqis.some(c => (b && typeof b.getCqiNumber === "function" ? b.getCqiNumber(c) : 0) === 24);
+
+        if (hasCqi19 && validOt.length === 0) {
+          violations.push("Meja CQI 19 (khusus mesin OT) aktif, namun personil khusus OT belum dialokasikan.");
+        }
+        if (hasCqi24 && validWw.length === 0) {
+          violations.push("Meja CQI 24 (khusus mesin WW) aktif, namun personil khusus WW belum dialokasikan.");
+        }
+
+        // 5. Validasi Duplikasi Nama Personil
+        const seenNames = new Map();
+        const checkDupe = (list, role) => {
+          list.forEach(item => {
+            const raw = typeof item === "object" ? (item.name || "") : String(item || "");
+            const name = raw.trim().toLowerCase();
+            if (!name) return;
+            if (seenNames.has(name)) {
+              violations.push(`Personil "${raw.trim()}" terdaftar ganda di kategori ${seenNames.get(name)} dan ${role}.`);
+            } else {
+              seenNames.set(name, role);
+            }
+          });
+        };
+        checkDupe(validCore, "Core");
+        checkDupe(validOt, "Manpower OT");
+        checkDupe(validWw, "Manpower WW");
+        checkDupe(validNonCore, "Non-Core");
+
+        const milStdVal = (localStorage.getItem("milStd_val") || (document.getElementById("milStdSelect") ? document.getElementById("milStdSelect").value : "")).trim();
+        if (milStdVal) {
+          if (seenNames.has(milStdVal.toLowerCase())) {
+            violations.push(`Personil Mil-Std "${milStdVal}" sudah terdaftar di ${seenNames.get(milStdVal.toLowerCase())}.`);
+          } else {
+            seenNames.set(milStdVal.toLowerCase(), "Mil-Std");
+          }
+        }
+
+        const supportFgVal = (localStorage.getItem("supportFg_val") || (document.getElementById("supportFgSelect") ? document.getElementById("supportFgSelect").value : "")).trim();
+        if (supportFgVal) {
+          if (seenNames.has(supportFgVal.toLowerCase())) {
+            violations.push(`Personil Support FG "${supportFgVal}" sudah terdaftar di ${seenNames.get(supportFgVal.toLowerCase())}.`);
+          } else {
+            seenNames.set(supportFgVal.toLowerCase(), "Support FG");
+          }
+        }
+
+        (manpowerData.qcPassed || []).forEach((qc, idx) => {
+          const qName = typeof qc === "object" ? (qc.name || "") : String(qc || "");
+          if (qName.trim()) {
+            const lower = qName.trim().toLowerCase();
+            if (seenNames.has(lower)) {
+              violations.push(`Personil QC Passed "${qName.trim()}" sudah terdaftar di ${seenNames.get(lower)}.`);
+            } else {
+              seenNames.set(lower, `QC Passed #${idx + 1}`);
+            }
+          }
+        });
+
+        if (violations.length === 0) {
+          info.push(`Konfigurasi personil optimal (${totalCore} Core, ${validNonCore.length} Non-Core, ${totalLs} Longshift). Siap untuk alokasi shift.`);
+        }
+
+        updateAlertCenter(info, violations);
+      }
+
       function renderInteractiveAlerts() {
-        if (!currentPlan) {
-          updateAlertCenter([], []);
+        if (!currentPlan || !Array.isArray(currentPlan) || currentPlan.length === 0) {
+          evaluateStep1Alerts();
           return;
         }
+
         const machinesToValidate = state && state.machines ? state.machines : [];
         const brainEngine = getBrain() || window.BrainAI;
         const report = (brainEngine && typeof brainEngine.validate === "function")
           ? brainEngine.validate(currentPlan, machinesToValidate, lastFinalConfig || planningMode)
           : { info: [], violations: [] };
-        updateAlertCenter(report.info, report.violations);
+
+        const violations = [...(report.violations || [])];
+        const info = [...(report.info || [])];
+
+        // Validasi instan kolom Core pada seluruh slot
+        currentPlan.forEach((slot, sIdx) => {
+          const cqiNum = (brainEngine && brainEngine.getCqiNumber) ? brainEngine.getCqiNumber(slot) : (sIdx + 1);
+          const cqiName = slot.cqi?.name || `CQI ${cqiNum}`;
+          (slot.coreNames || []).forEach(cn => {
+            if (isLongshiftToken(cn)) {
+              violations.push(`Meja ${cqiName}: Kolom Core tidak boleh diisi oleh token Longshift (${cn})!`);
+            } else {
+              const isRegisteredNonCore = (manpowerData.nonCore || []).some(nc => {
+                const n = typeof nc === "object" ? nc.name : nc;
+                return String(n).trim().toLowerCase() === String(cn).trim().toLowerCase();
+              });
+              if (isRegisteredNonCore) {
+                violations.push(`Meja ${cqiName}: Kolom Core tidak boleh diisi oleh personil Non-Core (${cn})!`);
+              }
+            }
+          });
+        });
+
+        updateAlertCenter(info, violations);
       }
 
       function groupMachinesByWs(machines) {
@@ -4979,6 +5275,14 @@
           if (zoneType === "machine" && (itemType === "machine" || itemType === "workstation")) {
             el.classList.add("drop-target-active");
           } else if (zoneType === "core" && itemType === "person") {
+            const isNonCoreOrLs = draggedItemData.personType !== "coreNames" || isLongshiftToken(draggedItemData.personName);
+            if (isNonCoreOrLs) {
+              el.classList.add("drop-target-blocked");
+              el.classList.remove("drop-target-active");
+              if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
+              return;
+            }
+            el.classList.remove("drop-target-blocked");
             el.classList.add("drop-target-active");
           } else if (zoneType === "support" && itemType === "person") {
             if (draggedItemData.personType !== "coreNames") {
@@ -5022,17 +5326,28 @@
 
       function handlePersonPillDragOver(e) {
         if (!draggedItemData || draggedItemData.type !== "person") return;
+        const pill = e.currentTarget;
+        const isTargetCore = pill && (pill.classList.contains("core") || !!pill.closest(".slot-core-box") || pill.getAttribute("data-person-type") === "coreNames");
+        const isSrcNonCoreOrLs = draggedItemData.personType !== "coreNames" || isLongshiftToken(draggedItemData.personName);
+        if (isTargetCore && isSrcNonCoreOrLs) {
+          pill.classList.add("drop-target-blocked");
+          pill.classList.remove("person-swap-target");
+          if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
+          return;
+        }
         e.preventDefault();
         e.stopPropagation();
         if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-        const pill = e.currentTarget;
-        if (pill) pill.classList.add("person-swap-target");
+        if (pill) {
+          pill.classList.remove("drop-target-blocked");
+          pill.classList.add("person-swap-target");
+        }
       }
 
       function handlePersonPillDragLeave(e) {
         const pill = e.currentTarget;
         if (pill && e.relatedTarget && pill.contains(e.relatedTarget)) return;
-        if (pill) pill.classList.remove("person-swap-target");
+        if (pill) pill.classList.remove("person-swap-target", "drop-target-blocked");
       }
 
       // ========================================================
@@ -5054,6 +5369,31 @@
         const srcType = data.personType || "nonCore";
         const srcName = data.personName;
         const srcIdx = typeof data.personIdx === "number" ? data.personIdx : 0;
+
+        const isSrcNonCoreOrLs = srcType !== "coreNames" || isLongshiftToken(srcName);
+        const isTargetCore = targetType === "coreNames" || (e.currentTarget && (e.currentTarget.classList.contains("core") || !!e.currentTarget.closest(".slot-core-box")));
+
+        // Cegah kolom Core diisi oleh Non-Core atau (LS)
+        if (isTargetCore && isSrcNonCoreOrLs) {
+          const el = e.currentTarget;
+          if (el) {
+            el.classList.add("drop-target-blocked");
+            setTimeout(() => el.classList.remove("drop-target-blocked"), 1200);
+          }
+          const box = el ? el.closest(".slot-card, .slot-core-box") : null;
+          if (box) {
+            box.classList.remove("overload-shake");
+            void box.offsetWidth;
+            box.classList.add("overload-shake");
+            setTimeout(() => box.classList.remove("overload-shake"), 500);
+          }
+          showToast(`Personil ${srcName || "Non-Core/(LS)"} adalah Non-Core/(LS) dan tidak dapat ditempatkan pada kolom Core!`, "warning");
+          return;
+        }
+        if (srcType === "coreNames" && !isTargetCore) {
+          showToast("Manpower Core tidak boleh ditukar ke kolom Non-Core/LS secara langsung!", "warning");
+          return;
+        }
 
         // Jika drag ke orang yang sama di slot yang sama, abaikan
         if (srcSlotIdx === targetSlotIdx && srcName === targetName) {
@@ -5145,7 +5485,7 @@
               }
             }
           } else {
-            // Ada Core yang terlibat
+            // Keduanya adalah Core (Core A <-> Core B)
             removePersonFromSlot(srcSlot, srcName);
             removePersonFromSlot(tgtSlot, targetName);
             addPersonToSlot(tgtSlot, srcName, targetType);
@@ -5231,11 +5571,22 @@
 
         if (data.type !== "person") return;
 
-        // Jika yang di-drop adalah Non-Core / Longshift ke area Core (misal drop di badge shortage),
-        // alihkan ke handleSupportDrop agar alokasi tepat sasaran
-        if (data.personType !== "coreNames") {
-          draggedItemData = data;
-          handleSupportDrop(e, targetSlotIdx, -1);
+        // Jika yang di-drop ke area Core bukan Core (misal Non-Core atau LS) -> Tolak!
+        const isSrcNonCoreOrLs = (data.personType !== "coreNames") || isLongshiftToken(data.personName);
+        if (isSrcNonCoreOrLs) {
+          const el = e.currentTarget;
+          if (el) {
+            el.classList.add("drop-target-blocked");
+            setTimeout(() => el.classList.remove("drop-target-blocked"), 1200);
+          }
+          const box = el ? el.closest(".slot-card, .slot-core-box") : null;
+          if (box) {
+            box.classList.remove("overload-shake");
+            void box.offsetWidth;
+            box.classList.add("overload-shake");
+            setTimeout(() => box.classList.remove("overload-shake"), 500);
+          }
+          showToast(`Personil ${data.personName || "Non-Core/(LS)"} adalah Non-Core/(LS) dan tidak dapat ditempatkan pada kolom Core!`, "warning");
           return;
         }
 
@@ -5308,7 +5659,7 @@
         if (data.type !== "person") return;
 
         // Jika yang di-drop adalah Core ke area Support, alihkan ke handleCoreDrop
-        if (data.personType === "coreNames") {
+        if (data.personType === "coreNames" && !isLongshiftToken(data.personName)) {
           draggedItemData = data;
           handleCoreDrop(e, targetSlotIdx);
           return;
@@ -5760,7 +6111,7 @@
           // C. Personil
           if (data.type === "person") {
             draggedItemData = data;
-            if (data.personType === "coreNames") {
+            if (data.personType === "coreNames" && !isLongshiftToken(data.personName)) {
               handleCoreDrop(e, targetSlotIdx);
             } else {
               handleSupportDrop(e, targetSlotIdx, targetColIdx >= 0 ? targetColIdx : -1);
@@ -5897,7 +6248,9 @@
 
         updateStepperUI();
 
-        if (stepNum === 2) {
+        if (stepNum === 1) {
+          renderInteractiveAlerts();
+        } else if (stepNum === 2) {
           if (!currentPlan || !Array.isArray(currentPlan) || currentPlan.length === 0) {
             executePlan();
           } else {
@@ -5914,6 +6267,7 @@
           if (typeof autoResizeTextOutput === "function") {
             setTimeout(() => autoResizeTextOutput(true), 60);
           }
+          renderInteractiveAlerts();
         }
 
         window.scrollTo({ top: 0, behavior: "smooth" });

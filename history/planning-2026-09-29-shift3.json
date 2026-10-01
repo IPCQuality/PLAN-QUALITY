@@ -1,0 +1,299 @@
+{
+  "meta": {
+    "app": "PLANING-MAKER",
+    "type": "official_history",
+    "date": "2026-09-29",
+    "shift": 3,
+    "timestamp": "2026-09-29T11:42:53.183Z",
+    "total_cqi": 12,
+    "total_machines_running": 69,
+    "total_core": 12,
+    "total_non_core": 8,
+    "total_longshift": 3,
+    "mode": "standard"
+  },
+  "special_assignments": {
+    "qc_passed": [
+      "Jalu",
+      "Yaya",
+      "Yadi",
+      "M. Udin",
+      "Andi"
+    ],
+    "mil_std": "Alief",
+    "support_fg": "Priyya"
+  },
+  "planning": [
+    {
+      "no": 1,
+      "cqi": "CQI 2",
+      "cqi_line": "-",
+      "core": [
+        "Mia"
+      ],
+      "non_core": [
+        "Kirana"
+      ],
+      "longshift": [],
+      "total_manpower": 2,
+      "total_machines": 6,
+      "machines": [
+        "AST 36-16L",
+        "AST 44-16L",
+        "AST 61-16L",
+        "AST 70-16L",
+        "AST 69-16L",
+        "AST 67-16L"
+      ],
+      "machines_formatted": "AST 36-16L, AST 44-16L, AST 61-16L, AST 70-16L, AST 69-16L, AST 67-16L"
+    },
+    {
+      "no": 2,
+      "cqi": "CQI 3",
+      "cqi_line": "-",
+      "core": [
+        "Ninda"
+      ],
+      "non_core": [
+        "Dinda"
+      ],
+      "longshift": [],
+      "total_manpower": 2,
+      "total_machines": 6,
+      "machines": [
+        "AST 54-16L",
+        "AST 55-16L",
+        "AST 22-16L",
+        "AST 28-16L",
+        "AST 65-16L",
+        "AST 14-12L"
+      ],
+      "machines_formatted": "AST 54-16L, AST 55-16L, AST 22-16L, AST 28-16L, AST 65-16L, AST 14-12L"
+    },
+    {
+      "no": 3,
+      "cqi": "CQI 5",
+      "cqi_line": "-",
+      "core": [
+        "Nurul"
+      ],
+      "non_core": [
+        "Litha"
+      ],
+      "longshift": [],
+      "total_manpower": 2,
+      "total_machines": 6,
+      "machines": [
+        "AST 29-16L",
+        "AST 8-16L",
+        "AST 10-16L",
+        "AST 12-16L",
+        "AST 26-16L",
+        "AST 27-16L"
+      ],
+      "machines_formatted": "AST 29-16L, AST 8-16L, AST 10-16L, AST 12-16L, AST 26-16L, AST 27-16L"
+    },
+    {
+      "no": 4,
+      "cqi": "CQI 7",
+      "cqi_line": "-",
+      "core": [
+        "Thazkia"
+      ],
+      "non_core": [
+        "Siska"
+      ],
+      "longshift": [],
+      "total_manpower": 2,
+      "total_machines": 6,
+      "machines": [
+        "AST 71-16L",
+        "AST 3-16L",
+        "AST 30-16L",
+        "AST 7-16L",
+        "AST 9-16L",
+        "AST 11-16L"
+      ],
+      "machines_formatted": "AST 71-16L, AST 3-16L, AST 30-16L, AST 7-16L, AST 9-16L, AST 11-16L"
+    },
+    {
+      "no": 5,
+      "cqi": "CQI 8",
+      "cqi_line": "-",
+      "core": [
+        "Gita"
+      ],
+      "non_core": [
+        "Wulan"
+      ],
+      "longshift": [],
+      "total_manpower": 2,
+      "total_machines": 6,
+      "machines": [
+        "AST 72-16L",
+        "AST 18-16L",
+        "AST 6-16L",
+        "AST 2-16L",
+        "AST 5-16L",
+        "AST 4-16L"
+      ],
+      "machines_formatted": "AST 72-16L, AST 18-16L, AST 6-16L, AST 2-16L, AST 5-16L, AST 4-16L"
+    },
+    {
+      "no": 6,
+      "cqi": "CQI 10",
+      "cqi_line": "-",
+      "core": [
+        "Angel"
+      ],
+      "non_core": [
+        "Allen"
+      ],
+      "longshift": [
+        "(LS)"
+      ],
+      "total_manpower": 3,
+      "total_machines": 8,
+      "machines": [
+        "AST 19-16L",
+        "AST 20-16L",
+        "AST 21-16L",
+        "AST 33-16L",
+        "AST 63-16L",
+        "AST 17-16L",
+        "AST 15-16L",
+        "AST 16-16L"
+      ],
+      "machines_formatted": "AST 19-16L, AST 20-16L, AST 21-16L, AST 33-16L, AST 63-16L, AST 17-16L, AST 15-16L, AST 16-16L"
+    },
+    {
+      "no": 7,
+      "cqi": "CQI 11",
+      "cqi_line": "-",
+      "core": [
+        "Allyssa"
+      ],
+      "non_core": [
+        "Syifa"
+      ],
+      "longshift": [],
+      "total_manpower": 2,
+      "total_machines": 6,
+      "machines": [
+        "AST 41-16L",
+        "AST 47-16L",
+        "AST 51-16L",
+        "AST 50-16L",
+        "AST 42-16L",
+        "AST 43-16L"
+      ],
+      "machines_formatted": "AST 41-16L, AST 47-16L, AST 51-16L, AST 50-16L, AST 42-16L, AST 43-16L"
+    },
+    {
+      "no": 8,
+      "cqi": "CQI 19",
+      "cqi_line": "-",
+      "core": [
+        "Dini"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "total_manpower": 1,
+      "total_machines": 2,
+      "machines": [
+        "M2",
+        "M3"
+      ],
+      "machines_formatted": "M2, M3"
+    },
+    {
+      "no": 9,
+      "cqi": "CQI 20",
+      "cqi_line": "-",
+      "core": [
+        "Amanda"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "total_manpower": 1,
+      "total_machines": 5,
+      "machines": [
+        "APK 55",
+        "APK 32",
+        "K5",
+        "APK 63",
+        "APK 9"
+      ],
+      "machines_formatted": "APK 55, APK 32, K5, APK 63, APK 9"
+    },
+    {
+      "no": 10,
+      "cqi": "CQI 21",
+      "cqi_line": "-",
+      "core": [
+        "Fira"
+      ],
+      "non_core": [],
+      "longshift": [
+        "(LS)"
+      ],
+      "total_manpower": 2,
+      "total_machines": 6,
+      "machines": [
+        "AST 53-16L",
+        "AST 52-16L",
+        "AST 48-16L",
+        "AST 49-16L",
+        "AST 45-16L",
+        "AST 46-16L"
+      ],
+      "machines_formatted": "AST 53-16L, AST 52-16L, AST 48-16L, AST 49-16L, AST 45-16L, AST 46-16L"
+    },
+    {
+      "no": 11,
+      "cqi": "CQI 24",
+      "cqi_line": "-",
+      "core": [
+        "Jiddan"
+      ],
+      "non_core": [],
+      "longshift": [],
+      "total_manpower": 1,
+      "total_machines": 4,
+      "machines": [
+        "C2",
+        "APK 19",
+        "APK 15",
+        "APK 12"
+      ],
+      "machines_formatted": "C2, APK 19, APK 15, APK 12"
+    },
+    {
+      "no": 12,
+      "cqi": "CQI 25",
+      "cqi_line": "-",
+      "core": [
+        "Dwi"
+      ],
+      "non_core": [
+        "Andi"
+      ],
+      "longshift": [
+        "(LS)"
+      ],
+      "total_manpower": 3,
+      "total_machines": 8,
+      "machines": [
+        "AST 39-12L",
+        "AST 38-12L",
+        "AST 37-12L",
+        "AST 40-12L",
+        "AST 13-12L",
+        "AST 32-12L",
+        "AST 24-12L",
+        "AST 62-12L"
+      ],
+      "machines_formatted": "AST 39-12L, AST 38-12L, AST 37-12L, AST 40-12L, AST 13-12L, AST 32-12L, AST 24-12L, AST 62-12L"
+    }
+  ]
+}
